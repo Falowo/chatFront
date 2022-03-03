@@ -1,26 +1,139 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect } from "react";
+import { Routes, Route } from "react-router-dom";
+import { Container } from "@mui/material";
+import { makeStyles } from "@mui/styles";
+import Home from "./pages/home/Home";
+import SignIn from "./pages/login/Login";
+import SignUp from "./pages/register/Register";
+import Messenger from "./pages/messenger/Messenger";
+import Profile from "./pages/profile/Profile";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import {
+  useAppSelector,
+  useAppDispatch,
+} from "./app/hooks";
+import { selectCurrentUser } from "./app/slices/authSlice";
+import Search from "./pages/search/Search";
+import {
+  selectConnectedUsers,
+  setConnectedUsers,
+  setNotCheckedFriendsRequestNumber,
+  socketAddUser,
+} from "./app/slices/socketSlice";
+import { socket } from "./config/config.socket";
+import { getFriendsOfCurrentUserAsync } from "./app/slices/currentUserSlice";
+// import { getBothFollowedByAndFollowersOfCurrentUserAsync } from "./app/slices/currentUserSlice";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+const useStyles = makeStyles({
+  contentStyle: {
+    margin: "0 auto",
+  },
+});
+
+const App = () => {
+  const classes = useStyles();
+  const currentUser = useAppSelector(selectCurrentUser);
+  const dispatch = useAppDispatch();
+  const connectedUsers = useAppSelector(
+    selectConnectedUsers,
   );
-}
+
+  useEffect(() => {
+    !!currentUser?._id &&
+      dispatch(socketAddUser(currentUser._id!));
+  }, [currentUser?._id, dispatch]);
+
+  useEffect(() => {
+    !!currentUser &&
+      dispatch(
+        setNotCheckedFriendsRequestNumber(
+          currentUser.notCheckedFriendRequestsNumber || 0,
+        ),
+      );
+  }, [currentUser, dispatch]);
+
+  useEffect(() => {
+    !!currentUser?._id &&
+      socket?.on(
+        "getUsers",
+        (
+          users: Array<{
+            socketId: string;
+            userId: string;
+          }>,
+        ) => {
+          dispatch(setConnectedUsers(users));
+        },
+      );
+  }, [connectedUsers, dispatch, currentUser?._id]);
+
+  useEffect(() => {
+    console.log({ connectedUsers });
+  }, [connectedUsers]);
+
+  useEffect(() => {
+    !!currentUser &&
+      dispatch(
+        getFriendsOfCurrentUserAsync(currentUser._id!),
+      );
+  }, [dispatch, currentUser]);
+
+  return (
+    <>
+      <Container maxWidth="xl">
+        <ToastContainer />
+        <Container
+          className={classes.contentStyle}
+          maxWidth="xl"
+        >
+          <Routes>
+            <Route
+              path="/signin"
+              element={!currentUser ? <SignIn /> : <Home />}
+            />
+            <Route path="/signup" element={<SignUp />} />
+            <Route
+              path="/messenger/:userId"
+              element={
+                !!currentUser ? <Messenger /> : <SignIn />
+              }
+            />
+            <Route
+              path="/messenger"
+              element={
+                !!currentUser ? <Messenger /> : <SignIn />
+              }
+            />
+            <Route
+              path="/profile/:username"
+              element={
+                !!currentUser ? <Profile /> : <SignIn />
+              }
+            />
+            <Route
+              path="/search"
+              element={
+                !!currentUser ? <Search /> : <SignIn />
+              }
+            />
+            <Route
+              path="/"
+              element={
+                !!currentUser ? <Home /> : <SignIn />
+              }
+            />
+            <Route
+              path="*"
+              element={
+                !!currentUser ? <Home /> : <SignUp />
+              }
+            />
+          </Routes>
+        </Container>
+      </Container>
+    </>
+  );
+};
 
 export default App;
