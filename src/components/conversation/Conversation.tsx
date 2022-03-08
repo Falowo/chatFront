@@ -1,4 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import "./conversation.css";
 import DoneIcon from "@mui/icons-material/Done";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
@@ -24,49 +28,55 @@ const Conversation = (props: ConversationProps) => {
     useState<string | null>(null);
   const PF = process.env.REACT_APP_PUBLIC_FOLDER;
 
-  const handleSetConversationName = async (
-    conversation: IPConversation,
-  ) => {
-    if (!!conversation && !conversation?.groupName) {
-      // console.log("!conversation.groupName");
+  const handleSetConversationName = useCallback(
+    async (conversation: IPConversation) => {
+      if (!!conversation && !conversation?.groupName) {
+        // console.log("!conversation.groupName");
 
-      const friendIdArray: string[] | undefined =
-        conversation.membersId!.filter(
-          (m: string | undefined) => m !== currentUser!._id,
+        const friendIdArray: string[] | undefined =
+          conversation.membersId!.filter(
+            (m: string | undefined) =>
+              m !== currentUser!._id,
+          );
+        const friendId = friendIdArray[0];
+
+        const res = await getUserByUserIdQuery(friendId);
+        const friend = res.data._doc;
+        setConversationName(
+          friendIdArray?.length === 1
+            ? friend.username
+            : `${friend.username} and ${
+                friendIdArray.length - 1
+              } more ... `,
         );
-      const friendId = friendIdArray[0];
+        setConversationPicture(
+          friend.profilePicture
+            ? PF + friend.profilePicture
+            : PF + "person/noAvatar.png",
+        );
+      } else if (!!conversation) {
+        // console.log("HASHTAG !!CONVERSATION");
 
-      const res = await getUserByUserIdQuery(friendId);
-      const friend = res.data._doc;
-      setConversationName(
-        friendIdArray?.length === 1
-          ? friend.username
-          : `${friend.username} and ${
-              friendIdArray.length - 1
-            } more ... `,
-      );
-      setConversationPicture(
-        friend.profilePicture
-          ? PF + friend.profilePicture
-          : PF + "person/noAvatar.png",
-      );
-    } else if (!!conversation) {
-      // console.log("HASHTAG !!CONVERSATION");
-
-      setConversationName(
-        conversation.groupName || "Unnamed conversation",
-      );
-      setConversationPicture(
-        conversation.groupPicture
-          ? PF + conversation.groupPicture
-          : PF + "person/noAvatar.png",
-      );
-    }
-  };
+        setConversationName(
+          conversation.groupName || "Unnamed conversation",
+        );
+        setConversationPicture(
+          conversation.groupPicture
+            ? PF + conversation.groupPicture
+            : PF + "person/noAvatar.png",
+        );
+      }
+    },
+    [PF, currentUser],
+  );
 
   useEffect(() => {
     handleSetConversationName(conversation);
-  });
+  }, [conversation, handleSetConversationName]);
+  
+  // useEffect(() => {
+  //   console.log({conversation, conversationName})
+  // }, [conversation, conversationName, handleSetConversationName]);
 
   return (
     <>

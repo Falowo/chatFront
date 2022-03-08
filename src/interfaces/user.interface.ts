@@ -17,7 +17,7 @@ export interface IUser {
   friendsRequestFrom?: string[];
   friendsRequestsTo?: string[];
   friends?: string[];
-  notCheckedFriendRequestsNumber?:number;
+  notCheckedFriendRequestsFrom?:string[];
   blocked?: string[];
   isAdmin?: boolean;
   desc?: string;

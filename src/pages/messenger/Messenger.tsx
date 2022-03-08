@@ -13,14 +13,20 @@ import {
 } from "../../app/hooks";
 import { selectCurrentUser } from "../../app/slices/authSlice";
 import {
+  conversationCheckedByCurrentUserAsync,
   createNewMessageAsync,
   getConversationsAsync,
   getExisitingConversationOrCreateOneAsync,
-  receiveNewMessage,
+  getUncheckedByCurrentUserAsync,
+  messageCheckedByRemoteUser,
+  messageReceivedByCurrentUserAsync,
+  messageReceivedByRemoteUser,
   selectConversations,
   selectCurrentChat,
   selectLastMessage,
+  selectLastMessagesCheckedByCurrentUser,
   selectSelectedConversation,
+  selectUncheckedByCurrentUser,
   setCurrentChatAsync,
 } from "../../app/slices/messengerSlice";
 import { useParams } from "react-router-dom";
@@ -28,7 +34,11 @@ import {
   addFriendAsync,
   selectFriendsOfCurrentUser,
 } from "../../app/slices/currentUserSlice";
-import { socketSendMessage } from "../../app/slices/socketSlice";
+import {
+  socketCurrentUserCheckMessagesAsync,
+  socketGotMessage,
+  socketSendMessage,
+} from "../../app/slices/socketSlice";
 export interface IChat {
   conversation: IConversation;
   messages: IPMessage[];
@@ -36,6 +46,7 @@ export interface IChat {
 
 const Messenger = () => {
   const scrollSpan = useRef<any>();
+
   const currentUser = useAppSelector(selectCurrentUser);
   const currentUserFriends = useAppSelector(
     selectFriendsOfCurrentUser,
@@ -47,11 +58,17 @@ const Messenger = () => {
   );
   const { userId } = useParams();
   const lastMessage = useAppSelector(selectLastMessage);
+  const lastMessagesCheckedByCurrentUser = useAppSelector(
+    selectLastMessagesCheckedByCurrentUser,
+  );
+  const uncheckedByCurrentUser = useAppSelector(
+    selectUncheckedByCurrentUser,
+  );
+
   // const isFetching = useAppSelector(selectMessengerIsfetching)
   const dispatch = useAppDispatch();
 
   const [newMessage, setNewMessage] = useState<string>("");
-  // const [socket, setSocket] = useState<Socket | null>(null);
 
   const sendNewMessage = async (senderId: string) => {
     try {
@@ -68,8 +85,6 @@ const Messenger = () => {
   };
 
   useEffect(() => {
-    
-
     if (
       !!lastMessage &&
       currentUser?._id! &&
@@ -77,7 +92,6 @@ const Messenger = () => {
         lastMessage.conversationId &&
       lastMessage.senderId?._id === currentUser?._id!
     ) {
-      
       dispatch(
         socketSendMessage({
           conversation: currentChat?.conversation,
@@ -86,7 +100,6 @@ const Messenger = () => {
         }),
       );
       console.log("socketSendMessage");
-
       setNewMessage("");
     }
   }, [
@@ -136,13 +149,71 @@ const Messenger = () => {
     }
     socket?.on("getMessage", (props: GetMessageProps) => {
       const { conversation, message } = props;
-      console.log("getMessage");
-      console.log({ message });
+      console.log({ getMessage: message, conversation });
 
-      dispatch(
-        receiveNewMessage({ conversation, message }),
-      );
+      if (lastMessage?._id! !== message._id!) {
+        dispatch(
+          messageReceivedByCurrentUserAsync({
+            conversation,
+            messageId: message._id!,
+          }),
+        );
+
+        !!currentUser?._id &&
+          dispatch(
+            socketGotMessage({
+              message,
+              receiverId: currentUser._id,
+            }),
+          );
+      }
     });
+  }, [currentUser?._id, dispatch, lastMessage?._id]);
+
+  useEffect(() => {
+    socket?.on(
+      "receivedMessage",
+      (props: {
+        message: IPMessage;
+        receiverId: string;
+      }) => {
+        const { receiverId, message } = props;
+        console.log({
+          receivedMessage: message,
+          receiverId,
+        });
+
+        dispatch(
+          messageReceivedByRemoteUser({
+            receiverId,
+            message,
+          }),
+        );
+      },
+    );
+  }, [dispatch]);
+  useEffect(() => {
+    socket?.on(
+      "checkedMessage",
+      (props: {
+        message: IPMessage;
+        receiverId: string;
+      }) => {
+        const { receiverId, message } = props;
+        console.log({
+          checkedMessage: message,
+          receiverId,
+        });
+
+        dispatch(
+          messageCheckedByRemoteUser({
+            checkedMessageId: message._id!,
+            conversationId: message.conversationId,
+            userId: receiverId,
+          }),
+        );
+      },
+    );
   }, [dispatch]);
 
   useEffect(() => {
@@ -155,6 +226,23 @@ const Messenger = () => {
   }, [dispatch, userId]);
 
   useEffect(() => {
+    if (currentUser?._id) {
+      !!lastMessagesCheckedByCurrentUser.length &&
+        dispatch(
+          socketCurrentUserCheckMessagesAsync({
+            messagesIds: lastMessagesCheckedByCurrentUser,
+            currentUserId: currentUser._id!,
+          }),
+        );
+      console.log({ lastMessagesCheckedByCurrentUser });
+    }
+  }, [
+    currentUser?._id,
+    dispatch,
+    lastMessagesCheckedByCurrentUser,
+  ]);
+
+  useEffect(() => {
     !!currentUser?._id &&
       dispatch(
         setCurrentChatAsync({
@@ -162,6 +250,19 @@ const Messenger = () => {
         }),
       );
   }, [currentUser, dispatch, selectedConversation, userId]);
+
+  useEffect(() => {
+    !!conversations && !!conversations.length &&
+      dispatch(
+        getUncheckedByCurrentUserAsync(
+          conversations?.map((c) => c._id!),
+        ),
+      );
+  }, [currentUser?._id!]);
+  useEffect(() => {
+    console.log({ uncheckedByCurrentUser });
+    console.log({ currentChat });
+  }, [uncheckedByCurrentUser]);
 
   useEffect(() => {
     scrollSpan.current.scrollIntoView();
@@ -183,14 +284,23 @@ const Messenger = () => {
                 conversations.map((c) => (
                   <button
                     className="onClickButtonWrapper conversationItem"
-                    key={c._id}
-                    onClick={() =>
+                    key={c._id!}
+                    onClick={() => {
                       dispatch(
                         setCurrentChatAsync({
                           selectedIPConversation: c,
                         }),
-                      )
-                    }
+                      );
+                      dispatch(
+                        conversationCheckedByCurrentUserAsync(
+                          {
+                            conversationId: c._id!,
+                            currentUserId:
+                              currentUser?._id!,
+                          },
+                        ),
+                      );
+                    }}
                   >
                     <Conversation
                       conversation={c}
@@ -237,6 +347,20 @@ const Messenger = () => {
                   onChange={(e) =>
                     setNewMessage(e.target.value)
                   }
+                  onFocus={() => {
+                    !!currentUser?._id &&
+                      !!currentChat?.conversation?._id! &&
+                      dispatch(
+                        conversationCheckedByCurrentUserAsync(
+                          {
+                            conversationId:
+                              currentChat?.conversation
+                                ?._id!,
+                            currentUserId: currentUser._id!,
+                          },
+                        ),
+                      );
+                  }}
                   value={newMessage}
                 />
                 <button

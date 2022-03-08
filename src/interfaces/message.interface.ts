@@ -1,5 +1,12 @@
 import { IUser } from "./user.interface";
 
+export enum Status {
+  aborted = 0,
+  pending = 10,
+  sent = 20,
+  received = 30,
+  checked = 40,
+}
 
 export interface IMessage {
   _id?: string;
@@ -7,7 +14,7 @@ export interface IMessage {
   senderId: string;
   receivedByIds?: string[];
   checkedByIds?: string[];
-  status?: number;
+  status?: Status;
   text?: string;
   img?: string;
   createdAt?: Date;
@@ -20,7 +27,7 @@ export interface IPMessage {
   senderId: IUser;
   receivedByIds?: string[];
   checkedByIds?: string[];
-  status?: number;
+  status?: Status;
   text?: string;
   img?: string;
   createdAt?: Date;

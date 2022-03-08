@@ -30,9 +30,7 @@
   display: flex;
   justify-content: space-between;
 }
-.conversationName {
-  text-align: start;
-}
+
 
 .fromNow {
   font-size: 10px;

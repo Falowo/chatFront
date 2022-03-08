@@ -8,6 +8,7 @@ import {
   IMessage,
   IPConversation,
   IPMessage,
+  Status,
 } from "../../interfaces";
 import {
   RootState,
@@ -22,8 +23,12 @@ import {
 } from "../../api/conversations.api";
 import {
   createMessage,
+  getCurrentUserUncheckedMessagesByConversationIdParams,
   getMessagesByConversationIdParams,
+  messageReceivedByCurrentUser,
+  messagesCheckedByCurrentUser,
 } from "../../api/messages.api";
+// import { socket } from "../../config/config.socket";
 // import { getUserByUserIdQuery } from "../../api/users.api";
 
 const position = {
@@ -38,6 +43,11 @@ export interface IChat {
 export interface MessengerState {
   conversations: IPConversation[];
   selectedConversation?: IConversation;
+  uncheckedByCurrentUser?: {
+    conversationId: string;
+    messagesIds: string[];
+  }[];
+  lastMessagesCheckedByCurrentUser: string[];
   currentChat?: IChat;
   lastMessage?: IPMessage;
   isFetching: boolean;
@@ -47,6 +57,8 @@ export interface MessengerState {
 const initialState: MessengerState = {
   conversations: [],
   selectedConversation: undefined,
+  uncheckedByCurrentUser: [],
+  lastMessagesCheckedByCurrentUser: [],
   currentChat: undefined,
   lastMessage: undefined,
   isFetching: false,
@@ -68,6 +80,25 @@ export const getConversationsAsync = createAsyncThunk(
     return conversations;
   },
 );
+export const getUncheckedByCurrentUserAsync =
+  createAsyncThunk(
+    "messenger/getUncheckedByCurrentUser",
+    async (conversationsIds: string[]) => {
+      const payload = await Promise.all(
+        conversationsIds?.map(async (cId) => {
+          const response =
+            await getCurrentUserUncheckedMessagesByConversationIdParams(
+              cId,
+            );
+          const messagesIds: string[] = response.data;
+
+          return { messagesIds, conversationId: cId };
+        }),
+      );
+
+      return payload;
+    },
+  );
 export const createNewMessageAsync = createAsyncThunk(
   "messenger/createMessage",
   async (newMessage: IMessage) => {
@@ -77,6 +108,47 @@ export const createNewMessageAsync = createAsyncThunk(
     return pMessage;
   },
 );
+
+export const messageReceivedByCurrentUserAsync =
+  createAsyncThunk(
+    "messenger/messageReceivedByCurrentUser",
+    async (props: {
+      messageId: string;
+      conversation: IConversation;
+    }) => {
+      const response = await messageReceivedByCurrentUser(
+        props,
+      );
+      // The value we return becomes the `fulfilled` action payload
+      const message: IPMessage =
+        response.data.updatedMessage;
+      const conversation: IConversation =
+        response.data.conversation;
+      return { message, conversation };
+    },
+  );
+
+export const conversationCheckedByCurrentUserAsync =
+  createAsyncThunk(
+    "messenger/conversationCheckedByCurrentUser",
+    async (props: {
+      conversationId: string;
+      currentUserId: string;
+    }) => {
+      const { conversationId, currentUserId } = props;
+      const response = await messagesCheckedByCurrentUser(
+        props,
+      );
+      // The value we return becomes the `fulfilled` action payload
+      const checkedMessagesIds: string[] = response.data;
+
+      return {
+        checkedMessagesIds,
+        conversationId,
+        currentUserId,
+      };
+    },
+  );
 
 export const setCurrentChatAsync = createAsyncThunk(
   "messenger/setCurrentChat",
@@ -252,6 +324,198 @@ export const messengerSlice = createSlice({
         }
       }
     },
+    messageReceivedByRemoteUser: (
+      state,
+      action: PayloadAction<{
+        message: IPMessage;
+        receiverId: string;
+      }>,
+    ) => {
+      console.log({ action });
+
+      if (!!action.payload) {
+        const { message, receiverId } = action.payload;
+
+        if (
+          state.currentChat?.conversation?._id ===
+          message.conversationId
+        ) {
+          let status: Status;
+
+          const conversationMembers =
+            state.currentChat.conversation.membersId;
+
+          if (
+            (
+              conversationMembers?.filter(
+                (mId) =>
+                  mId !== receiverId &&
+                  mId !== message.senderId._id &&
+                  !message?.receivedByIds?.includes(mId),
+              ) || []
+            ).length === 0
+          ) {
+            status = 30;
+          } else {
+            status = message?.status || 20;
+          }
+          state.currentChat = {
+            ...state.currentChat,
+            messages:
+              state.currentChat?.messages?.map((m) => {
+                if (m._id === message._id) {
+                  return {
+                    ...message,
+                    status,
+                    receivedByIds: [
+                      ...(message.receivedByIds?.filter(
+                        (rId) => rId !== receiverId,
+                      ) || []),
+                      receiverId,
+                    ],
+                  };
+                } else {
+                  return m;
+                }
+              }) || [],
+          };
+        }
+
+        if (
+          state.conversations.find(
+            (c) => c.lastMessageId?._id === message._id,
+          )
+        ) {
+          console.log("conversation Found");
+          let status: Status;
+          const conversation = state.conversations.find(
+            (c) => c.lastMessageId?._id === message._id,
+          );
+          const conversationMembers =
+            conversation?.membersId;
+
+          if (
+            (
+              conversationMembers?.filter(
+                (mId) =>
+                  mId !== receiverId &&
+                  mId !== message.senderId._id &&
+                  !message?.receivedByIds?.includes(mId),
+              ) || []
+            ).length === 0
+          ) {
+            status = 30;
+          } else {
+            status = message?.status || 20;
+          }
+          state.conversations = state.conversations?.map(
+            (c) => {
+              if (c.lastMessageId?._id === message._id) {
+                return {
+                  ...c,
+                  lastMessageId: {
+                    ...message,
+                    status,
+                    senderId: message.senderId._id!,
+                    receivedByIds: [
+                      ...(message.receivedByIds?.filter(
+                        (rId) => rId !== receiverId,
+                      ) || []),
+                      receiverId,
+                    ],
+                  },
+                };
+              } else return { ...c };
+            },
+          );
+        }
+      }
+    },
+    messageCheckedByRemoteUser: (
+      state,
+      action: PayloadAction<{
+        checkedMessageId: string;
+        conversationId: string;
+        userId: string;
+      }>,
+    ) => {
+      if (!!action.payload) {
+        const { checkedMessageId, conversationId, userId } =
+          action.payload;
+
+        let status: Status;
+        const conversation = state.conversations.find(
+          (c) => c.lastMessageId?._id === conversationId,
+        );
+        const conversationMembers = conversation?.membersId;
+        const message = conversation?.lastMessageId;
+        if (
+          (
+            conversationMembers?.filter(
+              (mId) =>
+                mId !== userId &&
+                mId !== message?.senderId &&
+                !message?.checkedByIds?.includes(mId),
+            ) || []
+          ).length === 0
+        ) {
+          status = 40;
+        } else {
+          status = message?.status || 30;
+        }
+
+        state.conversations = state.conversations.map(
+          (c) => {
+            if (c._id === conversationId) {
+              if (
+                !!c.lastMessageId?._id &&
+                checkedMessageId === c.lastMessageId?._id
+              ) {
+                return {
+                  ...c,
+                  lastMessageId: {
+                    ...c.lastMessageId,
+                    status,
+                    checkedByIds: {
+                      ...(c.lastMessageId?.checkedByIds?.filter(
+                        (cId) => cId !== userId,
+                      ) || []),
+                      userId,
+                    },
+                  },
+                };
+              } else {
+                return { ...c };
+              }
+            } else return c;
+          },
+        );
+
+        if (
+          conversationId ===
+          state.currentChat?.conversation._id
+        ) {
+          state.currentChat.messages = [
+            ...(state.currentChat?.messages?.map((m) => {
+              if (m._id === checkedMessageId) {
+                return {
+                  ...m,
+                  status,
+                  checkedByIds: {
+                    ...(m.checkedByIds?.filter(
+                      (uId) => uId !== userId,
+                    ) || []),
+                    userId,
+                  },
+                };
+              } else {
+                return { ...m };
+              }
+            }) || []),
+          ];
+        }
+      }
+    },
   },
   // The `extraReducers` field lets the slice handle actions defined elsewhere,
   // including actions generated by createAsyncThunk or in other slices.
@@ -271,6 +535,219 @@ export const messengerSlice = createSlice({
       )
       .addCase(
         getConversationsAsync.rejected,
+        (state, action) => {
+          state.isFetching = false;
+          toast(action.error.message, position);
+        },
+      )
+      .addCase(
+        getUncheckedByCurrentUserAsync.pending,
+        (state) => {
+          state.isFetching = true;
+        },
+      )
+      .addCase(
+        getUncheckedByCurrentUserAsync.fulfilled,
+        (state, action) => {
+          state.isFetching = false;
+          if (!!action.payload) {
+            state.uncheckedByCurrentUser = action.payload;
+          }
+        },
+      )
+      .addCase(
+        getUncheckedByCurrentUserAsync.rejected,
+        (state, action) => {
+          state.isFetching = false;
+          toast(action.error.message, position);
+        },
+      )
+
+      .addCase(
+        messageReceivedByCurrentUserAsync.pending,
+        (state) => {
+          state.isFetching = true;
+        },
+      )
+      .addCase(
+        messageReceivedByCurrentUserAsync.fulfilled,
+        (state, action) => {
+          const { message, conversation } = action.payload;
+          state.isFetching = false;
+          if (message._id !== state.lastMessage?._id) {
+            const pConversation = {
+              ...action.payload.conversation,
+              lastMessageId: {
+                ...action.payload.message,
+                senderId:
+                  action.payload.message.senderId._id!,
+              },
+            };
+
+            state.lastMessage = message;
+            state.conversations = [
+              pConversation,
+              ...state.conversations?.filter(
+                (c) => c._id !== conversation._id,
+              ),
+            ];
+
+            if (
+              !!state.currentChat &&
+              state.currentChat?.conversation?._id ===
+                conversation._id
+            ) {
+              state.currentChat = {
+                ...state.currentChat,
+                messages: [
+                  ...state.currentChat.messages,
+                  message,
+                ],
+              };
+            }
+
+            state.uncheckedByCurrentUser =
+              state.uncheckedByCurrentUser?.map((u) => {
+                if (
+                  u.conversationId ===
+                  message.conversationId
+                ) {
+                  return {
+                    ...u,
+                    messagesIds: [
+                      ...(u.messagesIds?.filter(
+                        (mIds) => mIds !== message._id,
+                      ) || []),
+                      message._id!,
+                    ],
+                  };
+                } else {
+                  return { ...u };
+                }
+              }) || [];
+          }
+        },
+      )
+      .addCase(
+        messageReceivedByCurrentUserAsync.rejected,
+        (state, action) => {
+          state.isFetching = false;
+          toast(action.error.message, position);
+        },
+      )
+
+      .addCase(
+        conversationCheckedByCurrentUserAsync.pending,
+        (state) => {
+          state.isFetching = true;
+        },
+      )
+      .addCase(
+        conversationCheckedByCurrentUserAsync.fulfilled,
+        (state, action) => {
+          state.isFetching = false;
+          console.log({ action });
+
+          if (!!action.payload) {
+            const {
+              conversationId,
+              checkedMessagesIds,
+              currentUserId,
+            } = action.payload;
+
+            const conversation = state.conversations.find(
+              (c) => c._id === conversationId,
+            );
+            let status: Status;
+            const conversationMembers =
+              conversation?.membersId;
+            const message: IMessage | undefined =
+              conversation?.lastMessageId;
+
+            if (!!message) {
+              if (
+                (
+                  conversationMembers?.filter(
+                    (mId) =>
+                      mId !== currentUserId &&
+                      mId !== message?.senderId &&
+                      !message?.checkedByIds?.includes(
+                        mId!,
+                      ),
+                  ) || []
+                ).length === 0
+              ) {
+                status = 40;
+              } else {
+                status = message?.status || 30;
+              }
+            }
+
+            if (!!message) {
+              state.conversations =
+                state.conversations?.map((c) => {
+                  if (c._id === conversationId) {
+                    return {
+                      ...c,
+                      lastMessageId: {
+                        ...message,
+                        status,
+                        checkedByIds: {
+                          ...(c.lastMessageId
+                            ?.checkedByIds || []),
+                          // ...(c.lastMessageId?.checkedByIds?.filter(
+                          //   (cId) => cId !== currentUserId,
+                          // ) || []),
+                          currentUserId,
+                        },
+                      },
+                    };
+                  } else return { ...c };
+                }) || [];
+            }
+
+            if (
+              !!state.currentChat &&
+              state.currentChat?.conversation?._id ===
+                conversationId
+            ) {
+              
+
+              state.currentChat = {
+                ...state.currentChat,
+                messages: [
+                  ...state.currentChat.messages.map((m) => {
+                    if (
+                      checkedMessagesIds.includes(m._id!)
+                    ) {
+                      return {
+                        ...m,
+                        status,
+                        checkedByIds: [
+                          ...(m.checkedByIds?.filter(
+                            (cId) => cId !== currentUserId,
+                          ) || []),
+                          currentUserId,
+                        ],
+                      };
+                    } else return { ...m };
+                  }),
+                ],
+              };
+            }
+
+            state.uncheckedByCurrentUser =
+              state.uncheckedByCurrentUser?.filter(
+                (u) => u.conversationId !== conversationId,
+              );
+
+            state.lastMessagesCheckedByCurrentUser =
+              checkedMessagesIds;
+          }
+        },
+      )
+      .addCase(
+        conversationCheckedByCurrentUserAsync.rejected,
         (state, action) => {
           state.isFetching = false;
           toast(action.error.message, position);
@@ -397,7 +874,11 @@ export const messengerSlice = createSlice({
   },
 });
 
-export const { receiveNewMessage } = messengerSlice.actions;
+export const {
+  receiveNewMessage,
+  messageReceivedByRemoteUser,
+  messageCheckedByRemoteUser,
+} = messengerSlice.actions;
 
 // The function below is called a selector and allows us to select a value from
 // the state. Selectors can also be defined inline where they're used instead of
@@ -416,6 +897,12 @@ export const selectMessengerIsfetching = (
 ) => state.messenger.isFetching;
 export const selectLastMessage = (state: RootState) =>
   state.messenger.lastMessage;
+export const selectLastMessagesCheckedByCurrentUser = (
+  state: RootState,
+) => state.messenger.lastMessagesCheckedByCurrentUser;
+export const selectUncheckedByCurrentUser = (
+  state: RootState,
+) => state.messenger.uncheckedByCurrentUser;
 
 // We can also write thunks by hand, which may contain both sync and async logic.
 // Here's an example of conditionally dispatching actions based on current state.
@@ -427,5 +914,19 @@ export const selectLastMessage = (state: RootState) =>
 //       dispatch(incrementByAmount(amount));
 //     }
 //   };
+// function areEqual(array1: string[], array2: string[]) {
+//   if (!array1.length && !array2.length) {
+//     return true;
+//   }
+//   else if (array1.length === array2.length) {
+//     return array1.every((element) => {
+//       if (array2.includes(element)) {
+//         return true;
+//       }
+//       return false;
+//     });
+//   }
+//   return false;
+// }
 
 export default messengerSlice.reducer;

@@ -1,5 +1,5 @@
 import {
-//   createAsyncThunk,
+  createAsyncThunk,
   createSlice,
   PayloadAction,
 } from "@reduxjs/toolkit";
@@ -12,6 +12,7 @@ import {
 // import { toast } from "react-toastify";
 import { socket } from "../../config/config.socket";
 import { IConversation, IPMessage } from "../../interfaces";
+import { getMessagesArrayFromIds } from "../../api/messages.api";
 
 // const position = {
 //   position: toast.POSITION.BOTTOM_RIGHT,
@@ -25,26 +26,16 @@ export interface UserSocket {
 export interface SocketState {
   addUserEmited: boolean;
   connectedUsers: UserSocket[];
-  lastMessagesSent: (
-    | {
-        messageId: string;
-        receiversIds: string[];
-        senderId: string;
-        conversationId: string;
-      }
-    | undefined
-  )[];
-  lastMessagesReceived: (
-    | {
-        messageId: string;
-        receiversIds: string[];
-        senderId: string;
-        conversationId: string;
-        notcheckedMessagesInThisConversationNumber: number;
-      }
-    | undefined
-  )[];
-  notCheckedFriendRequestsNumber: number;
+  lastMessageSentId?: string;
+  lastMessagesReceived: {
+    messageId: string;
+    receiverId: string;
+  }[];
+  lastMessagesChecked: {
+    messageId: string;
+    receiverId: string;
+  }[];
+  notCheckedFriendRequestsIds: string[];
 
   rooms: any[];
   isFetching: boolean;
@@ -54,9 +45,10 @@ export interface SocketState {
 const initialState: SocketState = {
   addUserEmited: false,
   connectedUsers: [],
-  lastMessagesSent: [],
+  lastMessageSentId: undefined,
   lastMessagesReceived: [],
-  notCheckedFriendRequestsNumber: 0,
+  lastMessagesChecked: [],
+  notCheckedFriendRequestsIds: [],
 
   rooms: [],
   isFetching: false,
@@ -68,6 +60,29 @@ const initialState: SocketState = {
 // will call the thunk with the `dispatch` function as the first argument. Async
 // code can then be executed and other actions can be dispatched. Thunks are
 // typically used to make async requests.
+
+export const socketCurrentUserCheckMessagesAsync =
+  createAsyncThunk(
+    "socket/socketCurrentUserCheckMessages",
+    async (props: {
+      messagesIds: string[];
+      currentUserId: string;
+    }) => {
+      const { messagesIds, currentUserId } = props;
+
+      const res = await getMessagesArrayFromIds(
+        messagesIds,
+      );
+
+      const messages: IPMessage[] = res.data;
+      // console.log({
+      //   socketCurrentUserCheckMessagesAsyncMessages:
+      //     messages,
+      // });
+
+      return { messages, receiverId: currentUserId };
+    },
+  );
 
 export const socketSlice = createSlice({
   name: "socket",
@@ -93,14 +108,39 @@ export const socketSlice = createSlice({
     ) => {
       state.connectedUsers = action.payload;
     },
-    setNotCheckedFriendsRequestNumber: (
+    setNotCheckedFriendsRequestIds: (
       state,
-      action: PayloadAction<number>,
+      action: PayloadAction<{ userIds: string[] }>,
     ) => {
-      state.notCheckedFriendRequestsNumber = action.payload;
+      const { userIds } = action.payload;
+
+      state.notCheckedFriendRequestsIds = userIds;
     },
-    incrementFriendsRequestsNumber: (state) => {
-      state.notCheckedFriendRequestsNumber += 1;
+
+    socketAddFriendRequestId: (
+      state,
+      action: PayloadAction<{ userId: string }>,
+    ) => {
+      const { userId } = action.payload;
+
+      state.notCheckedFriendRequestsIds = [
+        ...(state.notCheckedFriendRequestsIds.filter(
+          (uId) => uId !== userId,
+        ) || []),
+        userId,
+      ];
+    },
+    socketRemoveFriendRequestId: (
+      state,
+      action: PayloadAction<{ userId: string }>,
+    ) => {
+      const { userId } = action.payload;
+
+      state.notCheckedFriendRequestsIds = [
+        ...(state.notCheckedFriendRequestsIds.filter(
+          (uId) => uId !== userId,
+        ) || []),
+      ];
     },
     socketSendMessage: (
       state,
@@ -124,70 +164,87 @@ export const socketSlice = createSlice({
           message,
         });
       }
-
-    //   const conversationId = conversation._id!;
-    //   const messageId = message._id!;
-    //   const senderId = message.senderId._id!;
-
-    //   let lastMessageSent:
-    //     | {
-    //         messageId: string;
-    //         receiversIds: string[];
-    //         senderId: string;
-    //         conversationId: string;
-    //       }
-    //     | undefined;
-
-    //   if (!!state.lastMessagesSent?.length) {
-    //     lastMessageSent = state.lastMessagesSent.find(
-    //       (lm) => (lm!.conversationId = conversation._id!),
-    //     );
-
-    //     if (!!lastMessageSent) {
-    //       state.lastMessagesSent =
-    //         state.lastMessagesSent.map((l) => {
-    //           if (l?.conversationId === conversationId) {
-    //             return {
-    //               conversationId,
-    //               messageId,
-    //               receiversIds,
-    //               senderId,
-    //             };
-    //           } else return l;
-    //         });
-    //     } else {
-    //       state.lastMessagesSent = [
-    //         {
-    //           conversationId,
-    //           messageId,
-    //           receiversIds,
-    //           senderId,
-    //         },
-    //         ...state.lastMessagesSent,
-    //       ];
-    //     }
-    //   } else {
-    //     state.lastMessagesSent = [
-    //       {
-    //         conversationId,
-    //         messageId,
-    //         receiversIds,
-    //         senderId,
-    //       },
-    //     ];
-    //   }
+      state.lastMessageSentId = action.payload.message._id!;
+    },
+    socketGotMessage: (
+      state,
+      action: PayloadAction<{
+        message: IPMessage;
+        receiverId: string;
+      }>,
+    ) => {
+      const { message, receiverId } = action.payload;
+      if (
+        !state.lastMessagesReceived?.includes({
+          messageId: message._id!,
+          receiverId,
+        }) &&
+        (message.status
+          ? message.status < 30
+          : message.status === undefined)
+      ) {
+        socket?.emit("gotMessage", {
+          message,
+          receiverId,
+        });
+        state.lastMessagesReceived = [
+          { messageId: message._id!, receiverId },
+          ...(state.lastMessagesReceived || []),
+        ];
+      }
     },
   },
+
   // The `extraReducers` field lets the slice handle actions defined elsewhere,
   // including actions generated by createAsyncThunk or in other slices.
+  extraReducers: (builder) => {
+    builder
+      .addCase(
+        socketCurrentUserCheckMessagesAsync.pending,
+        (state) => {
+          state.isFetching = true;
+        },
+      )
+      .addCase(
+        socketCurrentUserCheckMessagesAsync.fulfilled,
+        (state, action) => {
+          state.isFetching = false;
+          if (!!action.payload) {
+            const { messages, receiverId } = action.payload;
+
+            // const filteredMessages = messages.filter((m) =>
+            //   !state.lastMessagesChecked?.includes({
+            //     messageId: m?._id!,
+            //     receiverId,
+            //   }) && m.status
+            //     ? m.status < 40
+            //     : m.status === undefined,
+            // );
+
+            socket.emit("checkMessages", {
+              messages,
+              receiverId,
+            });
+          }
+        },
+      )
+      .addCase(
+        socketCurrentUserCheckMessagesAsync.rejected,
+        (state, action) => {
+          state.isFetching = false;
+        },
+      );
+  },
 });
 
 export const {
   socketAddUser,
   setConnectedUsers,
-  setNotCheckedFriendsRequestNumber,
-  incrementFriendsRequestsNumber,
+  setNotCheckedFriendsRequestIds,
+  socketAddFriendRequestId,
+  socketRemoveFriendRequestId,
   socketSendMessage,
+  socketGotMessage,
 } = socketSlice.actions;
 
 // The function below is called a selector and allows us to select a value from

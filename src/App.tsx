@@ -18,7 +18,7 @@ import Search from "./pages/search/Search";
 import {
   selectConnectedUsers,
   setConnectedUsers,
-  setNotCheckedFriendsRequestNumber,
+  setNotCheckedFriendsRequestIds,
   socketAddUser,
 } from "./app/slices/socketSlice";
 import { socket } from "./config/config.socket";
@@ -47,11 +47,12 @@ const App = () => {
   useEffect(() => {
     !!currentUser &&
       dispatch(
-        setNotCheckedFriendsRequestNumber(
-          currentUser.notCheckedFriendRequestsNumber || 0,
-        ),
+        setNotCheckedFriendsRequestIds({
+          userIds:
+            currentUser?.notCheckedFriendRequestsFrom || [],
+        }),
       );
-  }, [currentUser, dispatch]);
+  }, [currentUser, currentUser?._id, dispatch]);
 
   useEffect(() => {
     !!currentUser?._id &&

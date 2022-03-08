@@ -10,7 +10,6 @@ import {
   useAppSelector,
 } from "../../app/hooks";
 import {
-  getFriendsOfCurrentUserAsync,
   selectCurrentUserRelatives,
 } from "../../app/slices/currentUserSlice";
 import { selectCurrentUser } from "../../app/slices/authSlice";
