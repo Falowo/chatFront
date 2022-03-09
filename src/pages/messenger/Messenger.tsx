@@ -252,16 +252,20 @@ const Messenger = () => {
   }, [currentUser, dispatch, selectedConversation, userId]);
 
   useEffect(() => {
-    !!conversations && !!conversations.length &&
+    if (conversations && !!conversations?.length) {
+const conversationsIds = conversations?.map((c) => c?._id!);
+
       dispatch(
         getUncheckedByCurrentUserAsync(
-          conversations?.map((c) => c._id!),
+          conversationsIds,
         ),
       );
-  }, [currentUser?._id!]);
+      console.log({conversationsIds});
+    }
+  }, [conversations, dispatch]);
+
   useEffect(() => {
     console.log({ uncheckedByCurrentUser });
-    console.log({ currentChat });
   }, [uncheckedByCurrentUser]);
 
   useEffect(() => {

@@ -12,6 +12,7 @@ import { IPConversation } from "../../interfaces";
 import { getUserByUserIdQuery } from "../../api/users.api";
 import { selectCurrentUser } from "../../app/slices/authSlice";
 import { useAppSelector } from "../../app/hooks";
+import { selectUncheckedByCurrentUser } from "../../app/slices/messengerSlice";
 
 export interface ConversationProps {
   conversation: IPConversation;
@@ -21,6 +22,14 @@ export interface ConversationProps {
 const Conversation = (props: ConversationProps) => {
   const { conversation, selected } = props;
   const currentUser = useAppSelector(selectCurrentUser);
+  const uncheckedByCurrentUser = useAppSelector(
+    selectUncheckedByCurrentUser,
+  );
+
+  const [
+    uncheckedByCurrentUserForThisConversation,
+    setUncheckedByCurrentUserForThisConversation,
+  ] = useState<string[] | undefined>([]);
   const [conversationName, setConversationName] = useState<
     string | null
   >(null);
@@ -73,10 +82,19 @@ const Conversation = (props: ConversationProps) => {
   useEffect(() => {
     handleSetConversationName(conversation);
   }, [conversation, handleSetConversationName]);
-  
-  // useEffect(() => {
-  //   console.log({conversation, conversationName})
-  // }, [conversation, conversationName, handleSetConversationName]);
+
+  useEffect(() => {
+    if (!!uncheckedByCurrentUser) {
+      const obj:
+        | { messagesIds: string[]; conversationId: string }
+        | undefined = uncheckedByCurrentUser.find(
+        (u) => u.conversationId === conversation._id,
+      );
+      setUncheckedByCurrentUserForThisConversation(
+        obj?.messagesIds,
+      );
+    }
+  }, [conversation._id, uncheckedByCurrentUser]);
 
   return (
     <>
@@ -99,31 +117,43 @@ const Conversation = (props: ConversationProps) => {
               <span className="conversationName">
                 {conversationName}
               </span>
-              <span className="fromNow">
-                {moment(
-                  conversation.lastMessageId?.createdAt!,
-                ).fromNow()}
-              </span>
+              {!!uncheckedByCurrentUserForThisConversation &&
+              !!uncheckedByCurrentUserForThisConversation.length ? (
+                <span className="uncheckedMessages">
+                  {
+                    uncheckedByCurrentUserForThisConversation?.length
+                  }
+                </span>
+              ) : (
+                <span className="fromNow">
+                  {moment(
+                    conversation.lastMessageId?.createdAt!,
+                  ).fromNow()}
+                </span>
+              )}
             </div>
 
             <div className="lastMessage">
-              <div className="iconDiv">
-                {conversation.lastMessageId?.status ===
-                40 ? (
-                  <DoneAllIcon
-                    color={`${"primary"}`}
-                    fontSize="small"
-                  />
-                ) : conversation.lastMessageId?.status ===
-                  30 ? (
-                  <DoneAllIcon fontSize="small" />
-                ) : conversation.lastMessageId?.status ===
-                  20 ? (
-                  <DoneIcon fontSize="small" />
-                ) : conversation.lastMessageId?._id ? (
-                  <AccessTimeIcon fontSize="small" />
-                ) : null}
-              </div>
+              {conversation.lastMessageId?.senderId ===
+                currentUser?._id && (
+                <div className="iconDiv">
+                  {conversation.lastMessageId?.status ===
+                  40 ? (
+                    <DoneAllIcon
+                      color={`${"primary"}`}
+                      fontSize="small"
+                    />
+                  ) : conversation.lastMessageId?.status ===
+                    30 ? (
+                    <DoneAllIcon fontSize="small" />
+                  ) : conversation.lastMessageId?.status ===
+                    20 ? (
+                    <DoneIcon fontSize="small" />
+                  ) : conversation.lastMessageId?._id ? (
+                    <AccessTimeIcon fontSize="small" />
+                  ) : null}
+                </div>
+              )}
 
               {!!conversation?.lastMessageId?.text &&
               conversation.lastMessageId.text.length >
