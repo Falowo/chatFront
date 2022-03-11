@@ -3,6 +3,12 @@ import {
   Link,
   // useNavigate
 } from "react-router-dom";
+import {
+  useAppDispatch,
+  useAppSelector,
+} from "../../app/hooks";
+import { selectCurrentUser } from "../../app/slices/authSlice";
+import { sendFriendRequestAsync } from "../../app/slices/currentUserSlice";
 // import { useAppDispatch } from "../../app/hooks";
 import "./popupUser.css";
 
@@ -10,6 +16,8 @@ export default function PopupUser(props: {
   userId: string;
 }) {
   const { userId } = props;
+  const dispatch = useAppDispatch();
+  const currentUser = useAppSelector(selectCurrentUser);
   // const dispatch = useAppDispatch();
   // const navigate = useNavigate();
 
@@ -20,7 +28,8 @@ export default function PopupUser(props: {
         className="popupAction"
         onClick={(e) => {
           e.preventDefault();
-          console.log("sendFriendRequest");
+          currentUser?._id &&
+            dispatch(sendFriendRequestAsync(userId));
         }}
       >
         Send a friend request

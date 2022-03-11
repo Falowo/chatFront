@@ -29,7 +29,8 @@ export default function Register() {
         email: email.current.value,
         password: password.current.value,
       };
-
+      console.log({user});
+      
       dispatch(signupAsync(user));
       
     }

@@ -35,8 +35,7 @@ export interface SocketState {
     messageId: string;
     receiverId: string;
   }[];
-  notCheckedFriendRequestsIds: string[];
-
+  sentFriendRequestsIds: string[];
   rooms: any[];
   isFetching: boolean;
   error: any;
@@ -48,8 +47,7 @@ const initialState: SocketState = {
   lastMessageSentId: undefined,
   lastMessagesReceived: [],
   lastMessagesChecked: [],
-  notCheckedFriendRequestsIds: [],
-
+  sentFriendRequestsIds: [],
   rooms: [],
   isFetching: false,
   error: false,
@@ -84,6 +82,8 @@ export const socketCurrentUserCheckMessagesAsync =
     },
   );
 
+  
+
 export const socketSlice = createSlice({
   name: "socket",
   initialState,
@@ -108,40 +108,27 @@ export const socketSlice = createSlice({
     ) => {
       state.connectedUsers = action.payload;
     },
-    setNotCheckedFriendsRequestIds: (
+    
+
+    socketSendFriendRequest: (
       state,
-      action: PayloadAction<{ userIds: string[] }>,
+      action: PayloadAction<{ userId: string; currentUserId:string }>,
     ) => {
-      const { userIds } = action.payload;
+      const { userId, currentUserId } = action.payload;
 
-      state.notCheckedFriendRequestsIds = userIds;
-    },
+      socket?.emit("sendFriendRequest", {
+        userId,
+        currentUserId,
+      });
 
-    socketAddFriendRequestId: (
-      state,
-      action: PayloadAction<{ userId: string }>,
-    ) => {
-      const { userId } = action.payload;
-
-      state.notCheckedFriendRequestsIds = [
-        ...(state.notCheckedFriendRequestsIds.filter(
+      state.sentFriendRequestsIds = [
+        ...(state.sentFriendRequestsIds.filter(
           (uId) => uId !== userId,
         ) || []),
         userId,
       ];
     },
-    socketRemoveFriendRequestId: (
-      state,
-      action: PayloadAction<{ userId: string }>,
-    ) => {
-      const { userId } = action.payload;
-
-      state.notCheckedFriendRequestsIds = [
-        ...(state.notCheckedFriendRequestsIds.filter(
-          (uId) => uId !== userId,
-        ) || []),
-      ];
-    },
+    
     socketSendMessage: (
       state,
       action: PayloadAction<{
@@ -212,15 +199,6 @@ export const socketSlice = createSlice({
           if (!!action.payload) {
             const { messages, receiverId } = action.payload;
 
-            // const filteredMessages = messages.filter((m) =>
-            //   !state.lastMessagesChecked?.includes({
-            //     messageId: m?._id!,
-            //     receiverId,
-            //   }) && m.status
-            //     ? m.status < 40
-            //     : m.status === undefined,
-            // );
-
             socket.emit("checkMessages", {
               messages,
               receiverId,
@@ -230,7 +208,7 @@ export const socketSlice = createSlice({
       )
       .addCase(
         socketCurrentUserCheckMessagesAsync.rejected,
-        (state, action) => {
+        (state) => {
           state.isFetching = false;
         },
       );
@@ -240,10 +218,8 @@ export const socketSlice = createSlice({
 export const {
   socketAddUser,
   setConnectedUsers,
-  setNotCheckedFriendsRequestIds,
-  socketAddFriendRequestId,
-  socketRemoveFriendRequestId,
   socketSendMessage,
+  socketSendFriendRequest,
   socketGotMessage,
 } = socketSlice.actions;
 

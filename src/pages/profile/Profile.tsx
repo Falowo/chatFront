@@ -37,7 +37,7 @@ export default function Profile() {
       dispatch(
         getSelectedUserPostsAsync(selectedUser.username!),
       );
-  }, [selectedUser?._id, dispatch]);
+  }, [selectedUser?._id, dispatch, selectedUser?.username]);
 
   useEffect(() => {
     !!selectedUser?._id &&

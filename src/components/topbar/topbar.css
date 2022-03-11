@@ -80,7 +80,7 @@
   color: white;
   position: absolute;
   top: -5px;
-  right: -5px;
+  right: -1px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -93,4 +93,8 @@
   border-radius: 50%;
   object-fit: cover;
   cursor: pointer;
+}
+
+.topbarLink{
+  color:white;
 }

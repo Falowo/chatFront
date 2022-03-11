@@ -66,7 +66,8 @@ export const signupAsync = createAsyncThunk(
     // The value we return becomes the `fulfilled` action payload
     localStorage.setItem("token", res.data);
     toast(`Welcome ${user.username}`, position);
-    return res.data;
+    const token = res.data;
+    return token;
   },
 );
 export const refreshTokenAsync = createAsyncThunk(
@@ -174,7 +175,7 @@ export const authSlice = createSlice({
             toast(error.response?.data, position);
           }
         }
-      })
+      })  
       .addCase(signupAsync.rejected, (state, action) => {
         state.isFetching = false;
         state.token = null;

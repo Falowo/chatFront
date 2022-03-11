@@ -7,7 +7,6 @@ export interface IConversation {
   groupName?: string;
   groupPicture?: string;
   lastMessageId?: string;
-  pendingMessagesIds?: string[];
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -19,7 +18,6 @@ export interface IPConversation {
   groupName?: string;
   groupPicture?: string;
   lastMessageId?: IMessage;
-  pendingMessagesIds?: string[];
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -31,7 +29,6 @@ export interface IPPConversation {
   groupName?: string;
   groupPicture?: string;
   lastMessageId?: IPMessage;
-  pendingMessagesIds?: string[];
   createdAt?: Date;
   updatedAt?: Date;
 }

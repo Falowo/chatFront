@@ -25,6 +25,7 @@ export interface IUser {
   from?: string;
   relationship?: Relationship;
   birthDate?: Date;
+  numberOfMessages?: number;
 }
 // export interface IFakeUser {
 //   token?: string;

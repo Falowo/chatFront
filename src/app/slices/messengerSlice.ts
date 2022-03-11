@@ -24,6 +24,7 @@ import {
 import {
   createMessage,
   getCurrentUserUncheckedMessagesByConversationIdParams,
+  getLastMessageByConversationIdParams,
   getMessagesByConversationIdParams,
   messageReceivedByCurrentUser,
   messagesCheckedByCurrentUser,
@@ -83,9 +84,11 @@ export const getConversationsAsync = createAsyncThunk(
 export const getUncheckedByCurrentUserAsync =
   createAsyncThunk(
     "messenger/getUncheckedByCurrentUser",
-    async (conversationsIds: string[]) => {
+    async (conversationsIds: Set<string>) => {
+      const arrayIds = Array.from(conversationsIds);
+
       const payload = await Promise.all(
-        conversationsIds?.map(async (cId) => {
+        arrayIds?.map(async (cId) => {
           const response =
             await getCurrentUserUncheckedMessagesByConversationIdParams(
               cId,
@@ -100,7 +103,7 @@ export const getUncheckedByCurrentUserAsync =
     },
   );
 export const createNewMessageAsync = createAsyncThunk(
-  "messenger/createMessage",
+  "messenger/createNewMessage",
   async (newMessage: IMessage) => {
     const response = await createMessage(newMessage);
     // The value we return becomes the `fulfilled` action payload
@@ -262,9 +265,16 @@ export const getExisitingConversationOrCreateOneAsync =
         await getPrivateConversationByFriendIdParams(
           userId,
         );
-      let conversation: IConversation = res.data;
+      let conversation = res?.data;
       if (!!conversation) {
-        return conversation;
+        const res =
+          await getLastMessageByConversationIdParams(
+            conversation._id!,
+          );
+        conversation = {
+          ...conversation,
+          lastMessageId: res.data,
+        };
       } else {
         const receiversId = [userId];
         const res = await createNewConversation(
@@ -272,8 +282,8 @@ export const getExisitingConversationOrCreateOneAsync =
         );
 
         conversation = res.data;
-        return conversation;
       }
+      return conversation;
     },
   );
 export const messengerSlice = createSlice({
@@ -331,104 +341,98 @@ export const messengerSlice = createSlice({
         receiverId: string;
       }>,
     ) => {
-      console.log({ action });
+      const { message, receiverId } = action.payload;
 
-      if (!!action.payload) {
-        const { message, receiverId } = action.payload;
+      if (
+        state.currentChat?.conversation?._id ===
+        message.conversationId
+      ) {
+        let status: Status;
+
+        const conversationMembers =
+          state.currentChat.conversation.membersId;
 
         if (
-          state.currentChat?.conversation?._id ===
-          message.conversationId
+          (
+            conversationMembers?.filter(
+              (mId) =>
+                mId !== receiverId &&
+                mId !== message.senderId._id &&
+                !message?.receivedByIds?.includes(mId),
+            ) || []
+          ).length === 0
         ) {
-          let status: Status;
-
-          const conversationMembers =
-            state.currentChat.conversation.membersId;
-
-          if (
-            (
-              conversationMembers?.filter(
-                (mId) =>
-                  mId !== receiverId &&
-                  mId !== message.senderId._id &&
-                  !message?.receivedByIds?.includes(mId),
-              ) || []
-            ).length === 0
-          ) {
-            status = 30;
-          } else {
-            status = message?.status || 20;
-          }
-          state.currentChat = {
-            ...state.currentChat,
-            messages:
-              state.currentChat?.messages?.map((m) => {
-                if (m._id === message._id) {
-                  return {
-                    ...message,
-                    status,
-                    receivedByIds: [
-                      ...(message.receivedByIds?.filter(
-                        (rId) => rId !== receiverId,
-                      ) || []),
-                      receiverId,
-                    ],
-                  };
-                } else {
-                  return m;
-                }
-              }) || [],
-          };
+          status = 30;
+        } else {
+          status = message?.status || 20;
         }
-
-        if (
-          state.conversations.find(
-            (c) => c.lastMessageId?._id === message._id,
-          )
-        ) {
-          console.log("conversation Found");
-          let status: Status;
-          const conversation = state.conversations.find(
-            (c) => c.lastMessageId?._id === message._id,
-          );
-          const conversationMembers =
-            conversation?.membersId;
-
-          if (
-            (
-              conversationMembers?.filter(
-                (mId) =>
-                  mId !== receiverId &&
-                  mId !== message.senderId._id &&
-                  !message?.receivedByIds?.includes(mId),
-              ) || []
-            ).length === 0
-          ) {
-            status = 30;
-          } else {
-            status = message?.status || 20;
-          }
-          state.conversations = state.conversations?.map(
-            (c) => {
-              if (c.lastMessageId?._id === message._id) {
+        state.currentChat = {
+          ...state.currentChat,
+          messages:
+            state.currentChat?.messages?.map((m) => {
+              if (m._id === message._id) {
                 return {
-                  ...c,
-                  lastMessageId: {
-                    ...message,
-                    status,
-                    senderId: message.senderId._id!,
-                    receivedByIds: [
-                      ...(message.receivedByIds?.filter(
-                        (rId) => rId !== receiverId,
-                      ) || []),
-                      receiverId,
-                    ],
-                  },
+                  ...message,
+                  status,
+                  receivedByIds: [
+                    ...(message.receivedByIds?.filter(
+                      (rId) => rId !== receiverId,
+                    ) || []),
+                    receiverId,
+                  ],
                 };
-              } else return { ...c };
-            },
-          );
+              } else {
+                return m;
+              }
+            }) || [],
+        };
+      }
+
+      if (
+        state.conversations.find(
+          (c) => c.lastMessageId?._id === message._id,
+        )
+      ) {
+        let status: Status;
+        const conversation = state.conversations.find(
+          (c) => c.lastMessageId?._id === message._id,
+        );
+        const conversationMembers = conversation?.membersId;
+
+        if (
+          (
+            conversationMembers?.filter(
+              (mId) =>
+                mId !== receiverId &&
+                mId !== message.senderId._id &&
+                !message?.receivedByIds?.includes(mId),
+            ) || []
+          ).length === 0
+        ) {
+          status = 30;
+        } else {
+          status = message?.status || 20;
         }
+        state.conversations = state.conversations?.map(
+          (c) => {
+            if (c.lastMessageId?._id === message._id) {
+              return {
+                ...c,
+                lastMessageId: {
+                  ...message,
+                  status,
+                  senderId: message.senderId._id!,
+                  receivedByIds: [
+                    ...(message.receivedByIds?.filter(
+                      (rId) => rId !== receiverId,
+                    ) || []),
+                    receiverId,
+                  ],
+                },
+              };
+            } else return { ...c };
+          },
+        );
       }
     },
     messageCheckedByRemoteUser: (
@@ -504,9 +508,10 @@ export const messengerSlice = createSlice({
                     ...m,
                     status,
                     checkedByIds: {
-                      ...(m.checkedByIds?.filter(
-                        (uId) => uId !== userId,
-                      ) || []),
+                      // ...(m.checkedByIds?.filter(
+                      //   (uId) => uId !== userId,
+                      // ) || []),
+                      ...(m.checkedByIds || []),
                       userId,
                     },
                   };
@@ -609,25 +614,41 @@ export const messengerSlice = createSlice({
               };
             }
 
-            state.uncheckedByCurrentUser =
-              state.uncheckedByCurrentUser?.map((u) => {
-                if (
-                  u.conversationId ===
-                  message.conversationId
-                ) {
-                  return {
-                    ...u,
-                    messagesIds: [
-                      ...(u.messagesIds?.filter(
-                        (mIds) => mIds !== message._id,
-                      ) || []),
-                      message._id!,
-                    ],
-                  };
-                } else {
-                  return { ...u };
-                }
-              }) || [];
+            if (
+              !!state.uncheckedByCurrentUser &&
+              !!state.uncheckedByCurrentUser?.find(
+                (u) =>
+                  u.conversationId === conversation._id,
+              )
+            ) {
+              state.uncheckedByCurrentUser =
+                state.uncheckedByCurrentUser?.map((u) => {
+                  if (
+                    u.conversationId ===
+                    message.conversationId
+                  ) {
+                    return {
+                      ...u,
+                      messagesIds: [
+                        ...(u.messagesIds?.filter(
+                          (mIds) => mIds !== message._id,
+                        ) || []),
+                        message._id!,
+                      ],
+                    };
+                  } else {
+                    return { ...u };
+                  }
+                }) || [];
+            } else {
+              state.uncheckedByCurrentUser = [
+                ...(state.uncheckedByCurrentUser || []),
+                {
+                  conversationId: conversation._id!,
+                  messagesIds: [message._id!],
+                },
+              ];
+            }
           }
         },
       )
@@ -649,7 +670,6 @@ export const messengerSlice = createSlice({
         conversationCheckedByCurrentUserAsync.fulfilled,
         (state, action) => {
           state.isFetching = false;
-          console.log({ action });
 
           const {
             conversationId,
@@ -683,18 +703,6 @@ export const messengerSlice = createSlice({
               ) {
                 status = 40;
               } else {
-                console.log({
-                  problem: (
-                    conversationMembers?.filter(
-                      (mId) =>
-                        mId !== currentUserId &&
-                        mId !== lastMessage?.senderId &&
-                        !checkedByIds?.includes(mId) ===
-                          true,
-                    ) || []
-                  ).length,
-                });
-
                 status = lastMessage?.status || 30;
               }
 
@@ -707,10 +715,10 @@ export const messengerSlice = createSlice({
                         ...lastMessage,
                         status,
                         checkedByIds: {
-                          ...(checkedByIds || []),
-                          // ...(c.lastMessageId?.checkedByIds?.filter(
-                          //   (cId) => cId !== currentUserId,
-                          // ) || []),
+                          // ...(checkedByIds || []),
+                          ...(c.lastMessageId?.checkedByIds?.filter(
+                            (cId) => cId !== currentUserId,
+                          ) || []),
                           currentUserId,
                         },
                       },

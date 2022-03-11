@@ -11,7 +11,7 @@ import {
   useAppDispatch,
 } from "../../app/hooks";
 import { selectCurrentUser } from "../../app/slices/authSlice";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   searchUsersByUserNamePartAsync,
   // selectSearchUsers,
@@ -20,6 +20,7 @@ import {
   getFollowedByCurrentUserAsync,
   selectFollowedByCurrentUser,
 } from "../../app/slices/currentUserSlice";
+import { selectUncheckedByCurrentUser } from "../../app/slices/messengerSlice";
 // import {
 //   selectConnectedUsers,
 //   selectSocket,
@@ -35,11 +36,19 @@ export default function Topbar() {
   const followedByCurrentUser = useAppSelector(
     selectFollowedByCurrentUser,
   );
+  const uncheckedByCurrentUser = useAppSelector(
+    selectUncheckedByCurrentUser,
+  );
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const PF = process.env.REACT_APP_PUBLIC_FOLDER;
   const searchRef = useRef<HTMLInputElement>(null);
   let timeout: NodeJS.Timeout;
+
+  const [
+    reducedUncheckedByCurrentUser,
+    setReducedUncheckedByCurrentUser,
+  ] = useState<number>(0);
 
   const handleSearchChange = () => {
     if (!!timeout) {
@@ -63,27 +72,21 @@ export default function Topbar() {
   };
 
   useEffect(() => {
+    uncheckedByCurrentUser?.length &&
+      setReducedUncheckedByCurrentUser(
+        uncheckedByCurrentUser?.reduce(
+          (prev, curr) => prev + curr.messagesIds?.length,
+          0,
+        ) || 0,
+      );
+  }, [uncheckedByCurrentUser]);
+
+  useEffect(() => {
     !!currentUser &&
       dispatch(
         getFollowedByCurrentUserAsync(currentUser._id!),
       );
   }, [currentUser, currentUser?._id, dispatch]);
-
-  // useEffect(() => {
-  //   !!currentUser &&
-  //     dispatch(
-  //       socketAddUserAsync({
-  //         currentUserId: currentUser?._id!,
-  //         socket,
-  //       }),
-  //     );
-  // }, [currentUser, dispatch, socket]);
-
-// useEffect(() => {
-//   console.log({connectedUsers})
-// }, [connectedUsers])
-
-
 
   return (
     <div className="topbarContainer">
@@ -116,8 +119,14 @@ export default function Topbar() {
             <span className="topbarIconBadge">1</span>
           </div>
           <div className="topbarIconItem">
-            <Chat />
-            <span className="topbarIconBadge">2</span>
+            <Link className="topbarLink" to="/messenger">
+              <Chat />
+              {reducedUncheckedByCurrentUser > 0 && (
+                <span className="topbarIconBadge">
+                  {reducedUncheckedByCurrentUser}
+                </span>
+              )}
+            </Link>
           </div>
           <div className="topbarIconItem">
             <Notifications />

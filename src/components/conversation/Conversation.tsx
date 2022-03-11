@@ -117,62 +117,72 @@ const Conversation = (props: ConversationProps) => {
               <span className="conversationName">
                 {conversationName}
               </span>
-              {!!uncheckedByCurrentUserForThisConversation &&
-              !!uncheckedByCurrentUserForThisConversation.length ? (
-                <span className="uncheckedMessages">
-                  {
-                    uncheckedByCurrentUserForThisConversation?.length
-                  }
-                </span>
-              ) : (
-                <span className="fromNow">
-                  {moment(
-                    conversation.lastMessageId?.createdAt!,
-                  ).fromNow()}
-                </span>
-              )}
+
+              <span
+                className={`fromNow ${
+                  !!uncheckedByCurrentUserForThisConversation &&
+                  !!uncheckedByCurrentUserForThisConversation.length &&
+                  "text-green"
+                }`}
+              >
+                {moment(
+                  conversation.lastMessageId?.createdAt!,
+                ).fromNow()}
+              </span>
             </div>
 
             <div className="lastMessage">
-              {conversation.lastMessageId?.senderId ===
-                currentUser?._id && (
-                <div className="iconDiv">
-                  {conversation.lastMessageId?.status ===
-                  40 ? (
-                    <DoneAllIcon
-                      color={`${"primary"}`}
-                      fontSize="small"
-                    />
-                  ) : conversation.lastMessageId?.status ===
-                    30 ? (
-                    <DoneAllIcon fontSize="small" />
-                  ) : conversation.lastMessageId?.status ===
-                    20 ? (
-                    <DoneIcon fontSize="small" />
-                  ) : conversation.lastMessageId?._id ? (
-                    <AccessTimeIcon fontSize="small" />
-                  ) : null}
-                </div>
-              )}
-
-              {!!conversation?.lastMessageId?.text &&
-              conversation.lastMessageId.text.length >
-                30 ? (
-                <div className="longTextWrapper">
+              <>
+                {conversation.lastMessageId?.senderId ===
+                  currentUser?._id && (
+                  <div className="iconDiv">
+                    {conversation.lastMessageId?.status ===
+                    40 ? (
+                      <DoneAllIcon
+                        color={`${"primary"}`}
+                        fontSize="small"
+                      />
+                    ) : conversation.lastMessageId
+                        ?.status === 30 ? (
+                      <DoneAllIcon fontSize="small" />
+                    ) : conversation.lastMessageId
+                        ?.status === 20 ? (
+                      <DoneIcon fontSize="small" />
+                    ) : conversation.lastMessageId?._id ? (
+                      <AccessTimeIcon fontSize="small" />
+                    ) : null}
+                  </div>
+                )}
+              </>
+              <>
+                {!!conversation?.lastMessageId?.text &&
+                conversation.lastMessageId.text.length >
+                  30 ? (
+                  <div className="longTextWrapper">
+                    <span className="lastMessageText">
+                      `$
+                      {conversation.lastMessageId.text.substring(
+                        0,
+                        20,
+                      )}{" "}
+                      ...`
+                    </span>
+                  </div>
+                ) : (
                   <span className="lastMessageText">
-                    `$
-                    {conversation.lastMessageId.text.substring(
-                      0,
-                      20,
-                    )}{" "}
-                    ...`
+                    {conversation.lastMessageId?.text}
                   </span>
-                </div>
-              ) : (
-                <span className="lastMessageText">
-                  {conversation.lastMessageId?.text}
-                </span>
-              )}
+                )}
+
+                {!!uncheckedByCurrentUserForThisConversation &&
+                  !!uncheckedByCurrentUserForThisConversation.length && (
+                    <span className="uncheckedMessages">
+                      {
+                        uncheckedByCurrentUserForThisConversation?.length
+                      }
+                    </span>
+                  )}
+              </>
             </div>
           </div>
         </div>

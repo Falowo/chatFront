@@ -6,6 +6,13 @@ export const getMessagesByConversationIdParams = (
 ) => {
   return instance.get(`messages/${conversationId}`);
 };
+export const getLastMessageByConversationIdParams = (
+  conversationId: string,
+) => {
+  return instance.get(
+    `messages/lastOneOf/${conversationId}`,
+  );
+};
 export const getMessagesArrayFromIds = (
   messagesIds: string[],
 ) => {
@@ -20,12 +27,18 @@ export const createMessage = (message: IMessage) => {
 export const messageReceivedByCurrentUser = (props: {
   messageId: string;
 }) => {
-  return instance.put(`messages/receivedBy/currentUser`, props);
+  return instance.put(
+    `messages/receivedBy/currentUser`,
+    props,
+  );
 };
 export const messagesCheckedByCurrentUser = (props: {
   conversationId: string;
 }) => {
-  return instance.put(`messages/checkedBy/currentUser`, props);
+  return instance.put(
+    `messages/checkedBy/currentUser`,
+    props,
+  );
 };
 
 export const getCurrentUserUncheckedMessagesByConversationIdParams =

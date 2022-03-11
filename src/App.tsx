@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import { Container } from "@mui/material";
 import { makeStyles } from "@mui/styles";
@@ -18,11 +18,12 @@ import Search from "./pages/search/Search";
 import {
   selectConnectedUsers,
   setConnectedUsers,
-  setNotCheckedFriendsRequestIds,
   socketAddUser,
 } from "./app/slices/socketSlice";
 import { socket } from "./config/config.socket";
-import { getFriendsOfCurrentUserAsync } from "./app/slices/currentUserSlice";
+import { getFriendsOfCurrentUserAsync, setNotCheckedFriendRequests } from "./app/slices/currentUserSlice";
+import { getConversationsAsync, getUncheckedByCurrentUserAsync, selectConversations } from "./app/slices/messengerSlice";
+import useDeepCompareEffect from "use-deep-compare-effect";
 // import { getBothFollowedByAndFollowersOfCurrentUserAsync } from "./app/slices/currentUserSlice";
 
 const useStyles = makeStyles({
@@ -33,11 +34,34 @@ const useStyles = makeStyles({
 
 const App = () => {
   const classes = useStyles();
-  const currentUser = useAppSelector(selectCurrentUser);
   const dispatch = useAppDispatch();
+  const currentUser = useAppSelector(selectCurrentUser);
+  const conversations = useAppSelector(selectConversations);
   const connectedUsers = useAppSelector(
     selectConnectedUsers,
   );
+  const [conversationsIdsSet, setConversationsIdsSet] =
+    useState<Set<string> | undefined>(undefined);
+
+  useEffect(() => {
+    !!currentUser?._id && dispatch(getConversationsAsync());
+  }, [currentUser?._id, dispatch]);
+
+  useEffect(() => {
+    conversations &&
+      !!conversations?.length &&
+      setConversationsIdsSet(
+        new Set(conversations?.map((c) => c._id!)),
+      );
+    console.log("conversationsIdsSetSetted");
+  }, [conversations]);
+
+  useDeepCompareEffect(() => {
+    !!conversationsIdsSet &&
+      dispatch(
+        getUncheckedByCurrentUserAsync(conversationsIdsSet),
+      );
+  }, [conversationsIdsSet, dispatch]);
 
   useEffect(() => {
     !!currentUser?._id &&
@@ -45,14 +69,14 @@ const App = () => {
   }, [currentUser?._id, dispatch]);
 
   useEffect(() => {
-    !!currentUser &&
+    !!currentUser?._id &&
       dispatch(
-        setNotCheckedFriendsRequestIds({
+        setNotCheckedFriendRequests({
           userIds:
             currentUser?.notCheckedFriendRequestsFrom || [],
         }),
       );
-  }, [currentUser, currentUser?._id, dispatch]);
+  }, [currentUser?._id, currentUser?.notCheckedFriendRequestsFrom, dispatch]);
 
   useEffect(() => {
     !!currentUser?._id &&
@@ -93,7 +117,7 @@ const App = () => {
               path="/signin"
               element={!currentUser ? <SignIn /> : <Home />}
             />
-            <Route path="/signup" element={<SignUp />} />
+            <Route path="/signup" element={!currentUser ?<SignUp />:<Home/>} />
             <Route
               path="/messenger/:userId"
               element={

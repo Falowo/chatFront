@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import useDeepCompareEffect from "use-deep-compare-effect";
 import "./messenger.css";
 import Topbar from "../../components/topbar/Topbar";
 import Conversation from "../../components/conversation/Conversation";
@@ -15,9 +16,7 @@ import { selectCurrentUser } from "../../app/slices/authSlice";
 import {
   conversationCheckedByCurrentUserAsync,
   createNewMessageAsync,
-  getConversationsAsync,
   getExisitingConversationOrCreateOneAsync,
-  getUncheckedByCurrentUserAsync,
   messageCheckedByRemoteUser,
   messageReceivedByCurrentUserAsync,
   messageReceivedByRemoteUser,
@@ -44,6 +43,15 @@ export interface IChat {
   messages: IPMessage[];
 }
 
+export interface SocketGetMessageProps {
+  conversation: IConversation;
+  message: IPMessage;
+}
+export interface SocketReceivedMessage {
+  message: IPMessage;
+  receiverId: string;
+}
+
 const Messenger = () => {
   const scrollSpan = useRef<any>();
 
@@ -52,6 +60,22 @@ const Messenger = () => {
     selectFriendsOfCurrentUser,
   );
   const conversations = useAppSelector(selectConversations);
+  
+
+  const [getMessageFromSocket, setGetMessageFromSocket] =
+    useState<SocketGetMessageProps | undefined>(undefined);
+  const [
+    receivedMessageFromSocket,
+    setReceivedMessageFromSocket,
+  ] = useState<SocketReceivedMessage | undefined>(
+    undefined,
+  );
+  const [
+    checkedMessageFromSocket,
+    setCheckedMessageFromSocket,
+  ] = useState<SocketReceivedMessage | undefined>(
+    undefined,
+  );
   const currentChat = useAppSelector(selectCurrentChat);
   const selectedConversation = useAppSelector(
     selectSelectedConversation,
@@ -138,83 +162,84 @@ const Messenger = () => {
     dispatch,
   ]);
 
-  useEffect(() => {
-    !!currentUser && dispatch(getConversationsAsync());
-  }, [currentUser, dispatch]);
+  
 
   useEffect(() => {
-    interface GetMessageProps {
-      conversation: IConversation;
-      message: IPMessage;
-    }
-    socket?.on("getMessage", (props: GetMessageProps) => {
-      const { conversation, message } = props;
-      console.log({ getMessage: message, conversation });
-
-      if (lastMessage?._id! !== message._id!) {
-        dispatch(
-          messageReceivedByCurrentUserAsync({
-            conversation,
-            messageId: message._id!,
-          }),
-        );
-
-        !!currentUser?._id &&
-          dispatch(
-            socketGotMessage({
-              message,
-              receiverId: currentUser._id,
-            }),
-          );
-      }
-    });
+    socket?.on(
+      "getMessage",
+      (props: SocketGetMessageProps) => {
+        setGetMessageFromSocket(props);
+      },
+    );
   }, [currentUser?._id, dispatch, lastMessage?._id]);
+
+  useEffect(() => {
+    if (!!getMessageFromSocket && !!currentUser?._id) {
+      const { conversation, message } =
+        getMessageFromSocket;
+
+      dispatch(
+        messageReceivedByCurrentUserAsync({
+          conversation,
+          messageId: message._id!,
+        }),
+      );
+
+      dispatch(
+        socketGotMessage({
+          message,
+          receiverId: currentUser._id,
+        }),
+      );
+    }
+  }, [getMessageFromSocket, currentUser?._id, dispatch]);
 
   useEffect(() => {
     socket?.on(
       "receivedMessage",
-      (props: {
-        message: IPMessage;
-        receiverId: string;
-      }) => {
-        const { receiverId, message } = props;
-        console.log({
-          receivedMessage: message,
-          receiverId,
-        });
-
-        dispatch(
-          messageReceivedByRemoteUser({
-            receiverId,
-            message,
-          }),
-        );
+      (props: SocketReceivedMessage) => {
+        // const { receiverId, message } = props;
+        setReceivedMessageFromSocket(props);
       },
     );
   }, [dispatch]);
+
+  useEffect(() => {
+    !!receivedMessageFromSocket &&
+      dispatch(
+        messageReceivedByRemoteUser(
+          receivedMessageFromSocket,
+        ),
+      );
+  }, [
+    dispatch,
+    receivedMessageFromSocket,
+    receivedMessageFromSocket?.message._id,
+  ]);
+
   useEffect(() => {
     socket?.on(
       "checkedMessage",
-      (props: {
-        message: IPMessage;
-        receiverId: string;
-      }) => {
-        const { receiverId, message } = props;
-        console.log({
-          checkedMessage: message,
-          receiverId,
-        });
-
-        dispatch(
-          messageCheckedByRemoteUser({
-            checkedMessageId: message._id!,
-            conversationId: message.conversationId,
-            userId: receiverId,
-          }),
-        );
+      (props: SocketReceivedMessage) => {
+        setCheckedMessageFromSocket(props);
       },
     );
-  }, [dispatch]);
+  }, []);
+
+  useDeepCompareEffect(() => {
+    if (!!checkedMessageFromSocket) {
+      const { receiverId, message } =
+        checkedMessageFromSocket;
+
+      dispatch(
+        messageCheckedByRemoteUser({
+          checkedMessageId: message._id!,
+          conversationId: message.conversationId,
+          userId: receiverId,
+        }),
+      );
+    }
+  }, [checkedMessageFromSocket, dispatch]);
 
   useEffect(() => {
     !!userId &&
@@ -225,13 +250,13 @@ const Messenger = () => {
       );
   }, [dispatch, userId]);
 
-  useEffect(() => {
+  useDeepCompareEffect(() => {
     if (currentUser?._id) {
       !!lastMessagesCheckedByCurrentUser.length &&
         dispatch(
           socketCurrentUserCheckMessagesAsync({
             messagesIds: lastMessagesCheckedByCurrentUser,
-            currentUserId: currentUser._id!,
+            currentUserId: currentUser?._id!,
           }),
         );
       console.log({ lastMessagesCheckedByCurrentUser });
@@ -251,22 +276,9 @@ const Messenger = () => {
       );
   }, [currentUser, dispatch, selectedConversation, userId]);
 
-  useEffect(() => {
-    if (conversations && !!conversations?.length) {
-const conversationsIds = conversations?.map((c) => c?._id!);
+  
 
-      dispatch(
-        getUncheckedByCurrentUserAsync(
-          conversationsIds,
-        ),
-      );
-      console.log({conversationsIds});
-    }
-  }, [conversations, dispatch]);
-
-  useEffect(() => {
-    console.log({ uncheckedByCurrentUser });
-  }, [uncheckedByCurrentUser]);
+  
 
   useEffect(() => {
     scrollSpan.current.scrollIntoView();

@@ -27,7 +27,7 @@ const Message = (props: MessageProps) => {
               ? PF + senderId.profilePicture
               : PF + "/person/noAvatar.png"
           }
-          alt="Bart with his skateboard"
+          alt=""
         />
         <p className="messageText">{message.text}</p>
         {message?.senderId?._id! === currentUser?._id! && (
