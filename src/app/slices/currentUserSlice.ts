@@ -13,6 +13,7 @@ import {
 import { toast } from "react-toastify";
 import {
   addFriend,
+  checkAcceptedFriendRequests,
   checkFriendRequests,
   followUser,
   getBestCurrentUserFriends,
@@ -229,6 +230,13 @@ export const checkFriendRequestsAsync = createAsyncThunk(
     return true;
   },
 );
+export const checkAcceptedFriendRequestsAsync = createAsyncThunk(
+  "currentUser/checkAcceptedFriendRequests",
+  async () => {
+    await checkAcceptedFriendRequests();
+    return true;
+  },
+);
 
 export const addFriendRequestFromAsync = createAsyncThunk(
   "currentUser/addFriendRequestsFrom",
@@ -237,6 +245,7 @@ export const addFriendRequestFromAsync = createAsyncThunk(
 
     const res = await getUserByUserIdQuery(userId);
     const user: IUser = res.data._doc;
+
     return user;
   },
 );
@@ -550,6 +559,28 @@ export const currentUserSlice = createSlice({
         },
       )
       .addCase(
+        checkAcceptedFriendRequestsAsync.pending,
+        (state) => {
+          state.isFetching = true;
+        },
+      )
+      .addCase(
+        checkAcceptedFriendRequestsAsync.fulfilled,
+        (state, action) => {
+          state.isFetching = false;
+          if (!!action.payload) {
+            state.notCheckedAcceptedFriendRequestsBy = [];
+          }
+        },
+      )
+      .addCase(
+        checkAcceptedFriendRequestsAsync.rejected,
+        (state, action) => {
+          state.isFetching = false;
+          toast(action.error.message, position);
+        },
+      )
+      .addCase(
         getFriendRequestsFromAsync.pending,
         (state) => {
           state.isFetching = true;
@@ -592,6 +623,10 @@ export const currentUserSlice = createSlice({
                   (f) => f._id !== user._id,
                 ),
               ];
+              state.notCheckedAcceptedFriendRequestsBy = [
+                ...state.notCheckedAcceptedFriendRequestsBy,
+                user._id!,
+              ];
               state.friendRequestsFrom =
                 state.friendRequestsFrom.filter(
                   (f) => f._id! !== user._id,
@@ -629,6 +664,7 @@ export const currentUserSlice = createSlice({
 
 export const {
   setNotCheckedFriendRequests,
+  setNotCheckedAcceptedFriendRequestsBy,
   setFriendRequestsTo,
 } = currentUserSlice.actions;
 
@@ -662,6 +698,12 @@ export const selectNotCheckedFriendRequestsFrom = (
   state: RootState,
 ) =>
   state.currentUserRelatives.notCheckedFriendRequestsFrom;
+
+export const selectNotCheckedAcceptedFriendRequestsBy = (
+  state: RootState,
+) =>
+  state.currentUserRelatives
+    .notCheckedAcceptedFriendRequestsBy;
 
 // We can also write thunks by hand, which may contain both sync and async logic.
 // Here's an example of conditionally dispatching actions based on current state.

@@ -20,9 +20,11 @@ import {
   checkFriendRequestsAsync,
   getFollowedByCurrentUserAsync,
   selectFriendRequestsFrom,
+  selectNotCheckedAcceptedFriendRequestsBy,
   selectNotCheckedFriendRequestsFrom,
 } from "../../app/slices/currentUserSlice";
 import { selectUncheckedByCurrentUser } from "../../app/slices/messengerSlice";
+import PopupNotifications from "../popupNotifications/PopupNotifications";
 // import {
 //   selectConnectedUsers,
 //   selectSocket,
@@ -30,17 +32,20 @@ import { selectUncheckedByCurrentUser } from "../../app/slices/messengerSlice";
 // } from "../../app/slices/socketSlice";
 
 export default function Topbar() {
+  const [
+    showPopupNotifications,
+    setShowPopupNotifications,
+  ] = useState<boolean>(false);
   const currentUser = useAppSelector(selectCurrentUser);
-  // const socket = useAppSelector(selectSocket);
-  // const connectedUsers = useAppSelector(
-  //   selectConnectedUsers,
-  // );
 
   const uncheckedByCurrentUser = useAppSelector(
     selectUncheckedByCurrentUser,
   );
   const notCheckedFriendRequestsFrom = useAppSelector(
     selectNotCheckedFriendRequestsFrom,
+  );
+  const notCheckedAcceptedFriendRequestsBy = useAppSelector(
+    selectNotCheckedAcceptedFriendRequestsBy,
   );
   const friendRequestsFrom = useAppSelector(
     selectFriendRequestsFrom,
@@ -147,9 +152,29 @@ export default function Topbar() {
               )}
             </Link>
           </div>
-          <div className="topbarIconItem">
-            <Notifications />
-            <span className="topbarIconBadge">1</span>
+          <div className="topbarIconItem notifications">
+            <Link
+              className="topbarLink"
+              to="/"
+              onClick={(e) => {
+                e.preventDefault();
+                setShowPopupNotifications(
+                  !showPopupNotifications,
+                );
+              }}
+            >
+              <Notifications />
+              {!!notCheckedAcceptedFriendRequestsBy.length && (
+                <span className="topbarIconBadge">
+                  {
+                    notCheckedAcceptedFriendRequestsBy.length
+                  }
+                </span>
+              )}
+            </Link>
+            {!!showPopupNotifications && (
+              <PopupNotifications />
+            )}
           </div>
         </div>
         <Link

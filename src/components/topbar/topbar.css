@@ -95,6 +95,10 @@
   cursor: pointer;
 }
 
-.topbarLink{
-  color:white;
+.topbarLink {
+  color: white;
+}
+
+.notification {
+  position: relative;
 }

@@ -60,3 +60,8 @@ export const checkFriendRequests = () => {
     "users/currentUser/checkFriendRequests",
   );
 };
+export const checkAcceptedFriendRequests = () => {
+  return instance.put(
+    "users/currentUser/checkAcceptedFriendRequests",
+  );
+};

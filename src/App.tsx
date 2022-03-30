@@ -26,6 +26,7 @@ import {
   getFriendRequestsFromAsync,
   getFriendsOfCurrentUserAsync,
   setFriendRequestsTo,
+  setNotCheckedAcceptedFriendRequestsBy,
   setNotCheckedFriendRequests,
 } from "./app/slices/currentUserSlice";
 import {
@@ -90,6 +91,20 @@ const App = () => {
   }, [
     currentUser?._id,
     currentUser?.notCheckedFriendRequestsFrom,
+    dispatch,
+  ]);
+
+  useEffect(() => {
+    !!currentUser?._id &&
+      dispatch(
+        setNotCheckedAcceptedFriendRequestsBy({
+          userIds:
+            currentUser?.notCheckedAcceptedFriendRequestsBy || [],
+        }),
+      );
+  }, [
+    currentUser?._id,
+    currentUser?.notCheckedAcceptedFriendRequestsBy,
     dispatch,
   ]);
   useEffect(() => {
