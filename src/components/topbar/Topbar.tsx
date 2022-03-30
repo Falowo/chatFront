@@ -17,8 +17,10 @@ import {
   // selectSearchUsers,
 } from "../../app/slices/searchSlice";
 import {
+  checkFriendRequestsAsync,
   getFollowedByCurrentUserAsync,
-  selectFollowedByCurrentUser,
+  selectFriendRequestsFrom,
+  selectNotCheckedFriendRequestsFrom,
 } from "../../app/slices/currentUserSlice";
 import { selectUncheckedByCurrentUser } from "../../app/slices/messengerSlice";
 // import {
@@ -33,11 +35,15 @@ export default function Topbar() {
   // const connectedUsers = useAppSelector(
   //   selectConnectedUsers,
   // );
-  const followedByCurrentUser = useAppSelector(
-    selectFollowedByCurrentUser,
-  );
+
   const uncheckedByCurrentUser = useAppSelector(
     selectUncheckedByCurrentUser,
+  );
+  const notCheckedFriendRequestsFrom = useAppSelector(
+    selectNotCheckedFriendRequestsFrom,
+  );
+  const friendRequestsFrom = useAppSelector(
+    selectFriendRequestsFrom,
   );
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -59,9 +65,6 @@ export default function Topbar() {
         dispatch(
           searchUsersByUserNamePartAsync({
             usernamePart: searchRef.current?.value,
-            followedByCurrentUserIds:
-              followedByCurrentUser?.map((f) => f._id!) ||
-              [],
           }),
         );
       if (!!searchRef?.current?.value) {
@@ -109,14 +112,30 @@ export default function Topbar() {
         </div>
       </div>
       <div className="topbarRight">
-        <div className="topbarLinks">
+        {/* <div className="topbarLinks">
           <span className="topbarLink">Homepage</span>
           <span className="topbarLink">Timeline</span>
-        </div>
+        </div> */}
         <div className="topbarIcons">
           <div className="topbarIconItem">
-            <Person />
-            <span className="topbarIconBadge">1</span>
+            <Link
+              className="topbarLink"
+              to="/friend/requests"
+              onClick={(e) => {
+                e.preventDefault();
+                dispatch(checkFriendRequestsAsync());
+                !!friendRequestsFrom?.length &&
+                  navigate("/friend/requests");
+              }}
+            >
+              <Person />
+              {!!notCheckedFriendRequestsFrom &&
+                notCheckedFriendRequestsFrom.length > 0 && (
+                  <span className="topbarIconBadge">
+                    {notCheckedFriendRequestsFrom.length}
+                  </span>
+                )}
+            </Link>
           </div>
           <div className="topbarIconItem">
             <Link className="topbarLink" to="/messenger">

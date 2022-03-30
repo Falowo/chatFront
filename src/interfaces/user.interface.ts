@@ -14,10 +14,11 @@ export interface IUser {
   coverPicture?: string;
   followersIds?: string[];
   followedIds?: string[];
-  friendsRequestFrom?: string[];
-  friendsRequestsTo?: string[];
+  friendRequestsFrom?: string[];
+  friendRequestsTo?: string[];
   friends?: string[];
   notCheckedFriendRequestsFrom?:string[];
+  notCheckedAcceptedFriendRequestsBy?: string[];
   blocked?: string[];
   isAdmin?: boolean;
   desc?: string;

@@ -8,6 +8,10 @@ import { getUserByUserIdQuery } from "../../api/users.api";
 import { likePost } from "../../api/posts.api";
 import { selectCurrentUser } from "../../app/slices/authSlice";
 import { useAppSelector } from "../../app/hooks";
+import {
+  selectFollowedByCurrentUser,
+  selectFriendsOfCurrentUser,
+} from "../../app/slices/currentUserSlice";
 
 export interface PostProps {
   post: IPost;
@@ -18,35 +22,44 @@ export default function Post(props: PostProps) {
   const [like, setLike] = useState(
     post.likersId?.length || 0,
   );
+  const friendsOfCurrentUser = useAppSelector(
+    selectFriendsOfCurrentUser,
+  );
+  const followedByCurrentUser = useAppSelector(
+    selectFollowedByCurrentUser,
+  );
   const [isLiked, setIsLiked] = useState(false);
   const [user, setUser] = useState<IUser>();
   const PF = process.env.REACT_APP_PUBLIC_FOLDER;
-  const currentUser = useAppSelector(
-    selectCurrentUser,
-  );
-  const url = process.env.REACT_APP_API_URL;
+  const currentUser = useAppSelector(selectCurrentUser);
 
   useEffect(() => {
     const currentUserId = currentUser?._id;
-    setIsLiked(
-      post.likersId?.includes(currentUserId!) || false,
-    );
+    !!currentUser?._id &&
+      setIsLiked(
+        post.likersId?.includes(currentUserId!) || false,
+      );
   }, [currentUser, post.likersId]);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      
-      const res = await getUserByUserIdQuery(post?.userId)
-      console.log(res?.data?._doc?.username);
-      setUser(res.data._doc);
+    const fetchUser = () => {
+      let usR = friendsOfCurrentUser.find(
+        (f) => f._id! === post.userId,
+      );
+      if (!usR) {
+        usR = followedByCurrentUser.find(
+          (f) => f._id === post.userId,
+        );
+      }
+      setUser(usR);
     };
-    fetchUser();
-  }, [post.userId, url]);
+    !!post?.userId && !user &&  fetchUser();
+  }, [followedByCurrentUser, friendsOfCurrentUser, post.userId, user]);
 
   const likeHandler = async () => {
     if (currentUser?._id) {
       try {
-        await likePost(post._id!, currentUser?._id!)
+        await likePost(post._id!, currentUser?._id!);
       } catch (err) {}
       setLike(isLiked ? like - 1 : like + 1);
       setIsLiked(!isLiked);

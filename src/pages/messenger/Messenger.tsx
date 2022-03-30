@@ -25,7 +25,6 @@ import {
   selectLastMessage,
   selectLastMessagesCheckedByCurrentUser,
   selectSelectedConversation,
-  selectUncheckedByCurrentUser,
   setCurrentChatAsync,
 } from "../../app/slices/messengerSlice";
 import { useParams } from "react-router-dom";
@@ -60,7 +59,6 @@ const Messenger = () => {
     selectFriendsOfCurrentUser,
   );
   const conversations = useAppSelector(selectConversations);
-  
 
   const [getMessageFromSocket, setGetMessageFromSocket] =
     useState<SocketGetMessageProps | undefined>(undefined);
@@ -84,9 +82,6 @@ const Messenger = () => {
   const lastMessage = useAppSelector(selectLastMessage);
   const lastMessagesCheckedByCurrentUser = useAppSelector(
     selectLastMessagesCheckedByCurrentUser,
-  );
-  const uncheckedByCurrentUser = useAppSelector(
-    selectUncheckedByCurrentUser,
   );
 
   // const isFetching = useAppSelector(selectMessengerIsfetching)
@@ -147,7 +142,7 @@ const Messenger = () => {
       if (
         !!receiverId &&
         !currentUserFriends
-          .map((f) => f._id)
+          ?.map((f) => f._id)
           .includes(receiverId)
       ) {
         dispatch(addFriendAsync({ userId: receiverId }));
@@ -161,8 +156,6 @@ const Messenger = () => {
     currentUserFriends,
     dispatch,
   ]);
-
-  
 
   useEffect(() => {
     socket?.on(
@@ -188,7 +181,7 @@ const Messenger = () => {
       dispatch(
         socketGotMessage({
           message,
-          receiverId: currentUser._id,
+          receiverId: currentUser._id!,
         }),
       );
     }
@@ -276,10 +269,6 @@ const Messenger = () => {
       );
   }, [currentUser, dispatch, selectedConversation, userId]);
 
-  
-
-  
-
   useEffect(() => {
     scrollSpan.current.scrollIntoView();
   }, [currentChat, dispatch]);
@@ -297,7 +286,7 @@ const Messenger = () => {
             />
             <div className="chatMenuListConversationsWrapper">
               {conversations && conversations?.length ? (
-                conversations.map((c) => (
+                conversations?.map((c) => (
                   <button
                     className="onClickButtonWrapper conversationItem"
                     key={c._id!}
@@ -320,7 +309,7 @@ const Messenger = () => {
                   >
                     <Conversation
                       conversation={c}
-                      key={c._id}
+                      key={c._id!}
                       selected={
                         currentChat?.conversation._id ===
                         c._id

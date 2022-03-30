@@ -51,4 +51,12 @@ export const getBestCurrentUserFriends = () => {
   return instance.get(`users/best/currentUser/friends`);
 };
 
+export const getFriendRequestsFrom = () => {
+  return instance.get("users/friend/requests/from");
+};
 
+export const checkFriendRequests = () => {
+  return instance.put(
+    "users/currentUser/checkFriendRequests",
+  );
+};

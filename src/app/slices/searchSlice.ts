@@ -3,14 +3,21 @@ import {
   createSlice,
   PayloadAction,
 } from "@reduxjs/toolkit";
-import { IPost } from "../../interfaces";
+import { IPost, IUser } from "../../interfaces";
 import {
   RootState,
   //  AppThunk,
 } from "../store";
 
 import { toast } from "react-toastify";
-import { searchUsersByUsernamePartParams } from "../../api/users.api";
+import {
+  getUserByUserIdQuery,
+  searchUsersByUsernamePartParams,
+} from "../../api/users.api";
+import {
+  selectFollowedByCurrentUser,
+  selectFriendRequestsFrom,
+} from "./currentUserSlice";
 
 const position = {
   position: toast.POSITION.BOTTOM_RIGHT,
@@ -43,29 +50,40 @@ const initialState: SearchState = {
 // typically used to make async requests.
 
 export const searchUsersByUserNamePartAsync =
-  createAsyncThunk(
-    "search/searchUsers",
-    async (props: {
+  createAsyncThunk<
+    SearchedUser[],
+    {
       usernamePart: string;
-      followedByCurrentUserIds: string[];
-    }) => {
-
-      const { usernamePart, followedByCurrentUserIds } = props;
+    },
+    { state: RootState }
+  >(
+    "search/searchUsers",
+    async (
+      props: {
+        usernamePart: string;
+      },
+      { getState },
+    ) => {
+      const { usernamePart } = props;
+      const followedByCurrentUser =
+        selectFollowedByCurrentUser(getState());
+      const followedByCurrentUserIds =
+        followedByCurrentUser.map((f) => f._id!);
       const res = await searchUsersByUsernamePartParams(
         usernamePart,
       );
       const users: SearchedUser[] = res.data;
-      const compUsers: SearchedUser[] = users.map((u) =>
-        ({
-          ...u,
-          followed: !!followedByCurrentUserIds?.includes(
-            u._id,
-          ),
-        }),
-      );
+      const compUsers: SearchedUser[] = users.map((u) => ({
+        ...u,
+        followed: !!followedByCurrentUserIds?.includes(
+          u._id!,
+        ),
+      }));
       return compUsers;
     },
   );
+
+
 
 export const searchSlice = createSlice({
   name: "search",
@@ -83,8 +101,6 @@ export const searchSlice = createSlice({
             ? !user.followed
             : !!user.followed,
       }));
-
-      
     },
   },
   // The `extraReducers` field lets the slice handle actions defined elsewhere,

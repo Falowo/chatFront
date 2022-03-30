@@ -43,6 +43,8 @@
   align-content: center;
   justify-content: flex-start;
   align-items: center;
+  margin-top:8px;
+  min-height: 20px;
 }
 .lastMessageText {
   width: 100%;

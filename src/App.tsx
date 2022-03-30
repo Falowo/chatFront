@@ -21,9 +21,20 @@ import {
   socketAddUser,
 } from "./app/slices/socketSlice";
 import { socket } from "./config/config.socket";
-import { getFriendsOfCurrentUserAsync, setNotCheckedFriendRequests } from "./app/slices/currentUserSlice";
-import { getConversationsAsync, getUncheckedByCurrentUserAsync, selectConversations } from "./app/slices/messengerSlice";
+import {
+  addFriendRequestFromAsync,
+  getFriendRequestsFromAsync,
+  getFriendsOfCurrentUserAsync,
+  setFriendRequestsTo,
+  setNotCheckedFriendRequests,
+} from "./app/slices/currentUserSlice";
+import {
+  getConversationsAsync,
+  getUncheckedByCurrentUserAsync,
+  selectConversations,
+} from "./app/slices/messengerSlice";
 import useDeepCompareEffect from "use-deep-compare-effect";
+import FriendRequests from "./pages/friendRequests/FriendRequests";
 // import { getBothFollowedByAndFollowersOfCurrentUserAsync } from "./app/slices/currentUserSlice";
 
 const useStyles = makeStyles({
@@ -76,7 +87,23 @@ const App = () => {
             currentUser?.notCheckedFriendRequestsFrom || [],
         }),
       );
-  }, [currentUser?._id, currentUser?.notCheckedFriendRequestsFrom, dispatch]);
+  }, [
+    currentUser?._id,
+    currentUser?.notCheckedFriendRequestsFrom,
+    dispatch,
+  ]);
+  useEffect(() => {
+    !!currentUser?._id &&
+      dispatch(
+        setFriendRequestsTo({
+          userIds: currentUser?.friendRequestsTo || [],
+        }),
+      );
+  }, [
+    currentUser?._id,
+    currentUser?.notCheckedFriendRequestsFrom,
+    dispatch,
+  ]);
 
   useEffect(() => {
     !!currentUser?._id &&
@@ -94,15 +121,30 @@ const App = () => {
   }, [connectedUsers, dispatch, currentUser?._id]);
 
   useEffect(() => {
+    !!currentUser?._id &&
+      socket?.on("getFriendRequest", (senderId: string) => {
+        console.log({"getFriendRequest":senderId});
+        console.log(senderId);
+        
+        dispatch(addFriendRequestFromAsync(senderId));
+      });
+  }, [dispatch, currentUser?._id]);
+
+  useEffect(() => {
     console.log({ connectedUsers });
   }, [connectedUsers]);
 
   useEffect(() => {
-    !!currentUser &&
+    !!currentUser?._id! && 
       dispatch(
-        getFriendsOfCurrentUserAsync(currentUser._id!),
+        getFriendsOfCurrentUserAsync(currentUser?._id!),
       );
-  }, [dispatch, currentUser]);
+  }, [dispatch, currentUser?._id!]);
+
+  useEffect(() => {
+    !!currentUser?._id! &&
+      dispatch(getFriendRequestsFromAsync());
+  }, [dispatch, currentUser?._id!]);
 
   return (
     <>
@@ -117,7 +159,10 @@ const App = () => {
               path="/signin"
               element={!currentUser ? <SignIn /> : <Home />}
             />
-            <Route path="/signup" element={!currentUser ?<SignUp />:<Home/>} />
+            <Route
+              path="/signup"
+              element={!currentUser ? <SignUp /> : <Home />}
+            />
             <Route
               path="/messenger/:userId"
               element={
@@ -140,6 +185,16 @@ const App = () => {
               path="/search"
               element={
                 !!currentUser ? <Search /> : <SignIn />
+              }
+            />
+            <Route
+              path="/friend/requests"
+              element={
+                !!currentUser ? (
+                  <FriendRequests />
+                ) : (
+                  <SignIn />
+                )
               }
             />
             <Route

@@ -1,7 +1,9 @@
 import {
+  AnyAction,
   createAsyncThunk,
   createSlice,
   PayloadAction,
+  ThunkDispatch,
 } from "@reduxjs/toolkit";
 import { IUser } from "../../interfaces";
 import {
@@ -11,10 +13,12 @@ import {
 import { toast } from "react-toastify";
 import {
   addFriend,
+  checkFriendRequests,
   followUser,
   getBestCurrentUserFriends,
   getFollowedUsersByUserIdParams,
   getFollowersByUserIdParams,
+  getFriendRequestsFrom,
   getFriendsByUserIdParams,
   getUserByUserIdQuery,
   sendFriendRequest,
@@ -30,17 +34,24 @@ interface FollowProps {
   userId: string;
 }
 
+interface BestFriendOfCurrentUser {
+  friendId: string;
+  numberOfMessages: number;
+}
+// interface FriendOfCurrentUser {
+//   friend: IUser;
+//   numberOfMessages: number;
+// }
+
 export interface CurrentUserState {
   followedByCurrentUser: IUser[];
   followersOfCurrentUser: string[];
   friendsOfCurrentUser: IUser[];
-  bestFriendsOfCurrentUser: {
-    friendId: string;
-    numberOfMessages: number;
-  }[];
+  bestFriendsOfCurrentUser: BestFriendOfCurrentUser[];
   friendRequestsTo: string[];
-  friendRequestsFrom: string[];
-  notCheckedFriendRequests?: string[];
+  friendRequestsFrom: IUser[];
+  notCheckedFriendRequestsFrom: string[];
+  notCheckedAcceptedFriendRequestsBy: string[];
   isFetching: boolean;
   error: any;
 }
@@ -52,7 +63,8 @@ const initialState: CurrentUserState = {
   bestFriendsOfCurrentUser: [],
   friendRequestsTo: [],
   friendRequestsFrom: [],
-  notCheckedFriendRequests: [],
+  notCheckedFriendRequestsFrom: [],
+  notCheckedAcceptedFriendRequestsBy: [],
   isFetching: false,
   error: null,
 };
@@ -63,16 +75,32 @@ const initialState: CurrentUserState = {
 // code can then be executed and other actions can be dispatched. Thunks are
 // typically used to make async requests.
 export const getFriendsOfCurrentUserAsync =
-  createAsyncThunk(
+  createAsyncThunk<
+    // Return type of the payload creator
+    IUser[],
+    // First argument to the payload creator
+    string,
+    {
+      // Optional fields for defining thunkApi field types
+      dispatch: ThunkDispatch<unknown, unknown, AnyAction>;
+      // state: RootState;
+    }
+  >(
     "currentUser/getFriendsOfCurrentUser",
-    async (currentUserId: string, { dispatch }) => {
+    async (currentUserId, { dispatch }) => {
+      // const { dispatch, getState } = thunkApi;
       const response = await getFriendsByUserIdParams(
         currentUserId,
       );
 
       const friendsOfCurrentUser: IUser[] = response.data;
       // The value we return becomes the `fulfilled` action payload
-      dispatch(getBestFriendsOfCurrentUserAsync());
+      dispatch(
+        getBestFriendsOfCurrentUserAsync(
+          friendsOfCurrentUser,
+        ),
+      );
+
       return friendsOfCurrentUser;
     },
   );
@@ -80,7 +108,7 @@ export const getFriendsOfCurrentUserAsync =
 export const getBestFriendsOfCurrentUserAsync =
   createAsyncThunk(
     "currentUser/getBestFriendsOfCurrentUser",
-    async () => {
+    async (friendsOfCurrentUser: IUser[]) => {
       const response = await getBestCurrentUserFriends();
 
       const bestFriendsOfCurrentUser: {
@@ -88,7 +116,10 @@ export const getBestFriendsOfCurrentUserAsync =
         numberOfMessages: number;
       }[] = response.data;
       // The value we return becomes the `fulfilled` action payload
-      return bestFriendsOfCurrentUser;
+      return {
+        bestFriendsOfCurrentUser,
+        friendsOfCurrentUser,
+      };
     },
   );
 
@@ -120,13 +151,12 @@ export const followUserAsync = createAsyncThunk(
   async (props: FollowProps) => {
     const { userId } = props;
 
-    await followUser(userId);
+    const res = await followUser(userId);
     // The value we return becomes the `fulfilled` action payload
 
-    const res = await getUserByUserIdQuery(userId);
-    const user: IUser = res.data._doc;
-
-    return user;
+    const { user, currentUser } = res.data;
+    // do something with socket and currentUser
+    return { user, currentUser };
   },
 );
 export const unfollowUserAsync = createAsyncThunk(
@@ -135,7 +165,7 @@ export const unfollowUserAsync = createAsyncThunk(
     const { userId } = props;
 
     await unfollowUser(userId);
-    // The value we return becomes the `fulfilled` action payload
+    // We may get the unfollowed user as user to send socket and update his followers count but later
     return userId;
   },
 );
@@ -155,23 +185,59 @@ export const addFriendAsync = createAsyncThunk(
   },
 );
 
-export const sendFriendRequestAsync = createAsyncThunk(
-  "currentUser/sendFriendRequest",
-  async (userId: string, { dispatch }) => {
-    const res = await sendFriendRequest(userId);
-    const props: {
-      updatedUser: IUser;
-      updatedCurrentUser: IUser;
-    } = res.data;
+export const getFriendRequestsFromAsync = createAsyncThunk<
+  IUser[]
+>("currentUser/getFriendRequestsFrom", async () => {
+  const response = await getFriendRequestsFrom();
+  const users: IUser[] = response.data;
+  // The value we return becomes the `fulfilled` action payload
+  return users;
+});
 
-    !!props.updatedCurrentUser &&
-      dispatch(
-        socketSendFriendRequest({
-          userId,
-          currentUserId: props.updatedCurrentUser._id!,
-        }),
-      );
-    return props;
+export const sendFriendRequestOrAcceptAsync =
+  createAsyncThunk<
+    {
+      user: IUser;
+      currentUser: IUser;
+    },
+    string,
+    { dispatch: ThunkDispatch<unknown, unknown, AnyAction> }
+  >(
+    "currentUser/sendFriendRequestOrAccept",
+    async (userId: string, { dispatch }) => {
+      const res = await sendFriendRequest(userId);
+      const props: {
+        user: IUser;
+        currentUser: IUser;
+      } = res.data;
+
+      !!props.currentUser &&
+        dispatch(
+          socketSendFriendRequest({
+            userId,
+            currentUserId: props.currentUser._id!,
+          }),
+        );
+      return props;
+    },
+  );
+
+export const checkFriendRequestsAsync = createAsyncThunk(
+  "currentUser/checkFriendRequests",
+  async () => {
+    await checkFriendRequests();
+    return true;
+  },
+);
+
+export const addFriendRequestFromAsync = createAsyncThunk(
+  "currentUser/addFriendRequestsFrom",
+  async (userId: string) => {
+    console.log(userId);
+
+    const res = await getUserByUserIdQuery(userId);
+    const user: IUser = res.data._doc;
+    return user;
   },
 );
 
@@ -185,99 +251,84 @@ export const currentUserSlice = createSlice({
       action: PayloadAction<{ userIds: string[] }>,
     ) => {
       const { userIds } = action.payload;
-
-      state.notCheckedFriendRequests = userIds;
+      state.notCheckedFriendRequestsFrom = userIds;
     },
-    addFriendRequestFrom: (
+    setNotCheckedAcceptedFriendRequestsBy: (
       state,
-      action: PayloadAction<{ userId: string }>,
+      action: PayloadAction<{ userIds: string[] }>,
     ) => {
-      const { userId } = action.payload;
-
-      state.notCheckedFriendRequests = [
-        ...(state.notCheckedFriendRequests?.filter(
-          (uId) => uId !== userId,
-        ) || []),
-        userId,
-      ];
-      state.friendRequestsFrom = [
-        ...state.friendRequestsFrom?.filter(
-          (fId) => fId !== userId,
-        ),
-        userId,
-      ];
+      const { userIds } = action.payload;
+      state.notCheckedAcceptedFriendRequestsBy = userIds;
     },
-    removeFriendRequest: (
+    setFriendRequestsTo: (
       state,
-      action: PayloadAction<{ userId: string }>,
+      action: PayloadAction<{ userIds: string[] }>,
     ) => {
-      const { userId } = action.payload;
+      const { userIds } = action.payload;
 
-      state.notCheckedFriendRequests = [
-        ...(state.notCheckedFriendRequests?.filter(
-          (uId) => uId !== userId,
-        ) || []),
-      ];
+      state.friendRequestsTo = userIds;
     },
   },
   // The `extraReducers` field lets the slice handle actions defined elsewhere,
   // including actions generated by createAsyncThunk or in other slices.
   extraReducers: (builder) => {
     builder
+
       .addCase(
-        getFriendsOfCurrentUserAsync.pending,
+        sendFriendRequestOrAcceptAsync.pending,
         (state) => {
           state.isFetching = true;
         },
       )
       .addCase(
-        getFriendsOfCurrentUserAsync.fulfilled,
+        sendFriendRequestOrAcceptAsync.fulfilled,
         (state, action) => {
-          state.isFetching = false;
-          if (!!action.payload) {
-            state.friendsOfCurrentUser = action.payload;
-          }
-        },
-      )
-      .addCase(
-        getFriendsOfCurrentUserAsync.rejected,
-        (state, action) => {
-          state.isFetching = false;
-          toast(action.error.message, position);
-        },
-      )
-      .addCase(sendFriendRequestAsync.pending, (state) => {
-        state.isFetching = true;
-      })
-      .addCase(
-        sendFriendRequestAsync.fulfilled,
-        (state, action) => {
-          const { updatedUser, updatedCurrentUser } =
-            action.payload;
+          const { user, currentUser } = action.payload;
           state.isFetching = false;
           state.friendRequestsTo = [
             ...(state.friendRequestsTo?.filter(
-              (frId) => frId !== updatedUser._id!,
+              (frId) => frId !== user._id!,
             ) || []),
-            updatedUser?._id!,
+            user?._id!,
           ];
           if (
-            updatedCurrentUser.friends?.includes(
-              updatedUser._id!,
-            ) &&
+            // accept friendRe
+            currentUser.friends?.includes(user._id!) &&
             !state.friendsOfCurrentUser?.find(
-              (f) => f._id! === updatedUser._id!,
+              (f) => f._id! === user._id!,
             )
           ) {
             state.friendsOfCurrentUser = [
-              ...(state.friendsOfCurrentUser || []),
-              updatedUser,
+              user,
+              ...(state.friendsOfCurrentUser?.filter(
+                (f) => f._id !== user._id,
+              ) || []),
             ];
+            if (
+              state.friendRequestsFrom
+                ?.map((f) => f._id)
+                .includes(user._id)
+            ) {
+              state.friendRequestsFrom =
+                state.friendRequestsFrom.filter(
+                  (f) => f._id !== user._id,
+                );
+            }
+            if (
+              state.notCheckedFriendRequestsFrom.includes(
+                user._id!,
+              )
+            ) {
+              state.notCheckedFriendRequestsFrom =
+                state.notCheckedFriendRequestsFrom.filter(
+                  (fId) => fId !== user._id,
+                );
+            }
           }
         },
       )
       .addCase(
-        sendFriendRequestAsync.rejected,
+        sendFriendRequestOrAcceptAsync.rejected,
         (state, action) => {
           state.isFetching = false;
           toast(action.error.message, position);
@@ -293,38 +344,45 @@ export const currentUserSlice = createSlice({
         getBestFriendsOfCurrentUserAsync.fulfilled,
         (state, action) => {
           state.isFetching = false;
-          const bestFriendsOfCurrentUser: {
-            friendId: string;
-            numberOfMessages: number;
-          }[] = action.payload;
-          
-          state.bestFriendsOfCurrentUser =
-            bestFriendsOfCurrentUser;
+          const {
+            bestFriendsOfCurrentUser,
+            friendsOfCurrentUser,
+          } = action.payload;
 
-          state.friendsOfCurrentUser =
-            state.friendsOfCurrentUser
-              .map((f) => {
-                if (
-                  state.bestFriendsOfCurrentUser.find(
-                    (b) => b.friendId === f._id!,
-                  )
-                ) {
-                  return {
-                    ...f,
-                    numberOfMessages:
-                      state.bestFriendsOfCurrentUser.find(
-                        (b) => b.friendId === f._id!,
-                      )?.numberOfMessages,
-                  };
-                } else {
-                  return { ...f, numberOfMessages: 0 };
-                }
-              })
-              .sort((a, b) => {
-                return (
-                  b.numberOfMessages! - a.numberOfMessages!
-                );
-              });
+          if (!!bestFriendsOfCurrentUser) {
+            state.bestFriendsOfCurrentUser =
+              bestFriendsOfCurrentUser;
+          }
+          if (
+            !!friendsOfCurrentUser &&
+            !!bestFriendsOfCurrentUser
+          ) {
+            state.friendsOfCurrentUser =
+              friendsOfCurrentUser
+                .map((f) => {
+                  if (
+                    state.bestFriendsOfCurrentUser.find(
+                      (b) => b.friendId === f._id!,
+                    )
+                  ) {
+                    return {
+                      ...f,
+                      numberOfMessages:
+                        state.bestFriendsOfCurrentUser.find(
+                          (b) => b.friendId === f._id!,
+                        )?.numberOfMessages,
+                    };
+                  } else {
+                    return { ...f, numberOfMessages: 0 };
+                  }
+                })
+                .sort((a, b) => {
+                  return (
+                    b.numberOfMessages! -
+                    a.numberOfMessages!
+                  );
+                });
+          }
         },
       )
       .addCase(
@@ -405,10 +463,37 @@ export const currentUserSlice = createSlice({
         (state, action) => {
           state.isFetching = false;
           if (!!action.payload) {
+            const {
+              user,
+              currentUser,
+            }: { user: IUser; currentUser: IUser } =
+              action.payload;
             state.followedByCurrentUser = [
-              ...state.followedByCurrentUser,
-              action.payload,
+              ...state.followedByCurrentUser.filter(
+                (f) => f._id !== user._id,
+              ),
+              user,
             ];
+            if (currentUser.friends?.includes(user._id!)) {
+              state.friendsOfCurrentUser = [
+                user,
+                ...state.friendsOfCurrentUser.filter(
+                  (f) => f._id !== user._id,
+                ),
+              ];
+              state.friendRequestsFrom =
+                state.friendRequestsFrom.filter(
+                  (f) => f._id !== user._id!,
+                );
+              state.friendRequestsTo =
+                state.friendRequestsTo.filter(
+                  (fId) => fId !== user._id!,
+                );
+              state.notCheckedFriendRequestsFrom =
+                state.notCheckedFriendRequestsFrom?.filter(
+                  (fId) => fId !== user._id!,
+                );
+            }
           }
         },
       )
@@ -441,14 +526,110 @@ export const currentUserSlice = createSlice({
           state.isFetching = false;
           toast(action.error.message, position);
         },
+      )
+      .addCase(
+        checkFriendRequestsAsync.pending,
+        (state) => {
+          state.isFetching = true;
+        },
+      )
+      .addCase(
+        checkFriendRequestsAsync.fulfilled,
+        (state, action) => {
+          state.isFetching = false;
+          if (!!action.payload) {
+            state.notCheckedFriendRequestsFrom = [];
+          }
+        },
+      )
+      .addCase(
+        checkFriendRequestsAsync.rejected,
+        (state, action) => {
+          state.isFetching = false;
+          toast(action.error.message, position);
+        },
+      )
+      .addCase(
+        getFriendRequestsFromAsync.pending,
+        (state) => {
+          state.isFetching = true;
+        },
+      )
+      .addCase(
+        getFriendRequestsFromAsync.fulfilled,
+        (state, action) => {
+          state.isFetching = false;
+          if (!!action.payload) {
+            state.friendRequestsFrom = action.payload;
+          }
+        },
+      )
+      .addCase(
+        getFriendRequestsFromAsync.rejected,
+        (state, action) => {
+          state.isFetching = false;
+          toast(action.error.message, position);
+        },
+      )
+      .addCase(
+        addFriendRequestFromAsync.pending,
+        (state) => {
+          state.isFetching = true;
+        },
+      )
+      .addCase(
+        addFriendRequestFromAsync.fulfilled,
+        (state, action) => {
+          state.isFetching = false;
+          if (!!action.payload) {
+            const user = action.payload;
+            if (
+              state.friendRequestsTo.includes(user._id!)
+            ) {
+              state.friendsOfCurrentUser = [
+                user,
+                ...state.friendsOfCurrentUser.filter(
+                  (f) => f._id !== user._id,
+                ),
+              ];
+              state.friendRequestsFrom =
+                state.friendRequestsFrom.filter(
+                  (f) => f._id! !== user._id,
+                );
+              state.friendRequestsTo =
+                state.friendRequestsTo.filter(
+                  (fId) => fId !== user._id,
+                );
+            } else {
+              state.friendRequestsFrom = [
+                user,
+                ...state.friendRequestsFrom.filter(
+                  (f) => f._id !== user._id,
+                ),
+              ];
+              state.notCheckedFriendRequestsFrom = [
+                ...state.notCheckedFriendRequestsFrom.filter(
+                  (fId) => fId !== user._id!,
+                ),
+                user._id!,
+              ];
+            }
+          }
+        },
+      )
+      .addCase(
+        addFriendRequestFromAsync.rejected,
+        (state, action) => {
+          state.isFetching = false;
+          toast(action.error.message, position);
+        },
       );
   },
 });
 
 export const {
   setNotCheckedFriendRequests,
-  addFriendRequestFrom,
-  removeFriendRequest,
+  setFriendRequestsTo,
 } = currentUserSlice.actions;
 
 // The function below is called a selector and allows us to select a value from
@@ -469,6 +650,18 @@ export const selectBestFriendsOfCurrentUser = (
 export const selectFriendsOfCurrentUser = (
   state: RootState,
 ) => state.currentUserRelatives.friendsOfCurrentUser;
+
+export const selectFriendRequestsFrom = (
+  state: RootState,
+) => state.currentUserRelatives.friendRequestsFrom;
+
+export const selectFriendRequestsTo = (state: RootState) =>
+  state.currentUserRelatives.friendRequestsTo;
+
+export const selectNotCheckedFriendRequestsFrom = (
+  state: RootState,
+) =>
+  state.currentUserRelatives.notCheckedFriendRequestsFrom;
 
 // We can also write thunks by hand, which may contain both sync and async logic.
 // Here's an example of conditionally dispatching actions based on current state.

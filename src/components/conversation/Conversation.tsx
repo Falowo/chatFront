@@ -8,11 +8,17 @@ import DoneIcon from "@mui/icons-material/Done";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import moment from "moment";
-import { IPConversation } from "../../interfaces";
+import { IPConversation, IUser } from "../../interfaces";
 import { getUserByUserIdQuery } from "../../api/users.api";
 import { selectCurrentUser } from "../../app/slices/authSlice";
-import { useAppSelector } from "../../app/hooks";
-import { selectUncheckedByCurrentUser } from "../../app/slices/messengerSlice";
+import {
+  useAppDispatch,
+  useAppSelector,
+} from "../../app/hooks";
+import {
+  selectUncheckedByCurrentUser,
+  getConversationNameAndPictureAsync,
+} from "../../app/slices/messengerSlice";
 
 export interface ConversationProps {
   conversation: IPConversation;
@@ -21,6 +27,7 @@ export interface ConversationProps {
 
 const Conversation = (props: ConversationProps) => {
   const { conversation, selected } = props;
+  const dispatch = useAppDispatch();
   const currentUser = useAppSelector(selectCurrentUser);
   const uncheckedByCurrentUser = useAppSelector(
     selectUncheckedByCurrentUser,
@@ -30,58 +37,15 @@ const Conversation = (props: ConversationProps) => {
     uncheckedByCurrentUserForThisConversation,
     setUncheckedByCurrentUserForThisConversation,
   ] = useState<string[] | undefined>([]);
-  const [conversationName, setConversationName] = useState<
-    string | null
-  >(null);
-  const [conversationPicture, setConversationPicture] =
-    useState<string | null>(null);
+
   const PF = process.env.REACT_APP_PUBLIC_FOLDER;
 
-  const handleSetConversationName = useCallback(
-    async (conversation: IPConversation) => {
-      if (!!conversation && !conversation?.groupName) {
-        // console.log("!conversation.groupName");
-
-        const friendIdArray: string[] | undefined =
-          conversation.membersId!.filter(
-            (m: string | undefined) =>
-              m !== currentUser!._id,
-          );
-        const friendId = friendIdArray[0];
-
-        const res = await getUserByUserIdQuery(friendId);
-        const friend = res.data._doc;
-        setConversationName(
-          friendIdArray?.length === 1
-            ? friend.username
-            : `${friend.username} and ${
-                friendIdArray.length - 1
-              } more ... `,
-        );
-        setConversationPicture(
-          friend.profilePicture
-            ? PF + friend.profilePicture
-            : PF + "person/noAvatar.png",
-        );
-      } else if (!!conversation) {
-        // console.log("HASHTAG !!CONVERSATION");
-
-        setConversationName(
-          conversation.groupName || "Unnamed conversation",
-        );
-        setConversationPicture(
-          conversation.groupPicture
-            ? PF + conversation.groupPicture
-            : PF + "person/noAvatar.png",
-        );
-      }
-    },
-    [PF, currentUser],
-  );
-
   useEffect(() => {
-    handleSetConversationName(conversation);
-  }, [conversation, handleSetConversationName]);
+    !conversation.groupName &&
+      dispatch(
+        getConversationNameAndPictureAsync(conversation),
+      );
+  }, [conversation, dispatch]);
 
   useEffect(() => {
     if (!!uncheckedByCurrentUser) {
@@ -106,8 +70,9 @@ const Conversation = (props: ConversationProps) => {
         >
           <img
             src={
-              conversationPicture ||
-              PF + "person/noAvatar.png"
+              conversation.groupPicture
+                ? `${PF + conversation.groupPicture}`
+                : `${PF + "person/noAvatar.png"}`
             }
             alt="conversationName"
             className="conversationImg"
@@ -115,7 +80,7 @@ const Conversation = (props: ConversationProps) => {
           <div className="textWrapper">
             <div className="conversationNameWrapper">
               <span className="conversationName">
-                {conversationName}
+                {conversation.groupName}
               </span>
 
               <span

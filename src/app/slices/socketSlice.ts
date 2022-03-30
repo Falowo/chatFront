@@ -82,8 +82,6 @@ export const socketCurrentUserCheckMessagesAsync =
     },
   );
 
-  
-
 export const socketSlice = createSlice({
   name: "socket",
   initialState,
@@ -108,27 +106,34 @@ export const socketSlice = createSlice({
     ) => {
       state.connectedUsers = action.payload;
     },
-    
 
     socketSendFriendRequest: (
       state,
-      action: PayloadAction<{ userId: string; currentUserId:string }>,
+      action: PayloadAction<{
+        userId: string;
+        currentUserId: string;
+      }>,
     ) => {
       const { userId, currentUserId } = action.payload;
 
-      socket?.emit("sendFriendRequest", {
-        userId,
-        currentUserId,
-      });
-
-      state.sentFriendRequestsIds = [
-        ...(state.sentFriendRequestsIds.filter(
-          (uId) => uId !== userId,
-        ) || []),
-        userId,
-      ];
+      if (
+        state.connectedUsers.find(
+          (c) => c.userId === userId,
+        )
+      ) {
+        socket?.emit("sendFriendRequest", {
+          receiverId: userId,
+          senderId: currentUserId,
+        });
+        state.sentFriendRequestsIds = [
+          ...(state.sentFriendRequestsIds.filter(
+            (uId) => uId !== userId,
+          ) || []),
+          userId,
+        ];
+      }
     },
-    
+
     socketSendMessage: (
       state,
       action: PayloadAction<{
@@ -145,11 +150,17 @@ export const socketSlice = createSlice({
         );
 
       for (const receiverId of receiversIds!) {
-        socket?.emit("sendMessage", {
-          receiverId,
-          conversation,
-          message,
-        });
+        if (
+          state.connectedUsers.find(
+            (c) => c.userId === receiverId,
+          )
+        ) {
+          socket?.emit("sendMessage", {
+            receiverId,
+            conversation,
+            message,
+          });
+        }
       }
       state.lastMessageSentId = action.payload.message._id!;
     },
