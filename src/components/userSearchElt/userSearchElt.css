@@ -19,6 +19,7 @@
 .userTopLeft {
   display: flex;
   align-items: center;
+  flex: 1;
 }
 
 .userProfileImg {
@@ -31,7 +32,8 @@
 .userUsername {
   font-size: 15px;
   font-weight: 500;
-  margin: 0 10px;
+  margin: 0 2rem;
+  flex: 1;
 }
 
 .followButton {
@@ -50,9 +52,16 @@
   justify-content: center;
 }
 
-.userTopRight{
+.userTopRight {
   position: relative;
   cursor: pointer;
-  border:none;
+  border: none;
   background-color: white;
+}
+.linkClass {
+  text-decoration: none !important;
+  color: inherit;
+  flex:1;
+  display:flex;
+  align-items: center
 }

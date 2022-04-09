@@ -13,17 +13,11 @@ import {
   useAppDispatch,
   useAppSelector,
 } from "../../app/hooks";
-import { selectCurrentUser } from "../../app/slices/authSlice";
-import {
-  createPostAsync,
-} from "../../app/slices/postsSlice";
+import { selectCurrentUser } from "../../app/slices/currentUserSlice";
+import { createPostAsync } from "../../app/slices/postsSlice";
 import { useParams } from "react-router-dom";
 import { selectSelectedUser } from "../../app/slices/selectedUserSlice";
-// interface NewPost {
-//   userId: string;
-//   desc?: string;
-//   img?: string;
-// }
+
 
 export default function Share() {
   const currentUser = useAppSelector(selectCurrentUser);
@@ -37,7 +31,7 @@ export default function Share() {
 
   const submitHandler = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    e.stopPropagation();
     if (!!username && !!selectedUser) {
       onTheWallOf = selectedUser._id!;
     }
@@ -71,9 +65,11 @@ export default function Share() {
           />
           <input
             placeholder={
-              "What's in your mind " +
-              currentUser?.username +
-              "?"
+              selectedUser?._id === currentUser?._id
+                ? "What's in your mind " +
+                  currentUser?.username +
+                  "?"
+                : `Write something on ${selectedUser?.username}'s wall `
             }
             className="shareInput"
             ref={desc}
@@ -112,6 +108,8 @@ export default function Share() {
                 id="file"
                 accept=".png,.jpeg,.jpg"
                 onChange={(e: React.ChangeEvent) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   const target =
                     e.target as HTMLInputElement;
                   setFile((target.files as FileList)[0]);

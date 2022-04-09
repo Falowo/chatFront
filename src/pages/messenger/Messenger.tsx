@@ -12,7 +12,7 @@ import {
   useAppDispatch,
   useAppSelector,
 } from "../../app/hooks";
-import { selectCurrentUser } from "../../app/slices/authSlice";
+import { selectCurrentUser } from "../../app/slices/currentUserSlice";
 import {
   conversationCheckedByCurrentUserAsync,
   createNewMessageAsync,
@@ -140,7 +140,7 @@ const Messenger = () => {
         );
 
       if (
-        !!receiverId &&
+        !!receiverId && !!currentUserFriends &&
         !currentUserFriends
           ?.map((f) => f._id)
           .includes(receiverId)

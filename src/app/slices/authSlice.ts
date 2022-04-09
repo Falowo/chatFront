@@ -248,7 +248,7 @@ export const { logout, toggleDarkMode } = authSlice.actions;
 export const selectAuth = (state: RootState) => state.auth;
 export const selectLocals = (state: RootState) =>
   state.auth.locals;
-export const selectCurrentUser = (state: RootState) =>
+export const selectAuthUser = (state: RootState) =>
   state.auth.locals?.user;
 export const selectExp = (state: RootState) =>
   state.auth.locals?.exp;

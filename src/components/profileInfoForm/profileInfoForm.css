@@ -1,0 +1,9 @@
+.profileInfoForm {
+  max-width: 210px;
+  display:flex;
+  flex-direction: column;
+}
+.buttonInfoForm {
+  align-self: flex-end !important;
+  width: 100%;
+}

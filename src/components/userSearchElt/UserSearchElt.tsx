@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "./userSearchElt.css";
 import { Add, MoreVert, Remove } from "@mui/icons-material";
 import { Link } from "react-router-dom";
-import { selectCurrentUser } from "../../app/slices/authSlice";
+import { selectCurrentUser } from "../../app/slices/currentUserSlice";
 import {
   useAppSelector,
   useAppDispatch,
@@ -71,7 +71,9 @@ export default function UserSearchElt(
       <div className="userWrapper">
         <div className="userTop">
           <div className="userTopLeft">
-            <Link to={`/profile/${user.username}`}>
+            <Link to={`/profile/${user.username}`}
+            className="linkClass"
+            >
               <img
                 className="userProfileImg"
                 src={
@@ -81,10 +83,10 @@ export default function UserSearchElt(
                 }
                 alt=""
               />
-            </Link>
             <span className="userUsername">
               {user?.username}
             </span>
+            </Link>
           </div>
           <button
             className="userTopRight"

@@ -5,7 +5,7 @@ import DoneIcon from "@mui/icons-material/Done";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { useAppSelector } from "../../app/hooks";
-import { selectCurrentUser } from "../../app/slices/authSlice";
+import { selectCurrentUser } from "../../app/slices/currentUserSlice";
 export interface MessageProps {
   own: boolean;
   message: IPMessage;

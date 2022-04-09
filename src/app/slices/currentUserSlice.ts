@@ -5,7 +5,11 @@ import {
   PayloadAction,
   ThunkDispatch,
 } from "@reduxjs/toolkit";
-import { IUser } from "../../interfaces";
+import {
+  IUser,
+  ToUpdateUserDesc,
+  ToUpdateUserInfo,
+} from "../../interfaces";
 import {
   RootState,
   //  AppThunk
@@ -15,6 +19,8 @@ import {
   addFriend,
   checkAcceptedFriendRequests,
   checkFriendRequests,
+  editCoverPicture,
+  editProfilePicture,
   followUser,
   getBestCurrentUserFriends,
   getFollowedUsersByUserIdParams,
@@ -24,8 +30,11 @@ import {
   getUserByUserIdQuery,
   sendFriendRequest,
   unfollowUser,
+  updateCurrentUserDesc,
+  updateCurrentUserInfo,
 } from "../../api/users.api";
 import { socketSendFriendRequest } from "./socketSlice";
+import { uploadFile } from "../../api/posts.api";
 
 const position = {
   position: toast.POSITION.BOTTOM_RIGHT,
@@ -45,6 +54,7 @@ interface BestFriendOfCurrentUser {
 // }
 
 export interface CurrentUserState {
+  currentUser?: IUser;
   followedByCurrentUser: IUser[];
   followersOfCurrentUser: string[];
   friendsOfCurrentUser: IUser[];
@@ -54,10 +64,13 @@ export interface CurrentUserState {
   notCheckedFriendRequestsFrom: string[];
   notCheckedAcceptedFriendRequestsBy: string[];
   isFetching: boolean;
+  editInfoMode: boolean;
+  editDescMode: boolean;
   error: any;
 }
 
 const initialState: CurrentUserState = {
+  currentUser: undefined,
   followedByCurrentUser: [],
   followersOfCurrentUser: [],
   friendsOfCurrentUser: [],
@@ -67,6 +80,8 @@ const initialState: CurrentUserState = {
   notCheckedFriendRequestsFrom: [],
   notCheckedAcceptedFriendRequestsBy: [],
   isFetching: false,
+  editInfoMode: false,
+  editDescMode: false,
   error: null,
 };
 
@@ -75,6 +90,73 @@ const initialState: CurrentUserState = {
 // will call the thunk with the `dispatch` function as the first argument. Async
 // code can then be executed and other actions can be dispatched. Thunks are
 // typically used to make async requests.
+
+export const getCurrentUserAsync = createAsyncThunk<
+  IUser,
+  string
+>("currentUser/getCurrentUser", async (currentUserId) => {
+  const res = await getUserByUserIdQuery(currentUserId);
+  const currentUser = res.data._doc;
+  return currentUser;
+});
+export const updateCurrentUserInfoAsync = createAsyncThunk<
+  IUser,
+  ToUpdateUserInfo
+>(
+  "currentUser/updateCurrentUserInfo",
+  async (toUpdateUserInfo) => {
+    const res = await updateCurrentUserInfo(
+      toUpdateUserInfo,
+    );
+    const currentUser = res.data;
+    return currentUser;
+  },
+);
+export const updateCurrentUserDescAsync = createAsyncThunk<
+  IUser,
+  ToUpdateUserDesc
+>(
+  "currentUser/updateCurrentUserDesc",
+  async (toUpdateUserDesc) => {
+    const res = await updateCurrentUserDesc(
+      toUpdateUserDesc,
+    );
+    const currentUser = res.data;
+    return currentUser;
+  },
+);
+
+export const setProfilePictureAsync = createAsyncThunk(
+  "currentUser/setProfilePicture",
+  async (file: File) => {
+    const data = new FormData();
+    const fileName: string = `${Date.now()}${file.name}`;
+    data.append("name", fileName);
+    data.append("file", file);
+    await uploadFile(data);
+
+    const res = await editProfilePicture(fileName);
+    const currentUser: IUser = res.data;
+    return currentUser;
+    // window.location.reload();
+  },
+);
+export const setCoverPictureAsync = createAsyncThunk(
+  "currentUser/setCoverPicture",
+  async (file: File) => {
+    const data = new FormData();
+    const fileName: string = `${Date.now()}${file.name}`;
+    data.append("name", fileName);
+    data.append("file", file);
+    await uploadFile(data);
+
+    const res = await editCoverPicture(fileName);
+    const currentUser: IUser = res.data;
+    return currentUser;
+    // window.location.reload();
+  },
+);
+
 export const getFriendsOfCurrentUserAsync =
   createAsyncThunk<
     // Return type of the payload creator
@@ -89,13 +171,12 @@ export const getFriendsOfCurrentUserAsync =
   >(
     "currentUser/getFriendsOfCurrentUser",
     async (currentUserId, { dispatch }) => {
-      // const { dispatch, getState } = thunkApi;
       const response = await getFriendsByUserIdParams(
         currentUserId,
       );
 
       const friendsOfCurrentUser: IUser[] = response.data;
-      // The value we return becomes the `fulfilled` action payload
+
       dispatch(
         getBestFriendsOfCurrentUserAsync(
           friendsOfCurrentUser,
@@ -230,13 +311,14 @@ export const checkFriendRequestsAsync = createAsyncThunk(
     return true;
   },
 );
-export const checkAcceptedFriendRequestsAsync = createAsyncThunk(
-  "currentUser/checkAcceptedFriendRequests",
-  async () => {
-    await checkAcceptedFriendRequests();
-    return true;
-  },
-);
+export const checkAcceptedFriendRequestsAsync =
+  createAsyncThunk(
+    "currentUser/checkAcceptedFriendRequests",
+    async () => {
+      await checkAcceptedFriendRequests();
+      return true;
+    },
+  );
 
 export const addFriendRequestFromAsync = createAsyncThunk(
   "currentUser/addFriendRequestsFrom",
@@ -277,11 +359,92 @@ export const currentUserSlice = createSlice({
 
       state.friendRequestsTo = userIds;
     },
+    setEditInfoMode: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      state.editInfoMode = action.payload;
+    },
+    setEditDescMode: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      state.editDescMode = action.payload;
+    },
   },
   // The `extraReducers` field lets the slice handle actions defined elsewhere,
   // including actions generated by createAsyncThunk or in other slices.
   extraReducers: (builder) => {
     builder
+      .addCase(getCurrentUserAsync.pending, (state) => {
+        state.isFetching = true;
+      })
+      .addCase(
+        getCurrentUserAsync.fulfilled,
+        (state, action) => {
+          state.isFetching = false;
+          const currentUser = action.payload;
+          state.currentUser = currentUser;
+        },
+      )
+      .addCase(
+        getCurrentUserAsync.rejected,
+        (state, action) => {
+          state.isFetching = false;
+          toast(action.error.message, position);
+        },
+      )
+      .addCase(setProfilePictureAsync.pending, (state) => {
+        state.isFetching = true;
+      })
+      .addCase(
+        setProfilePictureAsync.fulfilled,
+        (state, action) => {
+          state.isFetching = false;
+          const currentUser = action.payload;
+          if (!!state.currentUser) {
+            state.currentUser = {
+              ...state.currentUser,
+              profilePicture: currentUser.profilePicture!,
+            };
+          } else {
+            state.currentUser = currentUser;
+          }
+        },
+      )
+      .addCase(
+        setProfilePictureAsync.rejected,
+        (state, action) => {
+          state.isFetching = false;
+          toast(action.error.message, position);
+        },
+      )
+
+      .addCase(setCoverPictureAsync.pending, (state) => {
+        state.isFetching = true;
+      })
+      .addCase(
+        setCoverPictureAsync.fulfilled,
+        (state, action) => {
+          state.isFetching = false;
+          const currentUser = action.payload;
+          if (!!state.currentUser) {
+            state.currentUser = {
+              ...state.currentUser,
+              coverPicture: currentUser.coverPicture!,
+            };
+          } else {
+            state.currentUser = currentUser;
+          }
+        },
+      )
+      .addCase(
+        setCoverPictureAsync.rejected,
+        (state, action) => {
+          state.isFetching = false;
+          toast(action.error.message, position);
+        },
+      )
 
       .addCase(
         sendFriendRequestOrAcceptAsync.pending,
@@ -338,6 +501,25 @@ export const currentUserSlice = createSlice({
       )
       .addCase(
         sendFriendRequestOrAcceptAsync.rejected,
+        (state, action) => {
+          state.isFetching = false;
+          toast(action.error.message, position);
+        },
+      )
+      .addCase(
+        getFriendsOfCurrentUserAsync.pending,
+        (state) => {
+          state.isFetching = true;
+        },
+      )
+      .addCase(
+        getFriendsOfCurrentUserAsync.fulfilled,
+        (state, action) => {
+          state.isFetching = false;
+        },
+      )
+      .addCase(
+        getFriendsOfCurrentUserAsync.rejected,
         (state, action) => {
           state.isFetching = false;
           toast(action.error.message, position);
@@ -590,13 +772,66 @@ export const currentUserSlice = createSlice({
         getFriendRequestsFromAsync.fulfilled,
         (state, action) => {
           state.isFetching = false;
-          if (!!action.payload) {
-            state.friendRequestsFrom = action.payload;
-          }
+          state.friendRequestsFrom = action.payload || [];
         },
       )
       .addCase(
         getFriendRequestsFromAsync.rejected,
+        (state, action) => {
+          state.isFetching = false;
+          toast(action.error.message, position);
+        },
+      )
+      .addCase(
+        updateCurrentUserInfoAsync.pending,
+        (state) => {
+          state.isFetching = true;
+        },
+      )
+      .addCase(
+        updateCurrentUserInfoAsync.fulfilled,
+        (state, action) => {
+          state.isFetching = false;
+          const { city, from, relationship } =
+            action.payload;
+          if (!!state.currentUser) {
+            state.currentUser = {
+              ...state.currentUser,
+              city,
+              from,
+              relationship,
+            };
+          }
+        },
+      )
+      .addCase(
+        updateCurrentUserInfoAsync.rejected,
+        (state, action) => {
+          state.isFetching = false;
+          toast(action.error.message, position);
+        },
+      )
+      .addCase(
+        updateCurrentUserDescAsync.pending,
+        (state) => {
+          state.isFetching = true;
+        },
+      )
+      .addCase(
+        updateCurrentUserDescAsync.fulfilled,
+        (state, action) => {
+          state.isFetching = false;
+          const { desc } = action.payload;
+          if (!!state.currentUser) {
+            state.currentUser = {
+              ...state.currentUser,
+              desc,
+            };
+          }
+        },
+      )
+      .addCase(
+        updateCurrentUserDescAsync.rejected,
         (state, action) => {
           state.isFetching = false;
           toast(action.error.message, position);
@@ -666,14 +901,20 @@ export const {
   setNotCheckedFriendRequests,
   setNotCheckedAcceptedFriendRequestsBy,
   setFriendRequestsTo,
+  setEditInfoMode,
+  setEditDescMode,
 } = currentUserSlice.actions;
 
 // The function below is called a selector and allows us to select a value from
 // the state. Selectors can also be defined inline where they're used instead of
 // in the slice file. For example: `useSelector((state: RootState) => state.counter.value)`
+
 export const selectCurrentUserRelatives = (
   state: RootState,
 ) => state.currentUserRelatives;
+
+export const selectCurrentUser = (state: RootState) =>
+  state.currentUserRelatives.currentUser;
 
 export const selectFollowedByCurrentUser = (
   state: RootState,
@@ -704,6 +945,11 @@ export const selectNotCheckedAcceptedFriendRequestsBy = (
 ) =>
   state.currentUserRelatives
     .notCheckedAcceptedFriendRequestsBy;
+
+export const selectEditInfoMode = (state: RootState) =>
+  state.currentUserRelatives.editInfoMode;
+export const selectEditDescMode = (state: RootState) =>
+  state.currentUserRelatives.editDescMode;
 
 // We can also write thunks by hand, which may contain both sync and async logic.
 // Here's an example of conditionally dispatching actions based on current state.

@@ -14,7 +14,9 @@ import {
   getPostsByUserNameParams,
   getCurrentUserTimelinePosts,
   uploadFile,
+  likePost,
 } from "../../api/posts.api";
+import { selectAuthUser } from "./authSlice";
 
 const position = {
   position: toast.POSITION.BOTTOM_RIGHT,
@@ -111,6 +113,25 @@ export const getTimelineAsync = createAsyncThunk(
     return posts;
   },
 );
+export const likePostAsync = createAsyncThunk<
+  {
+    postId: string;
+    currentUserId: string;
+  },
+  string,
+  { state: RootState }
+>(
+  "posts/likePost",
+  async (postId: string, { getState }) => {
+    await likePost(postId);
+
+    // The value we return becomes the `fulfilled` action payload
+    const authUser = selectAuthUser(getState());
+    const currentUserId: string = authUser?._id!;
+
+    return { postId, currentUserId };
+  },
+);
 
 export const postsSlice = createSlice({
   name: "posts",
@@ -194,6 +215,53 @@ export const postsSlice = createSlice({
           toast(action.error.message, position);
         },
       )
+      .addCase(likePostAsync.pending, (state) => {
+        state.isFetching = true;
+      })
+      .addCase(likePostAsync.fulfilled, (state, action) => {
+        state.isFetching = false;
+        if (!!action.payload) {
+          const { postId, currentUserId } = action.payload;
+          const post = state.timeline.find(
+            (p) => p._id === postId,
+          );
+          if (!!post) {
+            const likersId = post.likersId;
+            if (!!likersId?.includes(currentUserId)) {
+              state.timeline = state.timeline.map((p) => {
+                if (p._id === postId) {
+                  return {
+                    ...p,
+                    likersId: likersId.filter(
+                      (lId) => lId !== currentUserId,
+                    ),
+                  };
+                } else {
+                  return { ...p };
+                }
+              });
+            } else {
+              state.timeline = state.timeline.map((p) => {
+                if (p._id === postId) {
+                  return {
+                    ...p,
+                    likersId: [
+                      ...(likersId || []),
+                      currentUserId,
+                    ],
+                  };
+                } else {
+                  return { ...p };
+                }
+              });
+            }
+          }
+        }
+      })
+      .addCase(likePostAsync.rejected, (state, action) => {
+        state.isFetching = false;
+        toast(action.error.message, position);
+      })
       .addCase(
         getCurrentUserPostsAsync.pending,
         (state) => {

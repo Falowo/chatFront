@@ -9,10 +9,8 @@ import {
   useAppDispatch,
   useAppSelector,
 } from "../../app/hooks";
-import {
-  selectCurrentUserRelatives,
-} from "../../app/slices/currentUserSlice";
-import { selectCurrentUser } from "../../app/slices/authSlice";
+import { selectCurrentUserRelatives } from "../../app/slices/currentUserSlice";
+import { selectCurrentUser } from "../../app/slices/currentUserSlice";
 import { checkExp } from "../../app/slices/authSlice";
 
 export default function Home() {
@@ -26,8 +24,6 @@ export default function Home() {
   useEffect(() => {
     !!currentUser && dispatch(getTimelineAsync());
   }, [currentUser, dispatch]);
-
-  
 
   useEffect(() => {
     dispatch(checkExp());
@@ -44,7 +40,7 @@ export default function Home() {
           <h1>Fetching...</h1>
         )}
 
-        <Rightbar />
+        <Rightbar/>
       </div>
     </>
   );

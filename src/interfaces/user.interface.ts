@@ -1,4 +1,4 @@
-enum Relationship {
+export enum Relationship {
   Single = 1,
   Married = 2,
   Private = 3,
@@ -17,7 +17,7 @@ export interface IUser {
   friendRequestsFrom?: string[];
   friendRequestsTo?: string[];
   friends?: string[];
-  notCheckedFriendRequestsFrom?:string[];
+  notCheckedFriendRequestsFrom?: string[];
   notCheckedAcceptedFriendRequestsBy?: string[];
   blocked?: string[];
   isAdmin?: boolean;
@@ -28,6 +28,16 @@ export interface IUser {
   birthDate?: Date;
   numberOfMessages?: number;
 }
+
+export interface ToUpdateUserInfo {
+  city?: string;
+  from?: string;
+  relationship?: Relationship;
+}
+export interface ToUpdateUserDesc {
+  desc?: string;
+}
+
 // export interface IFakeUser {
 //   token?: string;
 //   _id?: string;

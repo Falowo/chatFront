@@ -1,17 +1,20 @@
 import "./post.css";
-import { MoreVert } from "@mui/icons-material";
+import { MoreVert, ThumbUp } from "@mui/icons-material";
 import { useEffect, useState } from "react";
 import moment from "moment";
 import { Link } from "react-router-dom";
 import { IPost, IUser } from "../../interfaces";
-import { getUserByUserIdQuery } from "../../api/users.api";
 import { likePost } from "../../api/posts.api";
-import { selectCurrentUser } from "../../app/slices/authSlice";
-import { useAppSelector } from "../../app/hooks";
+import { selectCurrentUser } from "../../app/slices/currentUserSlice";
+import {
+  useAppDispatch,
+  useAppSelector,
+} from "../../app/hooks";
 import {
   selectFollowedByCurrentUser,
   selectFriendsOfCurrentUser,
 } from "../../app/slices/currentUserSlice";
+import { likePostAsync } from "../../app/slices/postsSlice";
 
 export interface PostProps {
   post: IPost;
@@ -28,38 +31,52 @@ export default function Post(props: PostProps) {
   const followedByCurrentUser = useAppSelector(
     selectFollowedByCurrentUser,
   );
-  const [isLiked, setIsLiked] = useState(false);
   const [user, setUser] = useState<IUser>();
   const PF = process.env.REACT_APP_PUBLIC_FOLDER;
   const currentUser = useAppSelector(selectCurrentUser);
+  const dispatch = useAppDispatch();
+
+  const [isLiked, setIsLiked] = useState(
+    !!post.likersId?.includes(currentUser?._id!),
+  );
 
   useEffect(() => {
-    const currentUserId = currentUser?._id;
-    !!currentUser?._id &&
+    !!currentUser?._id! &&
       setIsLiked(
-        post.likersId?.includes(currentUserId!) || false,
+        !!post.likersId?.includes(currentUser._id!),
       );
-  }, [currentUser, post.likersId]);
+  }, [currentUser?._id!, post.likersId]);
 
   useEffect(() => {
     const fetchUser = () => {
-      let usR = friendsOfCurrentUser.find(
-        (f) => f._id! === post.userId,
-      );
-      if (!usR) {
-        usR = followedByCurrentUser.find(
-          (f) => f._id === post.userId,
+      if (post.userId !== currentUser?._id) {
+        let usR = friendsOfCurrentUser.find(
+          (f) => f._id! === post.userId,
         );
+        if (!usR) {
+          usR = followedByCurrentUser.find(
+            (f) => f._id === post.userId,
+          );
+        }
+        setUser(usR);
+      } else {
+        setUser(currentUser);
       }
-      setUser(usR);
     };
-    !!post?.userId && !user &&  fetchUser();
-  }, [followedByCurrentUser, friendsOfCurrentUser, post.userId, user]);
+
+    !!post?.userId && !user && fetchUser();
+  }, [
+    currentUser,
+    followedByCurrentUser,
+    friendsOfCurrentUser,
+    post.userId,
+    user,
+  ]);
 
   const likeHandler = async () => {
     if (currentUser?._id) {
       try {
-        await likePost(post._id!, currentUser?._id!);
+        dispatch(likePostAsync(post._id!));
       } catch (err) {}
       setLike(isLiked ? like - 1 : like + 1);
       setIsLiked(!isLiked);
@@ -105,18 +122,12 @@ export default function Post(props: PostProps) {
         </div>
         <div className="postBottom">
           <div className="postBottomLeft">
-            <img
-              className="likeIcon"
-              src={`${PF}like.png`}
+            <ThumbUp
               onClick={likeHandler}
-              alt=""
+              color="primary"
+              style={{ cursor: "pointer" }}
             />
-            <img
-              className="likeIcon"
-              src={`${PF}heart.png`}
-              onClick={likeHandler}
-              alt=""
-            />
+
             <span className="postLikeCounter">
               {like} people like it
             </span>

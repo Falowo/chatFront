@@ -2,7 +2,7 @@ import Post from "../post/Post";
 import Share from "../share/Share";
 import "./feed.css";
 
-import { selectCurrentUser } from "../../app/slices/authSlice";
+import { selectCurrentUser } from "../../app/slices/currentUserSlice";
 import { useAppSelector } from "../../app/hooks";
 
 import {

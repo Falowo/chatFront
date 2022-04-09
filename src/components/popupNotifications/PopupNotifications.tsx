@@ -15,8 +15,10 @@ import {
 import { IUser } from "../../interfaces";
 // import { useAppDispatch } from "../../app/hooks";
 import "./popupNotifications.css";
+const PF = process.env.REACT_APP_PUBLIC_FOLDER;
 
 export default function PopupNotifications() {
+
   const [newFriends, setNewFriends] = useState<IUser[]>([]);
   const notCheckedAcceptedFriendRequestsBy = useAppSelector(
     selectNotCheckedAcceptedFriendRequestsBy,
@@ -56,13 +58,22 @@ export default function PopupNotifications() {
     <div className="popup">
       {!!newFriends.length &&
         newFriends?.map((f) => (
-          <Link
-            to={`/profile/${f.username}`}
+          <Link to={`/profile/${f.username}`}
             className="popupAction"
-            key={f._id!}
-          >
-            {`${f.username} accepted your friend request`}
-          </Link>
+            >
+              <img
+                className="userProfileImg"
+                src={
+                  f?.profilePicture
+                    ? PF + f.profilePicture
+                    : PF + "person/noAvatar.png"
+                }
+                alt=""
+              />
+            <span className="userUsername">
+              {`${f?.username} accepted your friend request `} 
+            </span>
+            </Link>
         ))}
     </div>
   );

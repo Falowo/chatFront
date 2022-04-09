@@ -10,7 +10,7 @@ import {
   useAppSelector,
   useAppDispatch,
 } from "../../app/hooks";
-import { selectCurrentUser } from "../../app/slices/authSlice";
+import { selectCurrentUser } from "../../app/slices/currentUserSlice";
 import { useEffect, useRef, useState } from "react";
 import {
   searchUsersByUserNamePartAsync,

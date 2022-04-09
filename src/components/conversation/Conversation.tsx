@@ -1,16 +1,11 @@
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-} from "react";
+import React, { useState, useEffect } from "react";
 import "./conversation.css";
 import DoneIcon from "@mui/icons-material/Done";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import moment from "moment";
-import { IPConversation, IUser } from "../../interfaces";
-import { getUserByUserIdQuery } from "../../api/users.api";
-import { selectCurrentUser } from "../../app/slices/authSlice";
+import { IPConversation } from "../../interfaces";
+import { selectCurrentUser } from "../../app/slices/currentUserSlice";
 import {
   useAppDispatch,
   useAppSelector,

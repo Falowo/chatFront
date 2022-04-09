@@ -1,5 +1,4 @@
 .popup {
-    min-width: 150px;
     position: absolute;
     top: -10px;
     right: 10px;
@@ -8,18 +7,21 @@
     box-shadow: 0px 0px 16px -8px rgba(0, 0, 0, 0.68);
     margin: 30px 0;
     display: flex;
+    flex-wrap: nowrap;
     flex-direction: column;
     z-index: 1;
     background-color: lightgray;
   }
   
   .popupAction {
-    width: 100%;
     cursor: pointer;
     border: none;
     padding-top: 10px;
     color:black;
     text-decoration: none !important;
+    flex:1;
+    display:flex;
+    align-items: center
   }
   
   .popupAction:hover {
@@ -30,4 +32,17 @@
   .popupAction:last-child {
     padding-bottom: 10px;
   }
-  
+  .userUsername {
+    font-size: 15px;
+    font-weight: 500;
+    flex: 1;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .userProfileImg {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-left: 1rem;
+  }

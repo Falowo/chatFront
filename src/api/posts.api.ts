@@ -14,11 +14,8 @@ export const getCurrentUserTimelinePosts = (
 
 export const likePost = (
   postId: string,
-  currentUserId: string,
 ) => {
-  return instance.put(`posts/${postId}/like`, {
-    likerId: currentUserId,
-  });
+  return instance.put(`posts/${postId}/like`);
 };
 
 export const createPost = (newPost: IPost) => {

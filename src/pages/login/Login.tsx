@@ -4,7 +4,7 @@ import "./login.css";
 import { CircularProgress } from "@material-ui/core";
 import { useDispatch } from "react-redux";
 import { useAppSelector } from "../../app/hooks";
-import { selectAuth, selectCurrentUser, signinAsync } from "../../app/slices/authSlice";
+import { selectAuth, selectAuthUser, signinAsync } from "../../app/slices/authSlice";
 
 export interface UserCredentials {
   email: string;
@@ -20,7 +20,7 @@ export default function Login() {
 
   const isFetching = auth.isFetching;
 
-  const currentUser = useAppSelector(selectCurrentUser);
+  const authUser = useAppSelector(selectAuthUser);
 
   const handleClick = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,11 +35,11 @@ export default function Login() {
   };
 
   useEffect(() => {
-    if (currentUser) {
+    if (authUser) {
       navigate("/");
     }
     return () => {};
-  }, [currentUser, navigate]);
+  }, [authUser, navigate]);
 
   return (
     <div className="login">

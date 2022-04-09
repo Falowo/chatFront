@@ -1,4 +1,5 @@
 import { instance } from ".";
+import { ToUpdateUserDesc, ToUpdateUserInfo } from "../interfaces";
 
 export const getUserByUserIdQuery = (userId: string) => {
   return instance.get(`users?userId=${userId}`);
@@ -64,4 +65,31 @@ export const checkAcceptedFriendRequests = () => {
   return instance.put(
     "users/currentUser/checkAcceptedFriendRequests",
   );
+};
+
+export const editProfilePicture = (fileName: string) => {
+  return instance.put(
+    "users/currentUser/editProfilePicture",
+    { fileName },
+  );
+};
+export const editCoverPicture = (fileName: string) => {
+  return instance.put(
+    "users/currentUser/editCoverPicture",
+    { fileName },
+  );
+};
+
+export const updateCurrentUserInfo = (toUpdateUserInfo: ToUpdateUserInfo) => {
+  return instance.put("users/currentUser/updateInfo", {
+    toUpdateUserInfo,
+  });
+};
+
+export const updateCurrentUserDesc = (toUpdateUserDesc: ToUpdateUserDesc) => {
+  console.log(toUpdateUserDesc);
+  
+  return instance.put("users/currentUser/updateDesc", {
+    toUpdateUserDesc,
+  });
 };

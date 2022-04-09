@@ -30,7 +30,7 @@ import {
   messageReceivedByCurrentUser,
   messagesCheckedByCurrentUser,
 } from "../../api/messages.api";
-import { selectCurrentUser } from "./authSlice";
+import { selectCurrentUser } from "./currentUserSlice";
 import { getUserByUserIdQuery } from "../../api/users.api";
 // import { socket } from "../../config/config.socket";
 // import { getUserByUserIdQuery } from "../../api/users.api";
@@ -38,8 +38,6 @@ import { getUserByUserIdQuery } from "../../api/users.api";
 const position = {
   position: toast.POSITION.BOTTOM_RIGHT,
 };
-
-const PF = process.env.REACT_APP_PUBLIC_FOLDER;
 
 export interface IChat {
   conversation: IConversation;
@@ -761,7 +759,10 @@ export const messengerSlice = createSlice({
             checkedMessagesIds,
             currentUserId,
           } = action.payload;
-          if (!!checkedMessagesIds.length) {
+
+          if(!!state.uncheckedByCurrentUser?.find(u=>u.conversationId === conversationId)?.messagesIds.length){
+
+         
             const conversation = state.conversations.find(
               (c) => c._id === conversationId,
             );
