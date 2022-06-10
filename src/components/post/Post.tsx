@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import moment from "moment";
 import { Link } from "react-router-dom";
 import { IPost, IUser } from "../../interfaces";
-import { likePost } from "../../api/posts.api";
 import { selectCurrentUser } from "../../app/slices/currentUserSlice";
 import {
   useAppDispatch,
@@ -41,11 +40,11 @@ export default function Post(props: PostProps) {
   );
 
   useEffect(() => {
-    !!currentUser?._id! &&
+    !!currentUser &&
       setIsLiked(
         !!post.likersId?.includes(currentUser._id!),
       );
-  }, [currentUser?._id!, post.likersId]);
+  }, [currentUser, post.likersId]);
 
   useEffect(() => {
     const fetchUser = () => {
@@ -74,7 +73,7 @@ export default function Post(props: PostProps) {
   ]);
 
   const likeHandler = async () => {
-    if (currentUser?._id) {
+    if (!!currentUser?._id) {
       try {
         dispatch(likePostAsync(post._id!));
       } catch (err) {}

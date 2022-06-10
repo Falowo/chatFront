@@ -3,7 +3,7 @@ import { IConversation, IPMessage } from "../interfaces";
 import { useAppDispatch } from "../app/hooks";
 import { receiveNewMessage } from "../app/slices/messengerSlice";
 
-export const socket: Socket = io("ws://localhost:8900");
+export const socket: Socket = io("ws://localhost:8800");
 
 export const socketAddUser = (currentUserId: string) =>
   socket?.emit("addUser", currentUserId);

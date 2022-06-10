@@ -3,20 +3,17 @@ import {
   createSlice,
   PayloadAction,
 } from "@reduxjs/toolkit";
-import { IPost, IUser } from "../../interfaces";
+import { IPost } from "../../interfaces";
 import {
   RootState,
-  //  AppThunk,
 } from "../store";
 
 import { toast } from "react-toastify";
 import {
-  getUserByUserIdQuery,
   searchUsersByUsernamePartParams,
 } from "../../api/users.api";
 import {
   selectFollowedByCurrentUser,
-  selectFriendRequestsFrom,
 } from "./currentUserSlice";
 
 const position = {

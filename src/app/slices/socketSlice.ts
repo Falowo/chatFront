@@ -150,11 +150,15 @@ export const socketSlice = createSlice({
         );
 
       for (const receiverId of receiversIds!) {
+        console.log({ receiverId });
+
         if (
           state.connectedUsers.find(
             (c) => c.userId === receiverId,
           )
         ) {
+          console.log({ connectedReceiverId: receiverId });
+
           socket?.emit("sendMessage", {
             receiverId,
             conversation,

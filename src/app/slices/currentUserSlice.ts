@@ -7,7 +7,7 @@ import {
 } from "@reduxjs/toolkit";
 import {
   IUser,
-  ToUpdateUserDesc,
+  ToUpdateUserDesc,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
   ToUpdateUserInfo,
 } from "../../interfaces";
 import {
