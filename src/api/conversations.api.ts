@@ -2,7 +2,7 @@ import { instance } from ".";
 
 export const getCurrentUserConversations = (
 ) => {
-  return instance.get(`conversations`);
+  return instance.get(`conversations/allOfUser`);
 };
 
 export const getCurrentUserLastConversation = () => {

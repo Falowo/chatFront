@@ -25,6 +25,8 @@ import {
 } from "../../app/slices/currentUserSlice";
 import { selectUncheckedByCurrentUser } from "../../app/slices/messengerSlice";
 import PopupNotifications from "../popupNotifications/PopupNotifications";
+import LogoutIcon from '@mui/icons-material/Logout';
+import { signoutAsync } from "../../app/slices/authSlice";
 // import {
 //   selectConnectedUsers,
 //   selectSocket,
@@ -100,7 +102,7 @@ export default function Topbar() {
     <div className="topbarContainer">
       <div className="topbarLeft">
         <Link to="/" style={{ textDecoration: "none" }}>
-          <span className="logo">JenzBoo</span>
+          <span className="logo">JenzBook</span>
         </Link>
       </div>
       <div className="topbarCenter">
@@ -193,6 +195,18 @@ export default function Topbar() {
             alt="profile"
             className="topbarImg"
           />
+        </Link>
+
+        <Link
+          onClick={()=>dispatch(signoutAsync())}
+          to={
+            
+            "/signin"
+          }
+        >
+         <LogoutIcon
+            sx={{color:"white", fontSize:"1.5rem", marginLeft:"0.5rem"}}
+         />
         </Link>
       </div>
     </div>

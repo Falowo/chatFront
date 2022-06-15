@@ -4,17 +4,11 @@ import {
   PayloadAction,
 } from "@reduxjs/toolkit";
 import { IPost } from "../../interfaces";
-import {
-  RootState,
-} from "../store";
+import { RootState } from "../store";
 
 import { toast } from "react-toastify";
-import {
-  searchUsersByUsernamePartParams,
-} from "../../api/users.api";
-import {
-  selectFollowedByCurrentUser,
-} from "./currentUserSlice";
+import { searchUsersByUsernamePartParams } from "../../api/users.api";
+import { selectFollowedByCurrentUser } from "./currentUserSlice";
 
 const position = {
   position: toast.POSITION.BOTTOM_RIGHT,
@@ -79,8 +73,6 @@ export const searchUsersByUserNamePartAsync =
       return compUsers;
     },
   );
-
-
 
 export const searchSlice = createSlice({
   name: "search",

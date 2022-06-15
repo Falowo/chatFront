@@ -13,6 +13,7 @@ import {
 import { socket } from "../../config/config.socket";
 import { IConversation, IPMessage } from "../../interfaces";
 import { getMessagesArrayFromIds } from "../../api/messages.api";
+import { signoutAsync } from "./authSlice";
 
 // const position = {
 //   position: toast.POSITION.BOTTOM_RIGHT,
@@ -226,7 +227,18 @@ export const socketSlice = createSlice({
         (state) => {
           state.isFetching = false;
         },
-      );
+      )
+      .addCase(signoutAsync.fulfilled, (state) => {
+        state.addUserEmited = false;
+        state.connectedUsers = [];
+        state.lastMessageSentId = undefined;
+        state.lastMessagesReceived = [];
+        state.lastMessagesChecked = [];
+        state.sentFriendRequestsIds = [];
+        state.rooms = [];
+        state.isFetching = false;
+        state.error = false;
+      });
   },
 });
 

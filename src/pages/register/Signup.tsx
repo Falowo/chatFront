@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import "./register.css";
+import "./signup.css";
 // import { useNavigate } from "react-router";
 import {
   // useAppSelector,
@@ -8,7 +8,7 @@ import {
 import { IUser } from "../../interfaces";
 import { signupAsync } from "../../app/slices/authSlice";
 
-export default function Register() {
+export default function Signup() {
   const username = useRef<any>();
   const email = useRef<any>();
   const password = useRef<any>();

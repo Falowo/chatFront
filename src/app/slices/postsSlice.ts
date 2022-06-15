@@ -16,7 +16,7 @@ import {
   uploadFile,
   likePost,
 } from "../../api/posts.api";
-import { selectAuthUser } from "./authSlice";
+import { selectAuthUser, signoutAsync } from "./authSlice";
 
 const position = {
   position: toast.POSITION.BOTTOM_RIGHT,
@@ -283,7 +283,13 @@ export const postsSlice = createSlice({
           state.isFetching = false;
           toast(action.error.message, position);
         },
-      );
+      )
+      .addCase(signoutAsync.fulfilled, (state) => {
+        state.timeline = []; state.currentUserPosts = [];
+        state.selectedUserPosts = [];
+        state.isFetching = false;
+        state.error = null;
+      });
   },
 });
 

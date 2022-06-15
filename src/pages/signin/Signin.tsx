@@ -1,17 +1,21 @@
 import { useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import "./login.css";
+import { Link, useNavigate } from "react-router-dom";
+import "./signin.css";
 import { CircularProgress } from "@material-ui/core";
 import { useDispatch } from "react-redux";
 import { useAppSelector } from "../../app/hooks";
-import { selectAuth, selectAuthUser, signinAsync } from "../../app/slices/authSlice";
+import {
+  selectAuth,
+  selectAuthUser,
+  signinAsync,
+} from "../../app/slices/authSlice";
 
 export interface UserCredentials {
   email: string;
   password: string;
 }
 
-export default function Login() {
+export default function Signin() {
   const email = useRef<any>();
   const password = useRef<any>();
   const dispatch = useDispatch();
@@ -36,7 +40,9 @@ export default function Login() {
 
   useEffect(() => {
     if (authUser) {
-      navigate("/");
+      // navigate("/");
+      console.log("authuser");
+      
     }
     return () => {};
   }, [authUser, navigate]);
@@ -82,9 +88,11 @@ export default function Login() {
                 "Log In"
               )}
             </button>
-            <span className="loginForgot">
-              Forgot Password?
-            </span>
+          </form>
+          <span className="loginForgot">
+            Forgot Password?
+          </span>
+          <Link to={"/signup"}>
             <button className="loginRegisterButton">
               {isFetching ? (
                 <CircularProgress
@@ -95,7 +103,7 @@ export default function Login() {
                 "Create a New Account"
               )}
             </button>
-          </form>
+          </Link>
         </div>
       </div>
     </div>

@@ -32,6 +32,7 @@ import {
 } from "../../api/messages.api";
 import { selectCurrentUser } from "./currentUserSlice";
 import { getUserByUserIdQuery } from "../../api/users.api";
+import { signoutAsync } from "./authSlice";
 // import { socket } from "../../config/config.socket";
 // import { getUserByUserIdQuery } from "../../api/users.api";
 
@@ -110,7 +111,9 @@ export const getConversationNameAndPictureAsync =
       let groupPicture: string | undefined;
       if (friendIdArray?.length === 1) {
         groupName = friend.username;
-        groupPicture =!!friend.profilePicture? `${friend.profilePicture}`:undefined;
+        groupPicture = !!friend.profilePicture
+          ? `${friend.profilePicture}`
+          : undefined;
       } else {
         groupName = `${friend.username} and ${
           friendIdArray.length - 1
@@ -760,9 +763,11 @@ export const messengerSlice = createSlice({
             currentUserId,
           } = action.payload;
 
-          if(!!state.uncheckedByCurrentUser?.find(u=>u.conversationId === conversationId)?.messagesIds.length){
-
-         
+          if (
+            !!state.uncheckedByCurrentUser?.find(
+              (u) => u.conversationId === conversationId,
+            )?.messagesIds.length
+          ) {
             const conversation = state.conversations.find(
               (c) => c._id === conversationId,
             );
@@ -954,7 +959,19 @@ export const messengerSlice = createSlice({
           console.log(action);
           toast(action.error.message, position);
         },
-      );
+      )
+      .addCase(signoutAsync.fulfilled, (state) => {
+       
+        state.conversations= [];
+        state.selectedConversation= undefined;
+        state.uncheckedByCurrentUser= [];
+        state.lastMessagesCheckedByCurrentUser= [];
+        state.currentChat= undefined;
+        state.lastMessage= undefined;
+        state.isFetching= false;
+        state.error= null;
+        
+      });
   },
 });
 

@@ -7,7 +7,7 @@ import {
 } from "@reduxjs/toolkit";
 import {
   IUser,
-  ToUpdateUserDesc,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+  ToUpdateUserDesc,
   ToUpdateUserInfo,
 } from "../../interfaces";
 import {
@@ -35,6 +35,7 @@ import {
 } from "../../api/users.api";
 import { socketSendFriendRequest } from "./socketSlice";
 import { uploadFile } from "../../api/posts.api";
+import { signoutAsync } from "./authSlice";
 
 const position = {
   position: toast.POSITION.BOTTOM_RIGHT,
@@ -893,7 +894,22 @@ export const currentUserSlice = createSlice({
           state.isFetching = false;
           toast(action.error.message, position);
         },
-      );
+      )
+      .addCase(signoutAsync.fulfilled, (state) => {
+        state.currentUser= undefined;
+        state.followedByCurrentUser= [];
+        state.followersOfCurrentUser= [];
+        state.friendsOfCurrentUser= [];
+        state.bestFriendsOfCurrentUser= [];
+        state.friendRequestsTo= [];
+        state.friendRequestsFrom= [];
+        state.notCheckedFriendRequestsFrom= [];
+        state.notCheckedAcceptedFriendRequestsBy= [];
+        state.isFetching= false;
+        state.editInfoMode= false;
+        state.editDescMode= false;
+        state.error= null;
+      });
   },
 });
 

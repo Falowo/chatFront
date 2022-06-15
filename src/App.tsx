@@ -3,8 +3,8 @@ import { Routes, Route } from "react-router-dom";
 import { Container } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import Home from "./pages/home/Home";
-import SignIn from "./pages/login/Login";
-import SignUp from "./pages/register/Register";
+import Signin from "./pages/signin/Signin";
+import SignUp from "./pages/register/Signup";
 import Messenger from "./pages/messenger/Messenger";
 import Profile from "./pages/profile/Profile";
 import { ToastContainer } from "react-toastify";
@@ -13,7 +13,11 @@ import {
   useAppSelector,
   useAppDispatch,
 } from "./app/hooks";
-import { selectAuthUser } from "./app/slices/authSlice";
+import useCookie from "react-use-cookie";
+import {
+  selectAuthUser,
+  selectToken,
+} from "./app/slices/authSlice";
 import Search from "./pages/search/Search";
 import {
   selectConnectedUsers,
@@ -50,6 +54,7 @@ const App = () => {
   const classes = useStyles();
   const dispatch = useAppDispatch();
   const authUser = useAppSelector(selectAuthUser);
+  const token = useAppSelector(selectToken);
   const currentUser = useAppSelector(selectCurrentUser);
   const conversations = useAppSelector(selectConversations);
   const connectedUsers = useAppSelector(
@@ -57,114 +62,161 @@ const App = () => {
   );
   const [conversationsIdsSet, setConversationsIdsSet] =
     useState<Set<string> | undefined>(undefined);
+  const [authToken, setAuthToken] = useCookie("token", "");
+  useEffect(() => {
+    if (!!authUser && !!authToken) {
+      console.log({ authToken });
+      dispatch(getCurrentUserAsync(authUser._id!));
+    }
+  }, [dispatch, authUser, authToken]);
 
-  
-    useEffect(() => {
+  useEffect(() => {
+    !!authUser &&
+      !!authToken &&
+      !!currentUser &&
+      currentUser._id === authUser._id &&
+      dispatch(getConversationsAsync());
+  }, [authToken, authUser, currentUser, dispatch]);
+
+  useEffect(() => {
+    !!authUser &&
+      !!authToken &&
+      !!currentUser &&
+      currentUser._id === authUser._id &&
+      dispatch(socketAddUser(authUser._id!));
+  }, [authToken, authUser, currentUser, dispatch]);
+
+  useEffect(() => {
+    !!authUser &&
+      !!authToken &&
+      !!currentUser &&
+      currentUser._id === authUser._id &&
+      dispatch(
+        setNotCheckedFriendRequests({
+          userIds:
+            authUser?.notCheckedFriendRequestsFrom || [],
+        }),
+      );
+  }, [authToken, authUser, currentUser, dispatch]);
+
+  useEffect(() => {
+    !!authUser &&
+      !!authToken &&
+      !!currentUser &&
+      currentUser._id === authUser._id &&
+      dispatch(
+        setNotCheckedAcceptedFriendRequestsBy({
+          userIds:
+            currentUser?.notCheckedAcceptedFriendRequestsBy ||
+            [],
+        }),
+      );
+  }, [
+    authToken,
+    authUser,
+    currentUser,
+    currentUser?.notCheckedAcceptedFriendRequestsBy,
+    dispatch,
+  ]);
+  useEffect(() => {
+    !!authUser &&
+      !!authToken &&
+      !!currentUser &&
+      currentUser._id === authUser._id &&
+      dispatch(
+        setFriendRequestsTo({
+          userIds: currentUser?.friendRequestsTo || [],
+        }),
+      );
+  }, [
+    authToken,
+    authUser,
+    currentUser,
+    currentUser?.friendRequestsTo,
+    dispatch,
+  ]);
+
+  useEffect(() => {
+    !!authUser &&
+      !!authToken &&
+      !!currentUser &&
+      currentUser._id === authUser._id &&
+      dispatch(getFriendsOfCurrentUserAsync(authUser._id!));
+  }, [dispatch, authUser, authToken, currentUser]);
+
+  useEffect(() => {
+    !!authUser &&
+      !!authToken &&
+      !!currentUser &&
+      currentUser._id === authUser._id &&
+      dispatch(getFriendRequestsFromAsync());
+  }, [dispatch, authUser, authToken, currentUser]);
+
+  useEffect(() => {
+    !!conversations &&
+      !!conversations?.length &&
       !!authUser &&
-        dispatch(getCurrentUserAsync(authUser._id!));
-    }, [dispatch, authUser]);
+      !!authToken &&
+      !!currentUser &&
+      currentUser._id === authUser._id &&
+      setConversationsIdsSet(
+        new Set(conversations?.map((c) => c._id!)),
+      );
+  }, [authToken, authUser, conversations, currentUser]);
 
-    useEffect(() => {
-      !!authUser && dispatch(getConversationsAsync());
-    }, [authUser, dispatch]);
-
-    useEffect(() => {
+  useDeepCompareEffect(() => {
+    !!conversationsIdsSet &&
       !!authUser &&
-        dispatch(socketAddUser(authUser._id!));
-    }, [authUser, dispatch]);
+      !!authToken &&
+      !!currentUser &&
+      currentUser._id === authUser._id &&
+      dispatch(
+        getUncheckedByCurrentUserAsync(conversationsIdsSet),
+      );
+  }, [conversationsIdsSet, dispatch]);
 
-    useEffect(() => {
-      !!authUser  &&
-        dispatch(
-          setNotCheckedFriendRequests({
-            userIds:
-              authUser?.notCheckedFriendRequestsFrom || [],
-          }),
-        );
-    }, [
-      authUser,
-      currentUser?.notCheckedFriendRequestsFrom,
-      dispatch,
-    ]);
+  useEffect(() => {
+    !!authUser &&
+      !!authToken &&
+      !!currentUser &&
+      currentUser._id === authUser._id &&
+      socket?.on(
+        "getUsers",
+        (
+          users: Array<{
+            socketId: string;
+            userId: string;
+          }>,
+        ) => {
+          dispatch(setConnectedUsers(users));
+        },
+      );
+  }, [
+    connectedUsers,
+    dispatch,
+    authUser,
+    authToken,
+    currentUser,
+  ]);
 
-    useEffect(() => {
-      !!authUser  &&
-        dispatch(
-          setNotCheckedAcceptedFriendRequestsBy({
-            userIds:
-              currentUser?.notCheckedAcceptedFriendRequestsBy ||
-              [],
-          }),
-        );
-    }, [
-      authUser,
-      currentUser?.notCheckedAcceptedFriendRequestsBy,
-      dispatch,
-    ]);
-    useEffect(() => {
-      !!authUser  &&
-        dispatch(
-          setFriendRequestsTo({
-            userIds: currentUser?.friendRequestsTo || [],
-          }),
-        );
-    }, [authUser, currentUser?.friendRequestsTo, currentUser?.notCheckedFriendRequestsFrom, dispatch]);
+  useEffect(() => {
+    !!authUser &&
+      !!authToken &&
+      !!currentUser &&
+      currentUser._id === authUser._id &&
+      socket?.on("getFriendRequest", (senderId: string) => {
+        dispatch(addFriendRequestFromAsync(senderId));
+      });
+  }, [dispatch, authUser, authToken, currentUser]);
 
-    useEffect(() => {
-      !!authUser  &&
-        dispatch(
-          getFriendsOfCurrentUserAsync(authUser._id!),
-        );
-    }, [dispatch, authUser]);
+  useEffect(() => {
+    console.log({ connectedUsers });
+    console.log({ authToken });
+  }, [authToken, connectedUsers]);
 
-    useEffect(() => {
-      !!authUser &&
-        dispatch(getFriendRequestsFromAsync());
-    }, [dispatch, authUser]);
-
-    useEffect(() => {
-      !!conversations &&
-        !!conversations?.length &&
-        setConversationsIdsSet(
-          new Set(conversations?.map((c) => c._id!)),
-        );
-    }, [conversations]);
-
-    useDeepCompareEffect(() => {
-      !!conversationsIdsSet &&
-        dispatch(
-          getUncheckedByCurrentUserAsync(
-            conversationsIdsSet,
-          ),
-        );
-    }, [conversationsIdsSet, dispatch]);
-
-    useEffect(() => {
-      !!authUser &&
-        socket?.on(
-          "getUsers",
-          (
-            users: Array<{
-              socketId: string;
-              userId: string;
-            }>,
-          ) => {
-            dispatch(setConnectedUsers(users));
-          },
-        );
-    }, [connectedUsers, dispatch, authUser]);
-
-    useEffect(() => {
-      !!authUser &&
-        socket?.on("getFriendRequest", (senderId: string) => {
-          dispatch(addFriendRequestFromAsync(senderId));
-        });
-    }, [dispatch, authUser]);
-
-    useEffect(() => {
-      console.log({ connectedUsers });
-    }, [connectedUsers]);
-  
+  useEffect(() => {
+    !!token && setAuthToken(token);
+  }, [setAuthToken, token]);
 
   return (
     <>
@@ -177,7 +229,8 @@ const App = () => {
           <Routes>
             <Route
               path="/signin"
-              element={!authUser ? <SignIn /> : <Home />}
+              element={!authUser ? <Signin /> : <Home />}
+              // element={<Signin />}
             />
             <Route
               path="/signup"
@@ -186,34 +239,34 @@ const App = () => {
             <Route
               path="/messenger/:userId"
               element={
-                !!authUser ? <Messenger /> : <SignIn />
+                !!authUser ? <Messenger /> : <Signin />
               }
             />
             <Route
               path="/messenger"
               element={
-                !!authUser ? <Messenger /> : <SignIn />
+                !!authUser ? <Messenger /> : <Signin />
               }
             />
             <Route
               path="/profile/:username"
               element={
-                !!authUser ? <Profile /> : <SignIn />
+                !!authUser ? <Profile /> : <Signin />
               }
             />
             <Route
               path="/search"
-              element={!!authUser ? <Search /> : <SignIn />}
+              element={!!authUser ? <Search /> : <Signin />}
             />
             <Route
               path="/friend/requests"
               element={
-                !!authUser ? <FriendRequests /> : <SignIn />
+                !!authUser ? <FriendRequests /> : <Signin />
               }
             />
             <Route
               path="/"
-              element={!!authUser ? <Home /> : <SignIn />}
+              element={!!authUser ? <Home /> : <Signin />}
             />
             <Route
               path="*"

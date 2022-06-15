@@ -15,6 +15,7 @@ import {
   getFriendsByUserIdParams,
   getUserByUsernameQuery,
 } from "../../api/users.api";
+import { signoutAsync } from "./authSlice";
 
 const position = {
   position: toast.POSITION.BOTTOM_RIGHT,
@@ -64,8 +65,7 @@ export const getFriendsOfSelectedUserAsync =
         selectedUserId,
       );
       // The value we return becomes the `fulfilled` action payload
-      const friendsOfSelectedUser: IUser[] =
-        response.data;
+      const friendsOfSelectedUser: IUser[] = response.data;
 
       return friendsOfSelectedUser;
     },
@@ -119,10 +119,13 @@ export const selectedUserSlice = createSlice({
           }
         },
       )
-      .addCase(setSelectedUserAsync.rejected, (state, action) => {
-        state.isFetching = false;
-        toast(action.error.message, position)
-      })
+      .addCase(
+        setSelectedUserAsync.rejected,
+        (state, action) => {
+          state.isFetching = false;
+          toast(action.error.message, position);
+        },
+      )
       .addCase(
         getFriendsOfSelectedUserAsync.pending,
         (state) => {
@@ -134,8 +137,7 @@ export const selectedUserSlice = createSlice({
         (state, action) => {
           state.isFetching = false;
           if (!!action.payload) {
-            state.friendsOfSelectedUser =
-              action.payload;
+            state.friendsOfSelectedUser = action.payload;
           }
         },
       )
@@ -166,7 +168,7 @@ export const selectedUserSlice = createSlice({
         getFollowersOfSelectedUserAsync.rejected,
         (state, action) => {
           state.isFetching = false;
-          toast(action.error.message, position)
+          toast(action.error.message, position);
         },
       )
       .addCase(
@@ -188,9 +190,17 @@ export const selectedUserSlice = createSlice({
         getFollowedBySelectedUserAsync.rejected,
         (state, action) => {
           state.isFetching = false;
-          toast(action.error.message, position)
+          toast(action.error.message, position);
         },
-      );
+      )
+      .addCase(signoutAsync.fulfilled, (state) => {
+        state.selectedUser = undefined;
+        state.followedBySelectedUser = [];
+        state.followersOfSelectedUser = [];
+        state.friendsOfSelectedUser = [];
+        state.isFetching = false;
+        state.error = null;
+      });
   },
 });
 
@@ -205,15 +215,13 @@ export const selectSelectedUserAndRelatives = (
 export const selectSelectedUser = (state: RootState) =>
   state.selectedUserAndRelatives.selectedUser;
 
-export const selectFriendsOfSelectedUser =
-  (state: RootState) =>
-    state.selectedUserAndRelatives
-      .friendsOfSelectedUser;
+export const selectFriendsOfSelectedUser = (
+  state: RootState,
+) => state.selectedUserAndRelatives.friendsOfSelectedUser;
 
-export const selectFollowedBySelectedUser =
-  (state: RootState) =>
-    state.selectedUserAndRelatives
-      .followedBySelectedUser;
+export const selectFollowedBySelectedUser = (
+  state: RootState,
+) => state.selectedUserAndRelatives.followedBySelectedUser;
 // We can also write thunks by hand, which may contain both sync and async logic.
 // Here's an example of conditionally dispatching actions based on current state.
 // export const incrementIfOdd =
