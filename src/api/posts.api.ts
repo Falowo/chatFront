@@ -4,24 +4,24 @@ import { IPost } from "../interfaces";
 export const getPostsByUserNameParams = (
   username: string,
 ) => {
-  return instance.get(`posts/profile/${username}`);
+  return instance().get(`posts/profile/${username}`);
 };
 
 export const getCurrentUserTimelinePosts = (
 ) => {
-  return instance.get(`posts/timeline/currentUser`);
+  return instance().get(`posts/timeline/currentUser`);
 };
 
 export const likePost = (
   postId: string,
 ) => {
-  return instance.put(`posts/${postId}/like`);
+  return instance().put(`posts/${postId}/like`);
 };
 
 export const createPost = (newPost: IPost) => {
-  return instance.post(`posts`, { ...newPost });
+  return instance().post(`posts`, { ...newPost });
 };
 
 export const uploadFile = (data: FormData) => {
-  return instance.post(`upload`, data);
+  return instance().post(`upload`, data);
 };

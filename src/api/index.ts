@@ -3,7 +3,7 @@ import { getCookie } from "react-use-cookie";
 
 export const url = process.env.REACT_APP_API_URL;
 
-export const instance = axios.create({
+export const instance = () => axios.create({
   baseURL: url,
   timeout: 3000,
   headers: {

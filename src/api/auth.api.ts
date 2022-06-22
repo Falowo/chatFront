@@ -22,9 +22,9 @@ export const signin = (
 export const refreshToken = (props: {
   oldToken: string;
 }): Promise<AxiosResponse<string>> => {
-  return instance.post(`auth/refreshToken`, props);
+  return instance().post(`auth/refreshToken`, props);
 };
 
 export const logout = () => {
-  return instance.post(`auth/logout`);
+  return instance().post(`auth/logout`);
 };
