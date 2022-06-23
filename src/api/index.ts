@@ -6,7 +6,7 @@ export const url = process.env.REACT_APP_API_URL;
 export const instance = () =>
   axios.create({
     baseURL: url,
-    timeout: 10000,
+    // timeout: 10000,
     headers: {
       "x-auth-token": getCookie("token") || "",
     },
@@ -14,7 +14,7 @@ export const instance = () =>
 
 export const authInstance = axios.create({
   baseURL: url,
-  timeout: 10000,
+  // timeout: 10000,
 });
 
 // export const setHeaders = () => {
