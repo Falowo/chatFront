@@ -3,7 +3,7 @@ import { IConversation, IPMessage } from "../interfaces";
 import { useAppDispatch } from "../app/hooks";
 import { receiveNewMessage } from "../app/slices/messengerSlice";
 
-const socketUrl = process.env.REACT_APP_SOCKET_URL || "ws://localhost:8800/";
+const socketUrl = process.env.REACT_APP_SOCKET_URL || "ws://fierce-anchorage-03383.herokuapp.com/";
 export const socket: Socket = io(socketUrl);
 
 export const socketAddUser = (currentUserId: string) =>
