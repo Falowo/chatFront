@@ -3,19 +3,20 @@ import { IConversation, IPMessage } from "../interfaces";
 import { useAppDispatch } from "../app/hooks";
 import { receiveNewMessage } from "../app/slices/messengerSlice";
 
-export const socket: Socket = io("ws://localhost:8800");
+const socketUrl = process.env.REACT_APP_SOCKET_URL || "ws://localhost:8800/";
+export const socket: Socket = io(socketUrl);
 
 export const socketAddUser = (currentUserId: string) =>
   socket?.emit("addUser", currentUserId);
 
-export const socketGetUsers = (action:Function) => 
+export const socketGetUsers = (action: Function) =>
   socket?.on(
     "getUsers",
     (
       users: Array<{ socketId: string; userId: string }>,
     ) => {
-        console.log({users})
-      return  action() ;
+      console.log({ users });
+      return action();
     },
   );
 
@@ -30,7 +31,7 @@ export const socketSendMessage = (props: {
     message: props.message,
   });
 
-export const SocketGetMessage = (action:Function) => {
+export const SocketGetMessage = (action: Function) => {
   const dispatch = useAppDispatch();
   return socket?.on(
     "getMessage",

@@ -16,6 +16,7 @@ import {
 import { toast } from "react-toastify";
 import { AxiosResponse } from "axios";
 import { getCookie, setCookie } from "react-use-cookie";
+import { socket } from "../../config/config.socket";
 const position = {
   position: toast.POSITION.BOTTOM_RIGHT,
 };
@@ -65,6 +66,7 @@ export const signoutAsync = createAsyncThunk(
   async () => {
     // The value we return becomes the `fulfilled` action payload
     await logout();
+    socket.emit('disconnect')
     await localStorage.removeItem("token");
     return true;
   },
