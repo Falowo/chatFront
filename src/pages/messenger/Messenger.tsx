@@ -96,6 +96,8 @@ const Messenger = () => {
           senderId,
           conversationId: currentChat?.conversation?._id!,
           text: newMessage,
+          receivedByIds: [],
+          checkedByIds: [],
         }),
       );
     } catch (e) {
@@ -140,7 +142,8 @@ const Messenger = () => {
         );
 
       if (
-        !!receiverId && !!currentUserFriends &&
+        !!receiverId &&
+        !!currentUserFriends &&
         !currentUserFriends
           ?.map((f) => f._id)
           .includes(receiverId)

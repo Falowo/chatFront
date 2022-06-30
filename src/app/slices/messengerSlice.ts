@@ -480,32 +480,62 @@ export const messengerSlice = createSlice({
           }
           console.log({ status });
 
-          state.conversations = state.conversations.map(
-            (c) => {
-              if (c?._id === conversationId) {
-                if (
-                  !!c.lastMessageId?._id &&
-                  checkedMessageId === c.lastMessageId?._id
-                ) {
-                  return {
-                    ...c,
-                    lastMessageId: {
-                      ...c.lastMessageId,
-                      status,
-                      checkedByIds: {
-                        ...(message?.checkedByIds?.filter(
-                          (cId) => cId !== userId,
-                        ) || []),
-                        userId,
+          if (
+            !!message && !message?.checkedByIds?.length
+          ) {
+            state.conversations = state.conversations.map(
+              (c) => {
+                if (c?._id === conversationId) {
+                  if (
+                    !!c.lastMessageId?._id &&
+                    checkedMessageId ===
+                      c.lastMessageId?._id
+                  ) {
+                    return {
+                      ...c,
+                      lastMessageId: {
+                        ...c.lastMessageId,
+                        status,
+                        checkedByIds: [
+                          userId,
+                        ],
                       },
-                    },
-                  };
-                } else {
-                  return { ...c };
-                }
-              } else return c;
-            },
-          );
+                    };
+                  } else {
+                    return { ...c };
+                  }
+                } else return c;
+              },
+            );
+          }else if((!!message &&
+            !!message?.checkedByIds?.length &&
+            !message.checkedByIds?.includes(userId))){
+              state.conversations = state.conversations.map(
+                (c) => {
+                  if (c?._id === conversationId) {
+                    if (
+                      !!c.lastMessageId?._id &&
+                      checkedMessageId ===
+                        c.lastMessageId?._id
+                    ) {
+                      return {
+                        ...c,
+                        lastMessageId: {
+                          ...c.lastMessageId,
+                          status,
+                          checkedByIds: [
+                            ...c.lastMessageId.checkedByIds,
+                            userId,
+                          ],
+                        },
+                      };
+                    } else {
+                      return { ...c };
+                    }
+                  } else return c;
+                },
+              );
+          }
 
           if (
             conversationId ===
@@ -961,16 +991,14 @@ export const messengerSlice = createSlice({
         },
       )
       .addCase(signoutAsync.fulfilled, (state) => {
-       
-        state.conversations= [];
-        state.selectedConversation= undefined;
-        state.uncheckedByCurrentUser= [];
-        state.lastMessagesCheckedByCurrentUser= [];
-        state.currentChat= undefined;
-        state.lastMessage= undefined;
-        state.isFetching= false;
-        state.error= null;
-        
+        state.conversations = [];
+        state.selectedConversation = undefined;
+        state.uncheckedByCurrentUser = [];
+        state.lastMessagesCheckedByCurrentUser = [];
+        state.currentChat = undefined;
+        state.lastMessage = undefined;
+        state.isFetching = false;
+        state.error = null;
       });
   },
 });
