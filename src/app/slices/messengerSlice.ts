@@ -482,7 +482,7 @@ export const messengerSlice = createSlice({
 
           state.conversations = state.conversations.map(
             (c) => {
-              if (c._id === conversationId) {
+              if (c?._id === conversationId) {
                 if (
                   !!c.lastMessageId?._id &&
                   checkedMessageId === c.lastMessageId?._id
