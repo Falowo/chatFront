@@ -480,8 +480,33 @@ export const messengerSlice = createSlice({
           }
           console.log({ status });
 
-          if (
-            !!message && !message?.checkedByIds?.length
+          if (!!message && !message?.checkedByIds?.length) {
+            state.conversations = state.conversations.map(
+              (c) => {
+                if (c?._id === conversationId) {
+                  if (
+                    !!c.lastMessageId?._id &&
+                    checkedMessageId ===
+                      c.lastMessageId?._id
+                  ) {
+                    return {
+                      ...c,
+                      lastMessageId: {
+                        ...c.lastMessageId,
+                        status,
+                        checkedByIds: [userId],
+                      },
+                    };
+                  } else {
+                    return { ...c };
+                  }
+                } else return c;
+              },
+            );
+          } else if (
+            !!message &&
+            !!message?.checkedByIds?.length &&
+            !message.checkedByIds?.includes(userId)
           ) {
             state.conversations = state.conversations.map(
               (c) => {
@@ -497,6 +522,7 @@ export const messengerSlice = createSlice({
                         ...c.lastMessageId,
                         status,
                         checkedByIds: [
+                          ...c.lastMessageId.checkedByIds,
                           userId,
                         ],
                       },
@@ -507,38 +533,7 @@ export const messengerSlice = createSlice({
                 } else return c;
               },
             );
-          }else if((!!message &&
-            !!message?.checkedByIds?.length &&
-            !message.checkedByIds?.includes(userId))){
-              state.conversations = state.conversations.map(
-                (c) => {
-                  if (c?._id === conversationId) {
-                    if (
-                      !!c.lastMessageId?._id &&
-                      checkedMessageId ===
-                        c.lastMessageId?._id
-                    ) {
-                      return {
-                        ...c,
-                        lastMessageId: {
-                          ...c.lastMessageId,
-                          status,
-                          checkedByIds: [
-                            ...c.lastMessageId.checkedByIds,
-                            userId,
-                          ],
-                        },
-                      };
-                    } else {
-                      return { ...c };
-                    }
-                  } else return c;
-                },
-              );
           }
-
-        
-
           if (
             conversationId ===
             state.currentChat?.conversation._id
