@@ -1,5 +1,5 @@
 import { useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import "./signin.css";
 import { CircularProgress } from "@material-ui/core";
 import { useDispatch } from "react-redux";
@@ -9,6 +9,7 @@ import {
   selectAuthUser,
   signinAsync,
 } from "../../app/slices/authSlice";
+import { socketRemoveUser } from "../../app/slices/socketSlice";
 
 export interface UserCredentials {
   email: string;
@@ -19,7 +20,6 @@ export default function Signin() {
   const email = useRef<any>();
   const password = useRef<any>();
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const auth = useAppSelector(selectAuth);
 
   const isFetching = auth.isFetching;
@@ -38,14 +38,7 @@ export default function Signin() {
     dispatch(signinAsync(userCredentials));
   };
 
-  useEffect(() => {
-    if (authUser) {
-      // navigate("/");
-      console.log("authuser");
-      
-    }
-    return () => {};
-  }, [authUser, navigate]);
+ 
 
   return (
     <div className="login">

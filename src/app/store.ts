@@ -10,8 +10,9 @@ import currentUserReducer from "./slices/currentUserSlice";
 import selectedUserReducer from "./slices/selectedUserSlice";
 import postsReducer from "./slices/postsSlice";
 import messengerReducer from "./slices/messengerSlice";
-import searchReducer  from "./slices/searchSlice";
+import searchReducer from "./slices/searchSlice";
 import socketReducer from "./slices/socketSlice";
+import ifaReducer from "./slices/ifaSlice";
 
 export const rootReducer = combineReducers({
   auth: authReducer,
@@ -21,16 +22,15 @@ export const rootReducer = combineReducers({
   messenger: messengerReducer,
   search: searchReducer,
   socket: socketReducer,
+  ifa: ifaReducer,
 });
 
-
-
 export const store = configureStore({
-  reducer: rootReducer
+  reducer: rootReducer,
 });
 
 export type AppDispatch = typeof store.dispatch;
-export type RootState = ReturnType<typeof rootReducer>
+export type RootState = ReturnType<typeof rootReducer>;
 // export type RootState = ReturnType<typeof store.getState>;
 export type AppThunk<ReturnType = void> = ThunkAction<
   ReturnType,

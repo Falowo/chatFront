@@ -14,6 +14,7 @@ import {
   selectFriendsOfCurrentUser,
 } from "../../app/slices/currentUserSlice";
 import { likePostAsync } from "../../app/slices/postsSlice";
+import PopupPost from "../popupPost/PopupPost";
 
 export interface PostProps {
   post: IPost;
@@ -24,6 +25,8 @@ export default function Post(props: PostProps) {
   const [like, setLike] = useState(
     post.likersId?.length || 0,
   );
+  const [isOpenMoreVertPopUp, setIsOpenMoreVertPopUp] =
+    useState(false);
   const friendsOfCurrentUser = useAppSelector(
     selectFriendsOfCurrentUser,
   );
@@ -57,7 +60,15 @@ export default function Post(props: PostProps) {
             (f) => f._id === post.userId,
           );
         }
-        setUser(usR);
+        if (!!usR) {
+          setUser(usR);
+        } else {
+          setUser(currentUser);
+
+          console.log(
+            `problem the post  ${post._id} has no user!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!`,
+          );
+        }
       } else {
         setUser(currentUser);
       }
@@ -68,6 +79,7 @@ export default function Post(props: PostProps) {
     currentUser,
     followedByCurrentUser,
     friendsOfCurrentUser,
+    post._id,
     post.userId,
     user,
   ]);
@@ -106,7 +118,16 @@ export default function Post(props: PostProps) {
             </span>
           </div>
           <div className="postTopRight">
-            <MoreVert />
+            <MoreVert
+              className="postMoreVert"
+              onClick={() =>
+                setIsOpenMoreVertPopUp(!isOpenMoreVertPopUp)
+              }
+            />
+            {!!isOpenMoreVertPopUp && (
+              <PopupPost 
+              post={post} />
+            )}
           </div>
         </div>
         <div className="postCenter">

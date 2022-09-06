@@ -896,19 +896,19 @@ export const currentUserSlice = createSlice({
         },
       )
       .addCase(signoutAsync.fulfilled, (state) => {
-        state.currentUser= undefined;
-        state.followedByCurrentUser= [];
-        state.followersOfCurrentUser= [];
-        state.friendsOfCurrentUser= [];
-        state.bestFriendsOfCurrentUser= [];
-        state.friendRequestsTo= [];
-        state.friendRequestsFrom= [];
-        state.notCheckedFriendRequestsFrom= [];
-        state.notCheckedAcceptedFriendRequestsBy= [];
-        state.isFetching= false;
-        state.editInfoMode= false;
-        state.editDescMode= false;
-        state.error= null;
+        state.currentUser = undefined;
+        state.followedByCurrentUser = [];
+        state.followersOfCurrentUser = [];
+        state.friendsOfCurrentUser = [];
+        state.bestFriendsOfCurrentUser = [];
+        state.friendRequestsTo = [];
+        state.friendRequestsFrom = [];
+        state.notCheckedFriendRequestsFrom = [];
+        state.notCheckedAcceptedFriendRequestsBy = [];
+        state.isFetching = false;
+        state.editInfoMode = false;
+        state.editDescMode = false;
+        state.error = null;
       });
   },
 });

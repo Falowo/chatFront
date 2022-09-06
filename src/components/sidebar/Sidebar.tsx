@@ -17,6 +17,8 @@ import {
   selectFriendsOfCurrentUser,
   selectCurrentUserRelatives,
 } from "../../app/slices/currentUserSlice";
+import SquareOpon from "./square-opon-ifa-black.jpg";
+import { NavLink } from "react-router-dom";
 
 export default function Sidebar() {
   const currentUserFriends = useAppSelector(
@@ -55,6 +57,26 @@ export default function Sidebar() {
             </span>
           </li>
           <li className="sidebarListItem">
+            <NavLink
+              to="/ifaCity"
+              className="ifaLink"
+              style={{
+                textDecoration: "none",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <img
+                className="oponImage"
+                src={SquareOpon}
+                alt="opon_image"
+              />
+              <span className="sidebarListItemText">
+                Ifa city
+              </span>
+            </NavLink>
+          </li>
+          <li className="sidebarListItem">
             <Bookmark className="sidebarIcon" />
             <span className="sidebarListItemText">
               Bookmarks
@@ -89,9 +111,10 @@ export default function Sidebar() {
         <hr className="sidebarHr" />
         {!currentUserRelatives.isFetching ? (
           <ul className="sidebarFriendList">
-            {!!currentUserFriends?.length && currentUserFriends?.map((u) => (
-              <CloseFriend key={u._id} user={u} />
-            ))}
+            {!!currentUserFriends?.length &&
+              currentUserFriends?.map((u) => (
+                <CloseFriend key={u._id} user={u} />
+              ))}
           </ul>
         ) : (
           <h5>Fetching...</h5>

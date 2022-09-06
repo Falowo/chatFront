@@ -26,6 +26,7 @@ export interface UserSocket {
 
 export interface SocketState {
   addUserEmited: boolean;
+  removeUserEmited: boolean;
   connectedUsers: UserSocket[];
   lastMessageSentId?: string;
   lastMessagesReceived: {
@@ -44,6 +45,7 @@ export interface SocketState {
 
 const initialState: SocketState = {
   addUserEmited: false,
+  removeUserEmited: false,
   connectedUsers: [],
   lastMessageSentId: undefined,
   lastMessagesReceived: [],
@@ -100,6 +102,14 @@ export const socketSlice = createSlice({
       const currentUserId = action.payload;
       socket.emit("addUser", currentUserId);
       state.addUserEmited = true;
+    },
+    socketRemoveUser: (
+      state,
+    ) => {
+      socket.emit("removeUser");
+
+      state.removeUserEmited = true;
+      state.addUserEmited = false;
     },
     setConnectedUsers: (
       state,
@@ -244,6 +254,7 @@ export const socketSlice = createSlice({
 
 export const {
   socketAddUser,
+  socketRemoveUser,
   setConnectedUsers,
   socketSendMessage,
   socketSendFriendRequest,

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import { Container } from "@mui/material";
-import { makeStyles } from "@mui/styles";
 import Home from "./pages/home/Home";
 import Signin from "./pages/signin/Signin";
 import SignUp from "./pages/register/Signup";
@@ -42,16 +41,20 @@ import {
 } from "./app/slices/messengerSlice";
 import useDeepCompareEffect from "use-deep-compare-effect";
 import FriendRequests from "./pages/friendRequests/FriendRequests";
-// import { getBothFollowedByAndFollowersOfCurrentUserAsync } from "./app/slices/currentUserSlice";
+import OponIfa from "./pages/oponIfa/OponIfa";
+import {
+  ThemeProvider,
+  createTheme,
+} from "@mui/material/styles";
+import CssBaseline from "@mui/material/CssBaseline";
 
-const useStyles = makeStyles({
-  contentStyle: {
-    margin: "0 auto",
+const darkTheme = createTheme({
+  palette: {
+    mode: "dark",
   },
 });
 
 const App = () => {
-  const classes = useStyles();
   const dispatch = useAppDispatch();
   const authUser = useAppSelector(selectAuthUser);
   const token = useAppSelector(selectToken);
@@ -219,63 +222,64 @@ const App = () => {
   }, [setAuthToken, token]);
 
   return (
-    <>
-      <Container maxWidth="xl">
+    <ThemeProvider theme={darkTheme}>
+      <CssBaseline />
+      <Container
+        maxWidth="xl"
+        style={{ backgroundColor: "black" }}
+      >
         <ToastContainer />
-        <Container
-          className={classes.contentStyle}
-          maxWidth="xl"
-        >
-          <Routes>
-            <Route
-              path="/signin"
-              element={!authUser ? <Signin /> : <Home />}
-              // element={<Signin />}
-            />
-            <Route
-              path="/signup"
-              element={!authUser ? <SignUp /> : <Home />}
-            />
-            <Route
-              path="/messenger/:userId"
-              element={
-                !!authUser ? <Messenger /> : <Signin />
-              }
-            />
-            <Route
-              path="/messenger"
-              element={
-                !!authUser ? <Messenger /> : <Signin />
-              }
-            />
-            <Route
-              path="/profile/:username"
-              element={
-                !!authUser ? <Profile /> : <Signin />
-              }
-            />
-            <Route
-              path="/search"
-              element={!!authUser ? <Search /> : <Signin />}
-            />
-            <Route
-              path="/friend/requests"
-              element={
-                !!authUser ? <FriendRequests /> : <Signin />
-              }
-            />
-            <Route
-              path="/"
-              element={!!authUser ? <Home /> : <Signin />}
-            />
-            <Route
-              path="*"
-              element={!!authUser ? <Home /> : <SignUp />}
-            />
-          </Routes>
-        </Container>
+        <Routes>
+          <Route
+            path="/signin"
+            element={!authUser ? <Signin /> : <Home />}
+            // element={<Signin />}
+          />
+          <Route
+            path="/signup"
+            element={!authUser ? <SignUp /> : <Home />}
+          />
+          <Route
+            path="/messenger/:userId"
+            element={
+              !!authUser ? <Messenger /> : <Signin />
+            }
+          />
+          <Route
+            path="/messenger"
+            element={
+              !!authUser ? <Messenger /> : <Signin />
+            }
+          />
+          <Route
+            path="/profile/:username"
+            element={!!authUser ? <Profile /> : <Signin />}
+          />
+          <Route
+            path="/search"
+            element={!!authUser ? <Search /> : <Signin />}
+          />
+          <Route
+            path="/friend/requests"
+            element={
+              !!authUser ? <FriendRequests /> : <Signin />
+            }
+          />
+          <Route
+            path="/ifaCity"
+            element={!!authUser ? <OponIfa /> : <Signin />}
+          />
+          <Route
+            path="/"
+            element={!!authUser ? <Home /> : <Signin />}
+          />
+          <Route
+            path="*"
+            element={!!authUser ? <Home /> : <SignUp />}
+          />
+        </Routes>
       </Container>
-    </>
+    </ThemeProvider>
   );
 };
 

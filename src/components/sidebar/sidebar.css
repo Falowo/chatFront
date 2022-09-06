@@ -54,4 +54,14 @@
   list-style: none;
 }
 
+.oponImage {
+  width: 32px;
+  margin-right: 16px;
+}
 
+.ifaLink {
+  color: inherit;
+}
+.ifaLink:hover {
+  color: blue;
+}

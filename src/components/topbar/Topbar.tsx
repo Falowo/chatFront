@@ -25,13 +25,9 @@ import {
 } from "../../app/slices/currentUserSlice";
 import { selectUncheckedByCurrentUser } from "../../app/slices/messengerSlice";
 import PopupNotifications from "../popupNotifications/PopupNotifications";
-import LogoutIcon from '@mui/icons-material/Logout';
+import LogoutIcon from "@mui/icons-material/Logout";
 import { signoutAsync } from "../../app/slices/authSlice";
-// import {
-//   selectConnectedUsers,
-//   selectSocket,
-//   socketAddUserAsync,
-// } from "../../app/slices/socketSlice";
+import { socketRemoveUser } from "../../app/slices/socketSlice";
 
 export default function Topbar() {
   const [
@@ -198,15 +194,22 @@ export default function Topbar() {
         </Link>
 
         <Link
-          onClick={()=>dispatch(signoutAsync())}
-          to={
-            
-            "/signin"
-          }
+          onClick={() => {
+            if (!!currentUser) {
+              dispatch(socketRemoveUser());
+
+              dispatch(signoutAsync());
+            }
+          }}
+          to={"/signin"}
         >
-         <LogoutIcon
-            sx={{color:"white", fontSize:"1.5rem", marginLeft:"0.5rem"}}
-         />
+          <LogoutIcon
+            sx={{
+              color: "white",
+              fontSize: "1.5rem",
+              marginLeft: "0.5rem",
+            }}
+          />
         </Link>
       </div>
     </div>
