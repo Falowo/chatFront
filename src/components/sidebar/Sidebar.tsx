@@ -16,6 +16,7 @@ import { useAppSelector } from "../../app/hooks";
 import {
   selectFriendsOfCurrentUser,
   selectCurrentUserRelatives,
+  selectCurrentUser,
 } from "../../app/slices/currentUserSlice";
 import SquareOpon from "./square-opon-ifa-black.jpg";
 import { NavLink } from "react-router-dom";
@@ -27,6 +28,7 @@ export default function Sidebar() {
   const currentUserRelatives = useAppSelector(
     selectCurrentUserRelatives,
   );
+  const currentUser = useAppSelector(selectCurrentUser);
 
   return (
     <div className="sidebar">
@@ -56,26 +58,29 @@ export default function Sidebar() {
               Groups
             </span>
           </li>
-          <li className="sidebarListItem">
-            <NavLink
-              to="/ifaCity"
-              className="ifaLink"
-              style={{
-                textDecoration: "none",
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              <img
-                className="oponImage"
-                src={SquareOpon}
-                alt="opon_image"
-              />
-              <span className="sidebarListItemText">
-                Ifa city
-              </span>
-            </NavLink>
-          </li>
+          {!!currentUser &&
+            currentUser?.username === "baba" && (
+              <li className="sidebarListItem">
+                <NavLink
+                  to="/ifaCity"
+                  className="ifaLink"
+                  style={{
+                    textDecoration: "none",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <img
+                    className="oponImage"
+                    src={SquareOpon}
+                    alt="opon_image"
+                  />
+                  <span className="sidebarListItemText">
+                    Ifa city
+                  </span>
+                </NavLink>
+              </li>
+            )}
           <li className="sidebarListItem">
             <Bookmark className="sidebarIcon" />
             <span className="sidebarListItemText">
