@@ -53,7 +53,7 @@ export const setSelectedUserAsync = createAsyncThunk(
       const selectedUser: IUser = res.data._doc;
 
       return selectedUser;
-    }
+    }else return false
   },
 );
 
@@ -115,7 +115,7 @@ export const selectedUserSlice = createSlice({
           if (!!action.payload) {
             state.selectedUser = action.payload;
           } else {
-            state.selectedUser = undefined;
+            state.selectedUser = undefined
           }
         },
       )

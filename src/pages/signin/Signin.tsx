@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef } from "react";
 import { Link } from "react-router-dom";
 import "./signin.css";
 import { CircularProgress } from "@material-ui/core";
@@ -6,10 +6,8 @@ import { useDispatch } from "react-redux";
 import { useAppSelector } from "../../app/hooks";
 import {
   selectAuth,
-  selectAuthUser,
   signinAsync,
 } from "../../app/slices/authSlice";
-import { socketRemoveUser } from "../../app/slices/socketSlice";
 
 export interface UserCredentials {
   email: string;
@@ -24,7 +22,6 @@ export default function Signin() {
 
   const isFetching = auth.isFetching;
 
-  const authUser = useAppSelector(selectAuthUser);
 
   const handleClick = (e: React.FormEvent) => {
     e.preventDefault();

@@ -12,6 +12,7 @@ import {
 import { selectCurrentUserRelatives } from "../../app/slices/currentUserSlice";
 import { selectCurrentUser } from "../../app/slices/currentUserSlice";
 import { checkExp } from "../../app/slices/authSlice";
+import { setSelectedUserAsync } from "../../app/slices/selectedUserSlice";
 
 export default function Home() {
   const dispatch = useAppDispatch();
@@ -29,6 +30,10 @@ export default function Home() {
     dispatch(checkExp());
   }, [dispatch]);
 
+  useEffect(() => {
+    dispatch(setSelectedUserAsync());
+  });
+
   return (
     <>
       <Topbar />
@@ -40,7 +45,7 @@ export default function Home() {
           <h1>Fetching...</h1>
         )}
 
-        <Rightbar/>
+        <Rightbar />
       </div>
     </>
   );

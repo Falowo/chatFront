@@ -24,11 +24,16 @@ export default function Feed(props: FeedProps) {
     selectCurrentUserPosts,
   );
 
+   
+
   const postsState = useAppSelector(selectPosts);
   const selectedUserPosts = postsState.selectedUserPosts;
   const timeline = useAppSelector(selectTimeline);
 
   // const url = process.env.REACT_APP_API_URL;
+
+
+
 
   return (
     <div className="feed">

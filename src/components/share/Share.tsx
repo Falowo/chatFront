@@ -18,7 +18,6 @@ import { createPostAsync } from "../../app/slices/postsSlice";
 import { useParams } from "react-router-dom";
 import { selectSelectedUser } from "../../app/slices/selectedUserSlice";
 
-
 export default function Share() {
   const currentUser = useAppSelector(selectCurrentUser);
   const selectedUser = useAppSelector(selectSelectedUser);
@@ -65,7 +64,8 @@ export default function Share() {
           />
           <input
             placeholder={
-              selectedUser?._id === currentUser?._id
+              selectedUser?._id === currentUser?._id ||
+              !selectedUser
                 ? "What's in your mind " +
                   currentUser?.username +
                   "?"
