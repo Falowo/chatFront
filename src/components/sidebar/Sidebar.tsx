@@ -59,7 +59,7 @@ export default function Sidebar() {
             </span>
           </li>
           {!!currentUser &&
-            currentUser?.username === "baba" && (
+            currentUser?.username === "tata" && (
               <li className="sidebarListItem">
                 <NavLink
                   to="/ifaCity"
