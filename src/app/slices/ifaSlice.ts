@@ -12,13 +12,6 @@ const position = {
   position: toast.POSITION.BOTTOM_RIGHT,
 };
 
-export interface Leg {
-  0: boolean;
-  1: boolean;
-  2: boolean;
-  3: boolean;
-}
-
 export interface Mark {
   legEntry: boolean;
   indexOfLeg: number;
@@ -44,13 +37,13 @@ export enum LegName {
 }
 
 export interface OduItem {
-  leg0: Leg;
-  leg1: Leg;
+  leg0: boolean[];
+  leg1: boolean[];
   nameLeg0?: LegName;
   nameLeg1?: LegName;
   oduNames?: string[];
   randomColor?: string;
-  createdAt?: Date;
+  createdAt?: string;
 }
 
 export interface IfaCity {
@@ -61,12 +54,13 @@ export interface IfaCity {
 
 const initialState: IfaCity = {
   current: {
-    leg0: { 0: true, 1: true, 2: true, 3: true },
-    leg1: { 0: true, 1: true, 2: true, 3: true },
+    leg0: [true, true, true, true],
+    leg1: [true, true, true, true],
+
     nameLeg0: undefined,
     nameLeg1: undefined,
     oduNames: [],
-    createdAt: new Date(),
+    createdAt: new Date().toString(),
   },
   history: [],
   isFetching: false,
@@ -78,7 +72,9 @@ const initialState: IfaCity = {
 // code can then be executed and other actions can be dispatched. Thunks are
 // typically used to make async requests.
 
-const getLegName = (leg: Leg): LegName => {
+const getLegName = (
+  leg: boolean[],
+): LegName => {
   if (
     leg[0] === true &&
     leg[1] === true &&
@@ -197,7 +193,10 @@ const getLegName = (leg: Leg): LegName => {
   }
 };
 
-const nameOdu = (leg0: Leg, leg1: Leg): string => {
+const nameOdu = (
+  leg0: boolean[],
+  leg1: boolean[],
+): string => {
   const nameLeg0 = getLegName(leg0);
   const nameLeg1 = getLegName(leg1);
   let oduName: string;
@@ -236,19 +235,19 @@ export const ifaSlice = createSlice({
   // The `reducers` field lets us define reducers and generate associated actions
   reducers: {
     castOdu: (state) => {
-      const leg0: Leg = {
-        0: !!Math.round(Math.random()),
-        1: !!Math.round(Math.random()),
-        2: !!Math.round(Math.random()),
-        3: !!Math.round(Math.random()),
-      };
+      const leg0: [boolean, boolean, boolean, boolean] = [
+        !!Math.round(Math.random()),
+        !!Math.round(Math.random()),
+        !!Math.round(Math.random()),
+        !!Math.round(Math.random()),
+      ];
 
-      const leg1: Leg = {
-        0: !!Math.round(Math.random()),
-        1: !!Math.round(Math.random()),
-        2: !!Math.round(Math.random()),
-        3: !!Math.round(Math.random()),
-      };
+      const leg1: [boolean, boolean, boolean, boolean] = [
+        !!Math.round(Math.random()),
+        !!Math.round(Math.random()),
+        !!Math.round(Math.random()),
+        !!Math.round(Math.random()),
+      ];
 
       state.current = {
         leg0,
@@ -269,7 +268,7 @@ export const ifaSlice = createSlice({
         const randomColor = Math.floor(
           randomValue * 16777215,
         ).toString(16);
-        const createdAt = new Date();
+        const createdAt = new Date().toString();
 
         state.current = {
           ...state.current,
@@ -296,103 +295,48 @@ export const ifaSlice = createSlice({
       }>,
     ) => {
       if (action.payload) {
-        const { mark, currentOdu } = action.payload;
+        const { mark } = action.payload;
 
         const { legEntry, indexOfLeg } = mark;
 
         if (legEntry === false) {
-          switch (indexOfLeg) {
-            case 0:
+          
               state.current = {
-                ...currentOdu,
-                leg0: {
-                  ...currentOdu.leg0,
-                  0: !currentOdu.leg0[0],
-                },
+                ...state.current,
+                leg0: state.current.leg0.map(
+                  (m, i) => {
+                    if (i === indexOfLeg) {
+                      return !m;
+                    } else return !!m;
+                  },
+                ),
               };
-              break;
-            case 1:
-              state.current = {
-                ...currentOdu,
-                leg0: {
-                  ...currentOdu.leg0,
-                  1: !currentOdu.leg0[1],
-                },
-              };
-              break;
-            case 2:
-              state.current = {
-                ...currentOdu,
-                leg0: {
-                  ...currentOdu.leg0,
-                  2: !currentOdu.leg0[2],
-                },
-              };
-              break;
-            case 3:
-              state.current = {
-                ...currentOdu,
-                leg0: {
-                  ...currentOdu.leg0,
-                  3: !currentOdu.leg0[3],
-                },
-              };
-              break;
-            default:
-              console.log("indexOfLeg invalid");
-          }
+          
         } else if (legEntry === true) {
-          switch (indexOfLeg) {
-            case 0:
-              state.current = {
-                ...currentOdu,
-                leg1: {
-                  ...currentOdu.leg1,
-                  0: !currentOdu.leg1[0],
-                },
-              };
-              break;
-            case 1:
-              state.current = {
-                ...currentOdu,
-                leg1: {
-                  ...currentOdu.leg1,
-                  1: !currentOdu.leg1[1],
-                },
-              };
-              break;
-            case 2:
-              state.current = {
-                ...currentOdu,
-                leg1: {
-                  ...currentOdu.leg1,
-                  2: !currentOdu.leg1[2],
-                },
-              };
-              break;
-            case 3:
-              state.current = {
-                ...currentOdu,
-                leg1: {
-                  ...currentOdu.leg1,
-                  3: !currentOdu.leg1[3],
-                },
-              };
-              break;
-            default:
-              console.log("indexOfLeg invalid");
-          }
-        }else console.log("legEntry not boolean")
+          state.current = {
+            ...state.current,
+            leg1: state.current.leg1.map(
+              (m, i) => {
+                if (i === indexOfLeg) {
+                  return !m;
+                } else return !!m;
+              },
+            ),
+          };
+        }
 
-        const oduName = nameOdu(
+       
+          const oduName = nameOdu(
           state.current.leg0,
           state.current.leg1,
         );
-
+        
         state.current = {
           ...state.current,
           oduNames: [oduName],
         };
+        
+
 
         state.history = [state.current, ...state.history];
         if (state.history?.length > 16) {

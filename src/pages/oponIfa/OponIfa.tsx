@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import "./oponIfa.css";
 import OponIfaImage from "../../components/sidebar/square-opon-ifa-black.jpg";
 import Grid from "@mui/material/Grid";
@@ -68,226 +68,79 @@ export default function OponIfa() {
             dispatch(castOdu());
           }}
         >
-          <Grid xs={4.5}></Grid>
-          <Grid item xs={1.5}>
-            {/* <div style={{
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-around",
-            }}>
-            <h2
-              onClick={(e) => {
-                e.stopPropagation();
-                const mark: Mark = {
-                  legEntry: true,
-                  indexOfLeg: 0,
-                };
-                const payload = { mark, currentOdu };
-                dispatch(modifyCurrentOdu(payload));
-              }}
-              className="markItem"
-              style={{
-                textShadow,
-                color: !!currentOdu.randomColor
-                  ? `${"#" + currentOdu.randomColor}`
-                  : "white",
-              }}
-            >
-              {currentOdu.leg1[0] === true ? "I" : "II"}
-            </h2>
-
-
-            </div> */}
-
-            <h2
-              onClick={(e) => {
-                e.stopPropagation();
-                const mark: Mark = {
-                  legEntry: true,
-                  indexOfLeg: 0,
-                };
-                const payload = { mark, currentOdu };
-                dispatch(modifyCurrentOdu(payload));
-              }}
-              className="markItem"
-              style={{
-                textShadow,
-                color: !!currentOdu.randomColor
-                  ? `${"#" + currentOdu.randomColor}`
-                  : "white",
-              }}
-            >
-              {currentOdu.leg1[0] === true ? "I" : "II"}
-            </h2>
-          </Grid>
-          <Grid item xs={1.5}>
-            <h2
-              onClick={(e) => {
-                e.stopPropagation();
-                const mark: Mark = {
-                  legEntry: false,
-                  indexOfLeg: 0,
-                };
-                const payload = { mark, currentOdu };
-                dispatch(modifyCurrentOdu(payload));
-              }}
-              className="markItem"
-              style={{
-                textShadow,
-
-                color: !!currentOdu.randomColor
-                  ? `${"#" + currentOdu.randomColor}`
-                  : "white",
-              }}
-            >
-              {currentOdu.leg0[0] === true ? "I" : "II"}
-            </h2>
-          </Grid>
-          <Grid item xs={4.5}></Grid>
-          <Grid item xs={4.5}></Grid>
-
-          <Grid item xs={1.5}>
-            <h2
-              onClick={(e) => {
-                e.stopPropagation();
-                const mark: Mark = {
-                  legEntry: true,
-                  indexOfLeg: 1,
-                };
-                const payload = { mark, currentOdu };
-                dispatch(modifyCurrentOdu(payload));
-              }}
-              className="markItem"
-              style={{
-                textShadow,
-
-                color: !!currentOdu.randomColor
-                  ? `${"#" + currentOdu.randomColor}`
-                  : "white",
-              }}
-            >
-              {currentOdu.leg1[1] === true ? "I" : "II"}
-            </h2>
-          </Grid>
-          <Grid item xs={1.5}>
-            <h2
-              onClick={(e) => {
-                e.stopPropagation();
-                const mark: Mark = {
-                  legEntry: false,
-                  indexOfLeg: 1,
-                };
-                const payload = { mark, currentOdu };
-                dispatch(modifyCurrentOdu(payload));
-              }}
-              className="markItem"
-              style={{
-                textShadow,
-
-                color: !!currentOdu.randomColor
-                  ? `${"#" + currentOdu.randomColor}`
-                  : "white",
-              }}
-            >
-              {currentOdu.leg0[1] === true ? "I" : "II"}
-            </h2>
-          </Grid>
-          <Grid xs={4.5}></Grid>
           <Grid item xs={4.5}></Grid>
           <Grid item xs={1.5}>
-            <h2
-              onClick={(e) => {
-                e.stopPropagation();
-                const mark: Mark = {
-                  legEntry: true,
-                  indexOfLeg: 2,
-                };
-                const payload = { mark, currentOdu };
-                dispatch(modifyCurrentOdu(payload));
-              }}
-              className="markItem"
+            <div
               style={{
-                textShadow,
-
-                color: !!currentOdu.randomColor
-                  ? `${"#" + currentOdu.randomColor}`
-                  : "white",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-around",
               }}
             >
-              {currentOdu.leg1[2] === true ? "I" : "II"}
-            </h2>
+              {!!currentOdu &&
+                currentOdu?.leg1?.map((m:boolean, i:number) => (
+                  <h2
+                    key={i}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const mark: Mark = {
+                        legEntry: true,
+                        indexOfLeg: i,
+                      };
+                      const payload = { mark, currentOdu };
+                      dispatch(modifyCurrentOdu(payload));
+                    }}
+                    className="markItem"
+                    style={{
+                      textShadow,
+                      color: !!currentOdu.randomColor
+                        ? `${"#" + currentOdu.randomColor}`
+                        : "white",
+                    }}
+                  >
+                    {m === true ? "I" : "II"}
+                  </h2>
+                ))}
+            </div>
           </Grid>
           <Grid item xs={1.5}>
-            <h2
-              onClick={(e) => {
-                e.stopPropagation();
-                const mark: Mark = {
-                  legEntry: false,
-                  indexOfLeg: 2,
-                };
-                const payload = { mark, currentOdu };
-                dispatch(modifyCurrentOdu(payload));
-              }}
-              className="markItem"
+            <div
               style={{
-                textShadow,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-around",
+              }}
+            >
+              {!!currentOdu &&
+                currentOdu.leg0?.map((m, i) => (
+                  <h2
+                    key={i}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const mark: Mark = {
+                        legEntry: false,
+                        indexOfLeg: i,
+                      };
+                      const payload = { mark, currentOdu };
+                      dispatch(modifyCurrentOdu(payload));
+                    }}
+                    className="markItem"
+                    style={{
+                      textShadow,
+                      color: !!currentOdu.randomColor
+                        ? `${"#" + currentOdu.randomColor}`
+                        : "white",
+                    }}
+                  >
+                    {m === true ? "I" : "II"}
+                  </h2>
+                ))}
+            </div>
+          </Grid>
+          {/* end end ende enden den */}
 
-                color: !!currentOdu.randomColor
-                  ? `${"#" + currentOdu.randomColor}`
-                  : "white",
-              }}
-            >
-              {currentOdu.leg0[2] === true ? "I" : "II"}
-            </h2>
-          </Grid>
           <Grid item xs={4.5}></Grid>
-          <Grid item xs={4.5}></Grid>
-          <Grid item xs={1.5}>
-            <h2
-              onClick={(e) => {
-                e.stopPropagation();
-                const mark: Mark = {
-                  legEntry: true,
-                  indexOfLeg: 3,
-                };
-                const payload = { mark, currentOdu };
-                dispatch(modifyCurrentOdu(payload));
-              }}
-              className="markItem"
-              style={{
-                textShadow,
 
-                color: !!currentOdu.randomColor
-                  ? `${"#" + currentOdu.randomColor}`
-                  : "white",
-              }}
-            >
-              {currentOdu.leg1[3] === true ? "I" : "II"}
-            </h2>
-          </Grid>
-          <Grid item xs={1.5}>
-            <h2
-              onClick={(e) => {
-                e.stopPropagation();
-                const mark: Mark = {
-                  legEntry: false,
-                  indexOfLeg: 3,
-                };
-                const payload = { mark, currentOdu };
-                dispatch(modifyCurrentOdu(payload));
-              }}
-              className="markItem"
-              style={{
-                textShadow,
-                color: !!currentOdu.randomColor
-                  ? `${"#" + currentOdu.randomColor}`
-                  : "white",
-              }}
-            >
-              {currentOdu.leg0[3] === true ? "I" : "II"}
-            </h2>
-          </Grid>
-          <Grid item xs={4.5}></Grid>
           <Grid item xs={8}></Grid>
           <Grid item xs={4}>
             <div>
@@ -305,6 +158,7 @@ export default function OponIfa() {
                         <>
                           <li
                             className="oduHistoryListItems"
+                            key={oduHistory.indexOf(o)}
                             style={{
                               color: !!o.randomColor
                                 ? `${"#" + o.randomColor}`
