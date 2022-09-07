@@ -137,7 +137,6 @@ export default function OponIfa() {
                 ))}
             </div>
           </Grid>
-          {/* end end ende enden den */}
 
           <Grid item xs={4.5}></Grid>
 

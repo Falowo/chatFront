@@ -44,7 +44,7 @@
   margin: 0 auto !important;
   display: flex;
   flex-direction: column;
-  align-items: end;
+  align-items: flex-end;
 }
 .oduHistoryListItems {
   text-decoration: none;
@@ -58,7 +58,7 @@
 .spanTimeAgo {
   font-size: 10px !important;
   font-weight: bold !important;
-  text-align: end;
+  align-self: flex-end;
   padding-right: 3rem;
 }
 
