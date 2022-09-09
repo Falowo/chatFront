@@ -1,7 +1,9 @@
 import {
+  AnyAction,
   createAsyncThunk,
   createSlice,
   PayloadAction,
+  ThunkDispatch,
   //   PayloadAction,
 } from "@reduxjs/toolkit";
 import { RootState } from "../store";
@@ -46,21 +48,29 @@ export interface OduItem {
   createdAt?: string;
 }
 
+export interface Question {
+  question?: string;
+  firstOdu: OduItem;
+  secondOdu?: OduItem;
+  response: boolean;
+}
+
 export interface IfaCity {
   current: OduItem;
+  question?: Question;
   history: OduItem[];
   isFetching: boolean;
 }
 
 const initialState: IfaCity = {
   current: {
-    leg0: [true, true, true, true],
-    leg1: [true, true, true, true],
+    leg0: [],
+    leg1: [],
 
     nameLeg0: undefined,
     nameLeg1: undefined,
     oduNames: [],
-    createdAt: new Date().toString(),
+    createdAt: undefined,
   },
   history: [],
   isFetching: false,
@@ -72,9 +82,7 @@ const initialState: IfaCity = {
 // code can then be executed and other actions can be dispatched. Thunks are
 // typically used to make async requests.
 
-const getLegName = (
-  leg: boolean[],
-): LegName => {
+const getLegName = (leg: boolean[]): LegName => {
   if (
     leg[0] === true &&
     leg[1] === true &&
@@ -222,12 +230,129 @@ export const searchRoomAsync = createAsyncThunk<
   {
     current: OduItem;
   },
-  { state: OduItem }
+  { state: RootState }
 >("ifa/searchRoom", async (props: { current: OduItem }) => {
   const { current } = props;
 
   return current;
 });
+
+export const askQuestionAsync = createAsyncThunk<
+  Question,
+  { ibo: boolean; question?: string },
+  {
+    dispatch: ThunkDispatch<unknown, unknown, AnyAction>;
+    state: RootState;
+  }
+>(
+  "ifa/askQuestion",
+  async (
+    props: { ibo: boolean; question?: string },
+    { dispatch, getState },
+  ) => {
+    const { ibo, question } = props;
+    await dispatch(castOdu());
+    const firstOdu: OduItem = selectCurrentOdu(getState());
+    let secondOdu: OduItem;
+    if (
+      // Ejiogbe
+      JSON.stringify(firstOdu.leg0) ===
+        JSON.stringify([true, true, true, true]) &&
+      JSON.stringify(firstOdu.leg1) ===
+        JSON.stringify([true, true, true, true])
+    ) {
+      const payload: Question = {
+        response: !!ibo,
+        question,
+        firstOdu,
+      };
+      return payload;
+    } else if (
+      // orangun
+      JSON.stringify(firstOdu.leg0) ===
+        JSON.stringify([false, true, false, true]) &&
+      JSON.stringify(firstOdu.leg1) ===
+        JSON.stringify([false, true, false, true])
+    ) {
+      const payload: Question = {
+        response: !!ibo,
+        question,
+        firstOdu,
+      };
+      return payload;
+    } else {
+      // throw second time
+      await dispatch(castOdu());
+      secondOdu = selectCurrentOdu(getState());
+
+      if (
+        // first odu is oju odu only
+        JSON.stringify(firstOdu.leg0) ===
+          JSON.stringify(firstOdu.leg1) &&
+        (!secondOdu ||
+          JSON.stringify(secondOdu?.leg0) !==
+            JSON.stringify(secondOdu?.leg1))
+      ) {
+        const payload: Question = {
+          response: !!ibo,
+          question,
+          firstOdu,
+          secondOdu,
+        };
+        return payload;
+      } else if (
+        // secondOdu is oju odu only
+        !!secondOdu &&
+        JSON.stringify(secondOdu?.leg0) ===
+          JSON.stringify(secondOdu?.leg1) &&
+        JSON.stringify(firstOdu?.leg0) !==
+          JSON.stringify(firstOdu?.leg1)
+      ) {
+        const payload: Question = {
+          response: !ibo,
+          question,
+          firstOdu,
+          secondOdu,
+        };
+        return payload;
+        // both odu are oju odu or both are not oju odu
+      } else {
+        const firstOduLegsName: LegName = getLegName(
+          firstOdu.leg0,
+        );
+        const secondOduLegsName: LegName = getLegName(
+          secondOdu.leg0,
+        );
+        const indexOfFirst: number = Object.values(
+          LegName,
+        ).indexOf(firstOduLegsName);
+        const indexOfSecond: number = Object.values(
+          LegName,
+        ).indexOf(secondOduLegsName);
+
+        console.log({ indexOfFirst, indexOfSecond });
+
+        if (indexOfFirst <= indexOfSecond) {
+          const payload: Question = {
+            response: !!ibo,
+            question,
+            firstOdu,
+            secondOdu,
+          };
+          return payload;
+        } else {
+          const payload: Question = {
+            response: !ibo,
+            question,
+            firstOdu,
+            secondOdu,
+          };
+          return payload;
+        }
+      }
+    }
+  },
+);
 
 export const ifaSlice = createSlice({
   name: "ifa",
@@ -287,6 +412,11 @@ export const ifaSlice = createSlice({
         );
       }
     },
+    blankTrail: (state) => {
+      state.current = initialState.current;
+      state.history = initialState.history;
+      state.question = initialState.question;
+    },
     modifyCurrentOdu: (
       state,
       action: PayloadAction<{
@@ -300,43 +430,34 @@ export const ifaSlice = createSlice({
         const { legEntry, indexOfLeg } = mark;
 
         if (legEntry === false) {
-          
-              state.current = {
-                ...state.current,
-                leg0: state.current.leg0.map(
-                  (m, i) => {
-                    if (i === indexOfLeg) {
-                      return !m;
-                    } else return !!m;
-                  },
-                ),
-              };
-          
+          state.current = {
+            ...state.current,
+            leg0: state.current.leg0.map((m, i) => {
+              if (i === indexOfLeg) {
+                return !m;
+              } else return !!m;
+            }),
+          };
         } else if (legEntry === true) {
           state.current = {
             ...state.current,
-            leg1: state.current.leg1.map(
-              (m, i) => {
-                if (i === indexOfLeg) {
-                  return !m;
-                } else return !!m;
-              },
-            ),
+            leg1: state.current.leg1.map((m, i) => {
+              if (i === indexOfLeg) {
+                return !m;
+              } else return !!m;
+            }),
           };
         }
 
-       
-          const oduName = nameOdu(
+        const oduName = nameOdu(
           state.current.leg0,
           state.current.leg1,
         );
-        
+
         state.current = {
           ...state.current,
           oduNames: [oduName],
         };
-        
-
 
         state.history = [state.current, ...state.history];
         if (state.history?.length > 16) {
@@ -371,11 +492,33 @@ export const ifaSlice = createSlice({
           state.isFetching = false;
           toast(action.error.message, position);
         },
+      )
+      .addCase(askQuestionAsync.pending, (state) => {
+        state.isFetching = true;
+      })
+      .addCase(
+        askQuestionAsync.fulfilled,
+        (state, action) => {
+          state.isFetching = false;
+          if (!!action.payload) {
+            const question: Question = action.payload;
+            state.question = { ...question };
+          }
+        },
+      )
+      .addCase(
+        askQuestionAsync.rejected,
+        (state, action) => {
+          console.log(action);
+
+          state.isFetching = false;
+          toast(action.error.message, position);
+        },
       );
   },
 });
 
-export const { castOdu, modifyCurrentOdu } =
+export const { castOdu, blankTrail, modifyCurrentOdu } =
   ifaSlice.actions;
 
 // The function below is called a selector and allows us to select a value from
@@ -386,6 +529,8 @@ export const selectCurrentOdu = (state: RootState) =>
   state.ifa.current;
 export const selectOduHistory = (state: RootState) =>
   state.ifa.history;
+export const selectQuestion = (state: RootState) =>
+  state.ifa.question;
 // We can also write thunks by hand, which may contain both sync and async logic.
 // Here's an example of conditionally dispatching actions based on current state.
 // export const incrementIfOdd =

@@ -1,26 +1,25 @@
-import React from "react";
+import React, { useState } from "react";
 import "./oponIfa.css";
 import OponIfaImage from "../../components/sidebar/square-opon-ifa-black.jpg";
-import Grid from "@mui/material/Grid";
-import Box from "@mui/material/Box";
+import { Box } from "@mui/material";
+import { Cached, QuestionMark } from "@mui/icons-material";
 import {
   useAppDispatch,
   useAppSelector,
 } from "../../app/hooks";
 import {
+  askQuestionAsync,
+  blankTrail,
   castOdu,
-  Mark,
-  modifyCurrentOdu,
   selectCurrentOdu,
-  selectOduHistory,
 } from "../../app/slices/ifaSlice";
-import * as timeago from "timeago.js";
+import IsNotAsking from "../../components/oduGrids/IsNotAsking";
+import IsAsking from "../../components/oduGrids/IsAsking";
 
 export default function OponIfa() {
+  const [isAsking, setIsAsking] = useState<boolean>(false);
   const dispatch = useAppDispatch();
   const currentOdu = useAppSelector(selectCurrentOdu);
-  const oduHistory = useAppSelector(selectOduHistory);
-  const textShadow = "-4px 1px #002021";
 
   return (
     <Box
@@ -31,24 +30,69 @@ export default function OponIfa() {
         padding: "0 auto !important",
       }}
     >
-      <h1
+      <div
         style={{
-          textAlign: "center",
-          color: `${
-            !!currentOdu.randomColor
-              ? "#" + currentOdu.randomColor
-              : "white"
-          }`,
+          display: "flex",
+          flexFlow: "row-reverse",
+          justifyContent: "space-between",
+          padding: "5px",
+          alignItems: "center",
         }}
       >
-        {!!currentOdu?.oduNames?.length
-          ? currentOdu?.oduNames[0]
-          : `Opele mi`}
-      </h1>
+        <QuestionMark
+          onClick={() => {
+            setIsAsking(true);
+            dispatch(askQuestionAsync({ ibo: true }));
+          }}
+          sx={{
+            fontSize: "3rem",
+            fontWeight: "bolder",
+            cursor: "pointer",
+          }}
+        />
+   
+        {!isAsking && (
+          <h1
+            className="oduNameTitle"
+            style={{
+              textAlign: "center",
+              color: `${
+                !!currentOdu.randomColor
+                  ? "#" + currentOdu.randomColor
+                  : "white"
+              }`,
+            }}
+          >
+            {!!currentOdu?.oduNames?.length
+              ? currentOdu?.oduNames[0]
+              : `Opele mi`}
+          </h1>
+        )}
+             {currentOdu &&
+          currentOdu.leg0.length === 4 &&
+          currentOdu.leg1.length === 4 && (
+            <Cached
+              onClick={(e) => {
+                e.stopPropagation();
+                dispatch(blankTrail());
+              }}
+              sx={{
+                fontSize: "3rem",
+                fontWeight: "bolder",
+                cursor: "pointer",
+              }}
+            />
+          )}
+        
+      </div>
+
       <>
         <div
           className="divImageOpon"
-          onClick={() => dispatch(castOdu())}
+          onClick={() => {
+            setIsAsking(false);
+            dispatch(castOdu());
+          }}
         >
           <img
             className="imageOpon"
@@ -57,134 +101,7 @@ export default function OponIfa() {
           />
         </div>
 
-        <Grid
-          className="printGrid"
-          container
-          spacing={1}
-          margin="0 auto"
-          width="100%"
-          onClick={(e) => {
-            e.stopPropagation();
-            dispatch(castOdu());
-          }}
-        >
-          <Grid item xs={4.5}></Grid>
-          <Grid item xs={1.5}>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-around",
-              }}
-            >
-              {!!currentOdu &&
-                currentOdu?.leg1?.map((m:boolean, i:number) => (
-                  <h2
-                    key={i}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const mark: Mark = {
-                        legEntry: true,
-                        indexOfLeg: i,
-                      };
-                      const payload = { mark, currentOdu };
-                      dispatch(modifyCurrentOdu(payload));
-                    }}
-                    className="markItem"
-                    style={{
-                      textShadow,
-                      color: !!currentOdu.randomColor
-                        ? `${"#" + currentOdu.randomColor}`
-                        : "white",
-                    }}
-                  >
-                    {m === true ? "I" : "II"}
-                  </h2>
-                ))}
-            </div>
-          </Grid>
-          <Grid item xs={1.5}>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-around",
-              }}
-            >
-              {!!currentOdu &&
-                currentOdu.leg0?.map((m, i) => (
-                  <h2
-                    key={i}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const mark: Mark = {
-                        legEntry: false,
-                        indexOfLeg: i,
-                      };
-                      const payload = { mark, currentOdu };
-                      dispatch(modifyCurrentOdu(payload));
-                    }}
-                    className="markItem"
-                    style={{
-                      textShadow,
-                      color: !!currentOdu.randomColor
-                        ? `${"#" + currentOdu.randomColor}`
-                        : "white",
-                    }}
-                  >
-                    {m === true ? "I" : "II"}
-                  </h2>
-                ))}
-            </div>
-          </Grid>
-
-          <Grid item xs={4.5}></Grid>
-
-          <Grid item xs={8}></Grid>
-          <Grid item xs={4}>
-            <div>
-              <div className="oduHistoryList">
-                {!!oduHistory &&
-                  !!oduHistory?.length &&
-                  oduHistory
-                    .filter(
-                      (o) =>
-                        oduHistory.indexOf(o) < 8 &&
-                        oduHistory.indexOf(o) !== 0,
-                    )
-                    .map((o) => {
-                      return (
-                        <>
-                          <li
-                            className="oduHistoryListItems"
-                            key={oduHistory.indexOf(o)}
-                            style={{
-                              color: !!o.randomColor
-                                ? `${"#" + o.randomColor}`
-                                : "white",
-                            }}
-                          >
-                            {!!o?.oduNames?.length &&
-                              o.oduNames[0]}
-                          </li>
-                          <span
-                            className="spanTimeAgo"
-                            style={{
-                              color: !!o.randomColor
-                                ? `${"#" + o.randomColor}`
-                                : "white",
-                            }}
-                          >
-                            {!!o.createdAt &&
-                              timeago.format(o.createdAt)}
-                          </span>
-                        </>
-                      );
-                    })}
-              </div>
-            </div>
-          </Grid>
-        </Grid>
+        {!isAsking ? <IsNotAsking /> : <IsAsking />}
       </>
     </Box>
   );

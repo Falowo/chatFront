@@ -1,3 +1,9 @@
+.oduNameTitle {
+  margin: 0px auto !important;
+  font-size: 3rem;
+  font-weight: bold !important;
+}
+
 .oponDiv {
   position: relative;
   cursor: pointer;
@@ -32,7 +38,7 @@
 }
 .markItem:hover {
   opacity: 0.7;
-  filter:blur(4px);
+  filter: blur(4px);
   border-radius: 30%;
 }
 
@@ -60,9 +66,4 @@
   font-weight: bold !important;
   align-self: flex-end;
   padding-right: 3rem;
-}
-
-h1 {
-  font-size: 3rem;
-  font-weight: bold !important;
 }
