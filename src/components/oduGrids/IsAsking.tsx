@@ -9,7 +9,6 @@ import {
   selectOduHistory,
   selectQuestion,
 } from "../../app/slices/ifaSlice";
-import * as timeago from "timeago.js";
 
 export default function IsAsking() {
   const dispatch = useAppDispatch();
