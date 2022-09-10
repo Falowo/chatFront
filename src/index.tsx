@@ -1,19 +1,26 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import App from "./App";
+import { Auth0Provider } from "@auth0/auth0-react";
 import { BrowserRouter as Router } from "react-router-dom";
 import reportWebVitals from "./reportWebVitals";
 import { Provider } from "react-redux";
 import { store } from "./app/store";
 
 ReactDOM.render(
-  <React.StrictMode>
-    <Provider store={store}>
-      <Router>
-        <App />
-      </Router>
-    </Provider>
-  </React.StrictMode>,
+  <Auth0Provider
+    domain="falowo.eu.auth0.com"
+    clientId="YT8xaYfl36Cr8QYvFqtAXfYpbNMyA7m7"
+    redirectUri={window.location.origin}
+  >
+    <React.StrictMode>
+      <Provider store={store}>
+        <Router>
+          <App />
+        </Router>
+      </Provider>
+    </React.StrictMode>
+  </Auth0Provider>,
   document.getElementById("root"),
 );
 
