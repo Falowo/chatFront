@@ -8,6 +8,7 @@ import {
   selectAuth,
   signinAsync,
 } from "../../app/slices/authSlice";
+import { useAuth0 } from "@auth0/auth0-react";
 
 export interface UserCredentials {
   email: string;
@@ -15,6 +16,7 @@ export interface UserCredentials {
 }
 
 export default function Signin() {
+  const { loginWithRedirect } = useAuth0();
   const email = useRef<any>();
   const password = useRef<any>();
   const dispatch = useDispatch();
@@ -69,6 +71,10 @@ export default function Signin() {
               type="submit"
               disabled={isFetching}
             >
+
+{/* auth0 button  */}
+
+              <button onClick={() => loginWithRedirect()}>Log In</button>;
               {!!isFetching ? (
                 <CircularProgress
                   color="inherit"
