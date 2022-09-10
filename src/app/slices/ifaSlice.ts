@@ -52,7 +52,7 @@ export interface Question {
   question?: string;
   firstOdu: OduItem;
   secondOdu?: OduItem;
-  response: boolean;
+  response?: boolean;
 }
 
 export interface IfaCity {
@@ -501,8 +501,7 @@ export const ifaSlice = createSlice({
         (state, action) => {
           state.isFetching = false;
           if (!!action.payload) {
-            const question: Question = action.payload;
-            state.question = { ...question };
+            state.question = { ...action.payload };
           }
         },
       )
