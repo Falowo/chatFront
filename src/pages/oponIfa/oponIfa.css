@@ -60,6 +60,13 @@
   font-weight: bold !important;
   padding-right: 3rem;
 }
+.oduQuestion {
+  min-width: 100% !important;
+  text-align: center !important;
+  font-size: 16px !important;
+  font-weight: bold !important;
+  margin:0 auto !important;
+}
 
 .spanTimeAgo {
   font-size: 10px !important;

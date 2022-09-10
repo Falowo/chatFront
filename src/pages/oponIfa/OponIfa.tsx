@@ -48,9 +48,12 @@ export default function OponIfa() {
             fontSize: "3rem",
             fontWeight: "bolder",
             cursor: "pointer",
+            margin: "16px",
+            minWidth: "64px",
+            minHeight: "64px",
           }}
         />
-   
+
         {!isAsking && (
           <h1
             className="oduNameTitle"
@@ -68,7 +71,7 @@ export default function OponIfa() {
               : `Opele mi`}
           </h1>
         )}
-             {currentOdu &&
+        {currentOdu &&
           currentOdu.leg0.length === 4 &&
           currentOdu.leg1.length === 4 && (
             <Cached
@@ -83,7 +86,6 @@ export default function OponIfa() {
               }}
             />
           )}
-        
       </div>
 
       <>
