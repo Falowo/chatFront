@@ -24,7 +24,6 @@ export default function Signin() {
 
   const isFetching = auth.isFetching;
 
-
   const handleClick = (e: React.FormEvent) => {
     e.preventDefault();
     const userCredentials = {
@@ -36,8 +35,6 @@ export default function Signin() {
     console.log({ userCredentials });
     dispatch(signinAsync(userCredentials));
   };
-
- 
 
   return (
     <div className="login">
@@ -71,10 +68,6 @@ export default function Signin() {
               type="submit"
               disabled={isFetching}
             >
-
-{/* auth0 button  */}
-
-              <button onClick={() => loginWithRedirect()}>Log In</button>;
               {!!isFetching ? (
                 <CircularProgress
                   color="inherit"
@@ -83,6 +76,11 @@ export default function Signin() {
               ) : (
                 "Log In"
               )}
+            </button>
+            {/* auth0 button  */}
+
+            <button onClick={() => loginWithRedirect()}>
+              Log In with auth0
             </button>
           </form>
           <span className="loginForgot">

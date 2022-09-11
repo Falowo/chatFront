@@ -265,10 +265,7 @@ const App = () => {
               !!authUser ? <FriendRequests /> : <Signin />
             }
           />
-          <Route
-            path="/ifaCity"
-            element={!!authUser ? <OponIfa /> : <Signin />}
-          />
+          <Route path="/ifaCity" element={<OponIfa />} />
           <Route
             path="/"
             element={!!authUser ? <Home /> : <Signin />}

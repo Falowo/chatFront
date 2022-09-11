@@ -13,6 +13,7 @@ export default function IsAsking() {
   const dispatch = useAppDispatch();
   const question = useAppSelector(selectQuestion);
   const textShadow = "-4px 1px #002021";
+  const textShadow2 = "-1px 1px #002021";
 
   return (
     <div>
@@ -178,6 +179,7 @@ export default function IsAsking() {
             <span
               className="oduQuestion"
               style={{
+                textShadow: textShadow2,
                 color: !!question?.secondOdu?.randomColor
                   ? `${
                       "#" + question?.secondOdu?.randomColor
@@ -203,6 +205,7 @@ export default function IsAsking() {
             <span
               className="oduQuestion"
               style={{
+                textShadow: textShadow2,
                 color: !!question?.firstOdu?.randomColor
                   ? `${
                       "#" + question?.firstOdu?.randomColor
