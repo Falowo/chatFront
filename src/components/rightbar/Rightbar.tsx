@@ -142,13 +142,13 @@ export default function Rightbar() {
             alt=""
           />
           <span className="birthdayText">
-            <b>Pola Foster</b> and <b>3 other friends</b>{" "}
-            have a birhday today.
+            <b>Ceeza Milli</b> and <b>3 other friends</b>{" "}
+            have their birhday today.
           </span>
         </div>
         <img
           className="rightbarAd"
-          src="assets/ad.png"
+          src="assets/kame-house.jpg"
           alt=""
         />
         {!currentUserRelatives.isFetching ? (

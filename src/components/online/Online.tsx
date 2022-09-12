@@ -1,8 +1,6 @@
 import { IUser } from "../../interfaces";
 import "./online.css";
-import {
-  selectConnectedUsers,
-} from "../../app/slices/socketSlice";
+import { selectConnectedUsers } from "../../app/slices/socketSlice";
 import { useAppSelector } from "../../app/hooks";
 import { useEffect, useState } from "react";
 
@@ -36,7 +34,7 @@ export default function Online(props: OnlineProps) {
           src={`${
             user.profilePicture
               ? PF! + user.profilePicture
-              : PF! + "person/noAvatar.png"
+              : PF! + "person/noAvatar.webp"
           }`}
           alt=""
         />

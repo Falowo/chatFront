@@ -67,7 +67,7 @@ const Conversation = (props: ConversationProps) => {
             src={
               conversation.groupPicture
                 ? `${PF + conversation.groupPicture}`
-                : `${PF + "person/noAvatar.png"}`
+                : `${PF + "person/noAvatar.webp"}`
             }
             alt="conversationName"
             className="conversationImg"

@@ -10,7 +10,7 @@ import { store } from "./app/store";
 ReactDOM.render(
   <Auth0Provider
     domain="falowo.eu.auth0.com"
-    clientId="YT8xaYfl36Cr8QYvFqtAXfYpbNMyA7m7"
+    clientId="od75g3HkAZ5obdXMVzMpZwcF1MjUUPgH"
     redirectUri={window.location.origin}
   >
     <React.StrictMode>

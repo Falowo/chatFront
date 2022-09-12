@@ -13,6 +13,7 @@ import { selectCurrentUserRelatives } from "../../app/slices/currentUserSlice";
 import { selectCurrentUser } from "../../app/slices/currentUserSlice";
 import { checkExp } from "../../app/slices/authSlice";
 import { setSelectedUserAsync } from "../../app/slices/selectedUserSlice";
+import CookieConsent from "react-cookie-consent";
 
 export default function Home() {
   const dispatch = useAppDispatch();
@@ -39,6 +40,10 @@ export default function Home() {
       <Topbar />
       <div className="homeContainer">
         <Sidebar />
+        <CookieConsent>
+          This website uses cookies to enhance the user
+          experience.
+        </CookieConsent>
         {!currentUserRelativesIsFetching ? (
           <Feed />
         ) : (

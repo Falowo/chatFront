@@ -15,7 +15,7 @@ export default function CloseFriend(props: CloseFriendProps) {
         src={
           user.profilePicture
             ? PF + user.profilePicture
-            : PF + "person/noAvatar.png"
+            : PF + "person/noAvatar.webp"
         }
         alt=""
       />

@@ -153,10 +153,10 @@ export default function Profile() {
                         : !isCurrentUserPage
                         ? selectedUser.profilePicture
                           ? PF + selectedUser.profilePicture
-                          : PF + "person/noAvatar.png"
+                          : PF + "person/noAvatar.webp"
                         : currentUser?.profilePicture
                         ? PF + currentUser?.profilePicture
-                        : PF + "person/noAvatar.png"
+                        : PF + "person/noAvatar.webp"
                     }
                     alt=""
                   />

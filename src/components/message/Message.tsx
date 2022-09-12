@@ -25,7 +25,7 @@ const Message = (props: MessageProps) => {
           src={
             senderId.profilePicture
               ? PF + senderId.profilePicture
-              : PF + "/person/noAvatar.png"
+              : PF + "/person/noAvatar.webp"
           }
           alt=""
         />
