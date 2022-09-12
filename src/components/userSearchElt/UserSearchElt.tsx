@@ -79,7 +79,7 @@ export default function UserSearchElt(
                 src={
                   user?.profilePicture
                     ? PF + user.profilePicture
-                    : PF + "person/noAvatar.png"
+                    : PF + "person/noAvatar.webp"
                 }
                 alt=""
               />
