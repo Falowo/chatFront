@@ -79,7 +79,12 @@ export default function Signin() {
             </button>
             {/* auth0 button  */}
 
-            <button onClick={() => loginWithRedirect()}>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                loginWithRedirect();
+              }}
+            >
               Log In with auth0
             </button>
           </form>
