@@ -82,3 +82,15 @@
     font-weight: 500;
     cursor: pointer;
 }
+
+
+.eyeButton {
+  min-height: 100%;
+  cursor: pointer;
+  border: none;
+}
+
+.inputPasswordDiv {
+  display:flex;
+  align-items: center;
+}

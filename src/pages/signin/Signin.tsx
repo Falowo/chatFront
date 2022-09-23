@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import "./signin.css";
 import { CircularProgress } from "@material-ui/core";
@@ -9,7 +9,8 @@ import {
   signinAsync,
 } from "../../app/slices/authSlice";
 import { useAuth0 } from "@auth0/auth0-react";
-
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 export interface UserCredentials {
   email: string;
   password: string;
@@ -19,10 +20,12 @@ export default function Signin() {
   const { loginWithRedirect } = useAuth0();
   const email = useRef<any>();
   const password = useRef<any>();
+  const [passwordType, setPasswordType] =
+    useState("password");
   const dispatch = useDispatch();
   const auth = useAppSelector(selectAuth);
 
-  const isFetching = auth.isFetching;
+  const isFetching = auth?.isFetching;
 
   const handleClick = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,6 +37,13 @@ export default function Signin() {
     };
     console.log({ userCredentials });
     dispatch(signinAsync(userCredentials));
+  };
+  const togglePassword = () => {
+    if (passwordType === "password") {
+      setPasswordType("text");
+      return;
+    }
+    setPasswordType("password");
   };
 
   return (
@@ -55,14 +65,30 @@ export default function Signin() {
               className="loginInput"
               ref={email}
             />
-            <input
-              placeholder="Password"
-              type="password"
-              required
-              minLength={6}
-              className="loginInput"
-              ref={password}
-            />
+            <div className="inputPasswordDiv">
+              <input
+                placeholder="Password"
+                type={passwordType}
+                required
+                minLength={6}
+                className="loginInput"
+                ref={password}
+              />
+              <button
+                className="eyeButton"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  togglePassword();
+                }}
+              >
+                {passwordType === "password" ? (
+                  <VisibilityIcon className="visibilityIcon"></VisibilityIcon>
+                ) : (
+                  <VisibilityOffIcon className="bi bi-eye"></VisibilityOffIcon>
+                )}
+              </button>
+            </div>
             <button
               className="loginButton"
               type="submit"
@@ -82,6 +108,7 @@ export default function Signin() {
             <button
               onClick={(e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 loginWithRedirect();
               }}
             >

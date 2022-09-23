@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import "./signup.css";
 // import { useNavigate } from "react-router";
 import {
@@ -7,14 +7,20 @@ import {
 } from "../../app/hooks";
 import { IUser } from "../../interfaces";
 import { signupAsync } from "../../app/slices/authSlice";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
 export default function Signup() {
   const username = useRef<any>();
   const email = useRef<any>();
   const password = useRef<any>();
   const passwordAgain = useRef<any>();
+  const [passwordType, setPasswordType] =
+    useState("password");
+  const [againPasswordType, setAgainPasswordType] =
+    useState("password");
   const dispatch = useAppDispatch();
-  
+
   const handleClick = async (e: React.FormEvent) => {
     e.preventDefault();
     if (
@@ -24,16 +30,30 @@ export default function Signup() {
         "Passwords don't match!",
       );
     } else {
-      const user:IUser = {
+      const user: IUser = {
         username: username.current.value,
         email: email.current.value,
         password: password.current.value,
       };
-      console.log({user});
-      
+      console.log({ user });
+
       dispatch(signupAsync(user));
-      
     }
+  };
+
+  const togglePassword = () => {
+    if (passwordType === "password") {
+      setPasswordType("text");
+      return;
+    }
+    setPasswordType("password");
+  };
+  const toggleAgainPassword = () => {
+    if (againPasswordType === "password") {
+      setAgainPasswordType("text");
+      return;
+    }
+    setAgainPasswordType("password");
   };
 
   return (
@@ -61,21 +81,55 @@ export default function Signup() {
               className="loginInput"
               type="email"
             />
-            <input
-              placeholder="Password"
-              required
-              ref={password}
-              className="loginInput"
-              type="password"
-              minLength={6}
-            />
-            <input
-              placeholder="Password Again"
-              required
-              ref={passwordAgain}
-              className="loginInput"
-              type="password"
-            />
+
+            <div className="inputPasswordDiv">
+              <input
+                placeholder="Password"
+                type={passwordType}
+                required
+                minLength={6}
+                className="loginInput"
+                ref={password}
+              />
+              <button
+                className="eyeButton"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  togglePassword();
+                }}
+              >
+                {passwordType === "password" ? (
+                  <VisibilityIcon className="visibilityIcon"></VisibilityIcon>
+                ) : (
+                  <VisibilityOffIcon className="bi bi-eye"></VisibilityOffIcon>
+                )}
+              </button>
+            </div>
+          
+            <div className="inputPasswordDiv">
+              <input
+                type={againPasswordType}
+                placeholder="Password Again"
+                required
+                ref={passwordAgain}
+                className="loginInput"
+              />
+              <button
+                className="eyeButton"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  toggleAgainPassword();
+                }}
+              >
+                {passwordType === "password" ? (
+                  <VisibilityIcon className="visibilityIcon"></VisibilityIcon>
+                ) : (
+                  <VisibilityOffIcon className="bi bi-eye"></VisibilityOffIcon>
+                )}
+              </button>
+            </div>
             <button className="loginButton" type="submit">
               Sign Up
             </button>
