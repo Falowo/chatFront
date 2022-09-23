@@ -15,6 +15,8 @@ import {
   getCurrentUserTimelinePosts,
   uploadFile,
   likePost,
+  deletePost,
+  updatePost,
 } from "../../api/posts.api";
 import { selectAuthUser, signoutAsync } from "./authSlice";
 
@@ -74,7 +76,43 @@ export const createPostAsync = createAsyncThunk(
     const res = await createPost({ ...newPost });
     const post: IPost = res.data;
     return post;
-    // window.location.reload();
+  },
+);
+export const updatePostAsync = createAsyncThunk(
+  "posts/updatePost",
+  async (props: {
+    oldPost: IPost;
+    newPost: CreatePostProps;
+  }) => {
+    const { oldPost } = props;
+    const { desc, file, currentUserId, onTheWallOf } =
+      props.newPost;
+
+    const updatedPost: IPost = {
+      ...oldPost,
+      userId: currentUserId,
+      onTheWallOf,
+      desc,
+    };
+
+    if (!!file) {
+      const data = new FormData();
+      const fileName: string = `${Date.now()}${file.name}`;
+      data.append("name", fileName);
+      data.append("file", file);
+      updatedPost.img = fileName;
+      await uploadFile(data);
+    }
+    await updatePost({ ...updatedPost });
+    return updatedPost;
+  },
+);
+
+export const deletePostAsync = createAsyncThunk(
+  "posts/deletePost",
+  async (postId: string) => {
+    await deletePost(postId);
+    return postId;
   },
 );
 
@@ -169,6 +207,44 @@ export const postsSlice = createSlice({
       )
       .addCase(
         createPostAsync.rejected,
+        (state, action) => {
+          state.isFetching = false;
+          toast(action.error.message, position);
+        },
+      )
+      .addCase(updatePostAsync.pending, (state) => {
+        state.isFetching = true;
+      })
+      .addCase(
+        updatePostAsync.fulfilled,
+        (state, action) => {
+          state.isFetching = false;
+          if (!!action.payload) {
+            const updatedPost = action.payload;
+            state.currentUserPosts =
+              state.currentUserPosts.map((p) => {
+                if (p._id === updatedPost._id) {
+                  return updatedPost;
+                } else return p;
+              });
+            state.timeline = state.timeline.map((p) => {
+              if (p._id === updatedPost._id) {
+                return updatedPost;
+              } else return p;
+            });
+            if (action.payload.onTheWallOf) {
+              state.selectedUserPosts =
+                state.selectedUserPosts.map((p) => {
+                  if (p._id === updatedPost._id) {
+                    return updatedPost;
+                  } else return p;
+                });
+            }
+          }
+        },
+      )
+      .addCase(
+        updatePostAsync.rejected,
         (state, action) => {
           state.isFetching = false;
           toast(action.error.message, position);
@@ -285,7 +361,8 @@ export const postsSlice = createSlice({
         },
       )
       .addCase(signoutAsync.fulfilled, (state) => {
-        state.timeline = []; state.currentUserPosts = [];
+        state.timeline = [];
+        state.currentUserPosts = [];
         state.selectedUserPosts = [];
         state.isFetching = false;
         state.error = null;

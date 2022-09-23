@@ -101,8 +101,12 @@ export default function PopupPost(props: { post: IPost }) {
       )}
       {userId === currentUser?._id! && (
         <Link
-          to={`/messenger/${userId}`}
+          to={`./${userId}`}
           className="popupAction"
+          onClick={(e) =>{
+            e.preventDefault(); 
+            
+          }}
         >
           Edit
         </Link>

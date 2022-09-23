@@ -58,29 +58,33 @@ export default function Sidebar() {
               Groups
             </span>
           </li>
-          {!!currentUser &&
-            currentUser?.username === "tata" && (
-              <li className="sidebarListItem">
-                <NavLink
-                  to="/ifaCity"
-                  className="ifaLink"
-                  style={{
-                    textDecoration: "none",
-                    display: "flex",
-                    alignItems: "center",
-                  }}
-                >
-                  <img
-                    className="oponImage"
-                    src={SquareOpon}
-                    alt="opon_image"
-                  />
-                  <span className="sidebarListItemText">
-                    Ifa city
-                  </span>
-                </NavLink>
-              </li>
-            )}
+          {/* just me heheheehehehehe I like this tata I creeated before. 
+          if you feel like you can chat with me, just create your account with fake mail, (sorry auth0 is not working yet...) 
+          please do not trepass there, it's a private project  §<:) */}
+          {currentUser?.username === "tata" && (
+            <li className="sidebarListItem">
+              <NavLink
+                to="/ifaCity"
+                className="ifaLink"
+                style={{
+                  textDecoration: "none",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <img
+                  className="oponImage"
+                  src={SquareOpon}
+                  alt="opon_image"
+                />
+                <span className="sidebarListItemText">
+                  Ifa city
+                </span>
+              </NavLink>
+            </li>
+          )}
+
+          {/* it's ok now, but remember to not pry into my secrets and to not go to Ifacity, it is a secret city for now and has no interest in our topic */}
           <li className="sidebarListItem">
             <Bookmark className="sidebarIcon" />
             <span className="sidebarListItemText">
