@@ -5,6 +5,7 @@ import {
   useAppSelector,
 } from "../../app/hooks";
 import {
+  askQuestionAsync,
   castOdu,
   selectQuestion,
 } from "../../app/slices/ifaSlice";
@@ -25,7 +26,7 @@ export default function IsAsking() {
         width="100%"
         onClick={(e) => {
           e.stopPropagation();
-          dispatch(castOdu());
+          dispatch(askQuestionAsync({ ibo: true }));
         }}
       >
         <Grid item xs={3.5}></Grid>
@@ -52,7 +53,7 @@ export default function IsAsking() {
                 (m: boolean, i: number) => (
                   <h2
                     key={i}
-                    className="markItem"
+                    className="markItemIsAsking"
                     style={{
                       textShadow,
                       color: !!question?.secondOdu
@@ -83,7 +84,7 @@ export default function IsAsking() {
               question?.secondOdu?.leg0?.map((m, i) => (
                 <h2
                   key={i}
-                  className="markItem"
+                  className="markItemIsAsking"
                   style={{
                     textShadow,
                     color: !!question?.secondOdu
@@ -116,7 +117,7 @@ export default function IsAsking() {
                 (m: boolean, i: number) => (
                   <h2
                     key={i}
-                    className="markItem"
+                    className="markItemIsAsking"
                     style={{
                       textShadow,
                       color: !!question.firstOdu.randomColor
@@ -146,7 +147,7 @@ export default function IsAsking() {
               question?.firstOdu?.leg0?.map((m, i) => (
                 <h2
                   key={i}
-                  className="markItem"
+                  className="markItemIsAsking"
                   style={{
                     textShadow,
                     color: !!question.firstOdu.randomColor

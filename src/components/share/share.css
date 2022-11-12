@@ -94,7 +94,9 @@
 
 .sharePopup {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  top: 0;
+  right: 150px;
   border: solid white 3px;
+  background-color: gray;
+  z-index: 1;
 }

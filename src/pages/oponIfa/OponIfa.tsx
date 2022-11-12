@@ -2,7 +2,13 @@ import React, { useState } from "react";
 import "./oponIfa.css";
 import OponIfaImage from "../../components/sidebar/square-opon-ifa-black.jpg";
 import { Box } from "@mui/material";
-import { Cached, QuestionMark } from "@mui/icons-material";
+import {
+  Cached,
+  QuestionMark,
+  PlayArrow,
+} from "@mui/icons-material";
+import { Input } from "@mui/material";
+
 import {
   useAppDispatch,
   useAppSelector,
@@ -15,7 +21,8 @@ import {
 } from "../../app/slices/ifaSlice";
 import IsNotAsking from "../../components/oduGrids/IsNotAsking";
 import IsAsking from "../../components/oduGrids/IsAsking";
-
+import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
+import FastRewindIcon from "@mui/icons-material/FastRewind";
 export default function OponIfa() {
   const [isAsking, setIsAsking] = useState<boolean>(false);
   const dispatch = useAppDispatch();
@@ -39,22 +46,61 @@ export default function OponIfa() {
           alignItems: "center",
         }}
       >
-        <QuestionMark
-          onClick={() => {
-            setIsAsking(true);
-            dispatch(askQuestionAsync({ ibo: true }));
-          }}
-          sx={{
-            fontSize: "3rem",
-            fontWeight: "bolder",
-            cursor: "pointer",
-            margin: "16px",
-            minWidth: "64px",
-            minHeight: "64px",
-          }}
-        />
+        {!isAsking ? (
+          <QuestionMark
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsAsking(true);
+              dispatch(blankTrail());
+            }}
+            sx={{
+              fontSize: "3rem",
+              fontWeight: "bolder",
+              cursor: "pointer",
+              margin: "16px",
+              minWidth: "64px",
+              minHeight: "64px",
+            }}
+          />
+        ) : (
+          <MeetingRoomIcon
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsAsking(false);
+              dispatch(blankTrail());
+            }}
+            sx={{
+              fontSize: "3rem",
+              fontWeight: "bolder",
+              cursor: "pointer",
+              margin: "16px",
+              minWidth: "64px",
+              minHeight: "64px",
+            }}
+          />
+        )}
+        {
+          <PlayArrow
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!isAsking) {
+                dispatch(castOdu());
+              } else {
+                dispatch(askQuestionAsync({ ibo: true }));
+              }
+            }}
+            sx={{
+              fontSize: "3rem",
+              fontWeight: "bolder",
+              cursor: "pointer",
+              margin: "16px",
+              minWidth: "64px",
+              minHeight: "64px",
+            }}
+          />
+        }
 
-        {!isAsking && (
+        {!isAsking ? (
           <h1
             className="oduNameTitle"
             style={{
@@ -68,32 +114,63 @@ export default function OponIfa() {
           >
             {!!currentOdu?.oduNames?.length
               ? currentOdu?.oduNames[0]
-              : `Opele mi`}
+              : `e-opele`}
           </h1>
+        ) : (
+          <Input
+            sx={{
+              flexGrow: "1",
+            }}
+            autoFocus={true}
+            placeholder="Write your binary question or formalize it"
+          />
         )}
-        {currentOdu &&
-          currentOdu.leg0.length === 4 &&
-          currentOdu.leg1.length === 4 && (
-            <Cached
-              onClick={(e) => {
-                e.stopPropagation();
-                dispatch(blankTrail());
-              }}
-              sx={{
-                fontSize: "3rem",
-                fontWeight: "bolder",
-                cursor: "pointer",
-              }}
-            />
-          )}
+        <div style={{ minWidth: "64px" }}>
+       
+          {!!currentOdu &&
+            currentOdu.leg0.length === 4 &&
+            currentOdu.leg1.length === 4 && (
+              <Cached
+                onClick={(e) => {
+                  e.stopPropagation();
+                  dispatch(blankTrail());
+                }}
+                sx={{
+                  fontSize: "3rem",
+                  fontWeight: "bolder",
+                  cursor: "pointer",
+                  margin: "16px",
+                  minWidth: "64px",
+                  minHeight: "64px",
+                }}
+              />
+            )}
+             { (  <FastRewindIcon
+            onClick={(e) => {
+              e.stopPropagation();
+              console.log("FastRewindIcon");
+            }}
+            sx={{
+              fontSize: "3rem",
+              fontWeight: "bolder",
+              cursor: "pointer",
+              margin: "16px",
+              minWidth: "64px",
+              minHeight: "64px",
+            }}
+          />)}
+        </div>
       </div>
 
       <>
         <div
           className="divImageOpon"
           onClick={() => {
-            setIsAsking(false);
-            dispatch(castOdu());
+            if (!isAsking) {
+              dispatch(castOdu());
+            } else {
+              dispatch(askQuestionAsync({ ibo: true }));
+            }
           }}
         >
           <img

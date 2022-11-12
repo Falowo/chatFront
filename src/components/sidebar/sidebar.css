@@ -7,13 +7,18 @@
 }
 
 ::-webkit-scrollbar {
-  width: 5px;
+  width: 8px;
 }
 ::-webkit-scrollbar-track {
   background-color: #f1f1f1;
 }
 ::-webkit-scrollbar-thumb {
   background-color: rgb(179, 179, 179);
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: gray;
 }
 
 .sidebarWrapper {

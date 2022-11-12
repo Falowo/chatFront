@@ -17,15 +17,18 @@ import {
   sendFriendRequestOrAcceptAsync,
   unfollowUserAsync,
 } from "../../app/slices/currentUserSlice";
+import { selectIsEditing, setIsEditing } from "../../app/slices/postsSlice";
 import { IPost } from "../../interfaces";
-// import { useAppDispatch } from "../../app/hooks";
+import SharePopup from "../share/SharePopup";
 import "./popupPost.css";
 
 export default function PopupPost(props: { post: IPost }) {
   const { post } = props;
   const userId = post.userId;
   const dispatch = useAppDispatch();
+  
   const currentUser = useAppSelector(selectCurrentUser);
+  const isEditing = useAppSelector(selectIsEditing);
   const friendRequestsFrom = useAppSelector(
     selectFriendRequestsFrom,
   );
@@ -39,78 +42,81 @@ export default function PopupPost(props: { post: IPost }) {
     selectFollowedByCurrentUser,
   );
 
-  console.log(currentUser?._id!);
 
   // const dispatch = useAppDispatch();
   // const navigate = useNavigate();
 
   return (
-    <div className="popup">
-      {!!currentUser &&
-        userId !== currentUser?._id! &&
-        !friendsOfCurrentUser
-          .map((f) => f._id!)
-          .includes(userId) &&
-        !friendRequestsTo.includes(userId) && (
+    <>
+      <div className="popup">
+        {!!currentUser &&
+          userId !== currentUser?._id! &&
+          !friendsOfCurrentUser
+            .map((f) => f._id!)
+            .includes(userId) &&
+          !friendRequestsTo.includes(userId) && (
+            <Link
+              to={`/`}
+              className="popupAction"
+              onClick={(e) => {
+                e.preventDefault();
+                currentUser?._id &&
+                  dispatch(
+                    sendFriendRequestOrAcceptAsync(userId),
+                  );
+              }}
+            >
+              {friendRequestsFrom
+                .map((f) => f._id!)
+                .includes(userId)
+                ? `Accept friend request`
+                : `Send a friend request`}
+            </Link>
+          )}
+
+        {!!currentUser && userId !== currentUser?._id! && (
+          <Link
+            to={`/messenger/${userId}`}
+            className="popupAction"
+          >
+            Send a message
+          </Link>
+        )}
+        {!!currentUser && userId !== currentUser?._id! && (
           <Link
             to={`/`}
             className="popupAction"
             onClick={(e) => {
               e.preventDefault();
-              currentUser?._id &&
-                dispatch(
-                  sendFriendRequestOrAcceptAsync(userId),
-                );
+              !followedByCurrentUser
+                .map((f) => f._id)
+                .includes(userId)
+                ? dispatch(followUserAsync({ userId }))
+                : dispatch(unfollowUserAsync({ userId }));
             }}
           >
-            {friendRequestsFrom
-              .map((f) => f._id!)
-              .includes(userId)
-              ? `Accept friend request`
-              : `Send a friend request`}
-          </Link>
-        )}
-
-      {!!currentUser && userId !== currentUser?._id! && (
-        <Link
-          to={`/messenger/${userId}`}
-          className="popupAction"
-        >
-          Send a message
-        </Link>
-      )}
-      {!!currentUser && userId !== currentUser?._id! && (
-        <Link
-          to={`/`}
-          className="popupAction"
-          onClick={(e) => {
-            e.preventDefault();
-            !followedByCurrentUser
+            {followedByCurrentUser
               .map((f) => f._id)
               .includes(userId)
-              ? dispatch(followUserAsync({ userId }))
-              : dispatch(unfollowUserAsync({ userId }));
-          }}
-        >
-          {followedByCurrentUser
-            .map((f) => f._id)
-            .includes(userId)
-            ? "Unfollow"
-            : "Follow"}
-        </Link>
-      )}
-      {userId === currentUser?._id! && (
-        <Link
-          to={`./${userId}`}
-          className="popupAction"
-          onClick={(e) =>{
-            e.preventDefault(); 
-            
-          }}
-        >
-          Edit
-        </Link>
-      )}
-    </div>
+              ? "Unfollow"
+              : "Follow"}
+          </Link>
+        )}
+        {userId === currentUser?._id! && (
+          <Link
+            to={`./${userId}`}
+            className="popupAction"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsEditing(!isEditing);
+            }}
+          >
+            Edit
+          </Link>
+        )}
+      </div>
+      {!!isEditing && !!post && <SharePopup post={post} />}
+    </>
   );
 }

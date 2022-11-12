@@ -57,8 +57,11 @@ export interface Question {
 
 export interface IfaCity {
   current: OduItem;
+  indexCurrentOdu: number;
+  indexCurrentQuestion: number;
   question?: Question;
   history: OduItem[];
+  questionHistory: Question[];
   isFetching: boolean;
 }
 
@@ -72,7 +75,10 @@ const initialState: IfaCity = {
     oduNames: [],
     createdAt: undefined,
   },
+  indexCurrentOdu: 0,
+  indexCurrentQuestion: 0,
   history: [],
+  questionHistory: [],
   isFetching: false,
 };
 
@@ -373,6 +379,7 @@ export const ifaSlice = createSlice({
         !!Math.round(Math.random()),
         !!Math.round(Math.random()),
       ];
+      
 
       state.current = {
         leg0,
@@ -411,6 +418,8 @@ export const ifaSlice = createSlice({
           (o) => state.history.indexOf(o) < 16,
         );
       }
+
+      state.indexCurrentOdu = 0
     },
     blankTrail: (state) => {
       state.current = initialState.current;
@@ -501,9 +510,20 @@ export const ifaSlice = createSlice({
         (state, action) => {
           state.isFetching = false;
           if (!!action.payload) {
-            state.question = { ...action.payload };
+            const question = action.payload;
+            state.question = question;
+            state.questionHistory = [question, ...state.questionHistory];
+      if (state.questionHistory?.length > 16) {
+        state.questionHistory = state.questionHistory.filter(
+          (o) => state.questionHistory.indexOf(o) < 16,
+        );
+      }
+
+      state.indexCurrentQuestion = 0
           }
         },
+
+        
       )
       .addCase(
         askQuestionAsync.rejected,

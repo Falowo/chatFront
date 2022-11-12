@@ -12,6 +12,7 @@ import {
   selectOduHistory,
 } from "../../app/slices/ifaSlice";
 import * as timeago from "timeago.js";
+import { Mediation } from "@mui/icons-material";
 
 export default function IsNotAsking() {
   const dispatch = useAppDispatch();
@@ -107,7 +108,33 @@ export default function IsNotAsking() {
           </div>
         </Grid>
 
-        <Grid item xs={4.5}></Grid>
+        <Grid
+          item
+          xs={4.5}
+          style={{
+            display: "flex",
+          }}
+        >
+          {!!currentOdu &&
+            currentOdu.leg0.length === 4 &&
+            currentOdu.leg1.length === 4 && (
+            <Mediation
+              onClick={(e) => {
+                e.stopPropagation();
+                console.log("Mediation");
+              }}
+              sx={{
+                fontSize: "3rem",
+                fontWeight: "bolder",
+                cursor: "pointer",
+                margin: "16px",
+                minWidth: "64px",
+                minHeight: "64px",
+                alignSelf: "center",
+              }}
+            />
+          )}
+        </Grid>
 
         <Grid item xs={8}></Grid>
         <Grid item xs={4}>
