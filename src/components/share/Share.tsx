@@ -22,7 +22,7 @@ import {
 import { useParams } from "react-router-dom";
 import { selectSelectedUser } from "../../app/slices/selectedUserSlice";
 import { IPost } from "../../interfaces";
-import SharePopup from "./SharePopup";
+// import SharePopup from "./SharePopup";
 
 export default function Share(props: { post?: IPost }) {
   const { post } = props;
