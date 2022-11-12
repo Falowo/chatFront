@@ -28,8 +28,11 @@ import PopupNotifications from "../popupNotifications/PopupNotifications";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { signoutAsync } from "../../app/slices/authSlice";
 import { socketRemoveUser } from "../../app/slices/socketSlice";
+import { useAuth0 } from "@auth0/auth0-react";
 
 export default function Topbar() {
+  const { logout } = useAuth0();
+
   const [
     showPopupNotifications,
     setShowPopupNotifications,
@@ -200,6 +203,7 @@ export default function Topbar() {
 
               dispatch(signoutAsync());
             }
+            logout({ returnTo: window.location.origin })
           }}
           to={"/signin"}
         >
