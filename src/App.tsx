@@ -47,6 +47,9 @@ import {
   createTheme,
 } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
+import { useAuth0 } from "@auth0/auth0-react";
+
+
 
 const darkTheme = createTheme({
   palette: {
@@ -55,6 +58,7 @@ const darkTheme = createTheme({
 });
 
 const App = () => {
+  const { user, isAuthenticated, isLoading } = useAuth0();
   const dispatch = useAppDispatch();
   const authUser = useAppSelector(selectAuthUser);
   const token = useAppSelector(selectToken);
@@ -66,6 +70,7 @@ const App = () => {
   const [conversationsIdsSet, setConversationsIdsSet] =
     useState<Set<string> | undefined>(undefined);
   const [authToken, setAuthToken] = useCookie("token", "");
+  
   useEffect(() => {
     if (!!authUser && !!authToken) {
       console.log({ authToken });
@@ -220,6 +225,18 @@ const App = () => {
   useEffect(() => {
     !!token && setAuthToken(token);
   }, [setAuthToken, token]);
+
+
+  useEffect(() => {
+    isAuthenticated && (
+      console.log({user})
+      
+    )
+  }, [isAuthenticated, user]);
+
+  if (isLoading) {
+    return <div>Loading ...</div>;
+  }
 
   return (
     <ThemeProvider theme={darkTheme}>
