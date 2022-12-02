@@ -51,7 +51,6 @@ export default function OponIfa() {
             onClick={(e) => {
               e.stopPropagation();
               setIsAsking(true);
-              dispatch(blankTrail());
             }}
             sx={{
               fontSize: "3rem",
@@ -67,7 +66,6 @@ export default function OponIfa() {
             onClick={(e) => {
               e.stopPropagation();
               setIsAsking(false);
-              dispatch(blankTrail());
             }}
             sx={{
               fontSize: "3rem",

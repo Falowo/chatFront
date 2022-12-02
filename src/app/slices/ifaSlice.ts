@@ -46,6 +46,7 @@ export interface OduItem {
   oduNames?: string[];
   randomColor?: string;
   createdAt?: string;
+  questionPlace?: boolean;
 }
 
 export interface Question {

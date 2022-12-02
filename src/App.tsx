@@ -49,8 +49,6 @@ import {
 import CssBaseline from "@mui/material/CssBaseline";
 import { useAuth0 } from "@auth0/auth0-react";
 
-
-
 const darkTheme = createTheme({
   palette: {
     mode: "dark",
@@ -70,7 +68,7 @@ const App = () => {
   const [conversationsIdsSet, setConversationsIdsSet] =
     useState<Set<string> | undefined>(undefined);
   const [authToken, setAuthToken] = useCookie("token", "");
-  
+
   useEffect(() => {
     if (!!authUser && !!authToken) {
       console.log({ authToken });
@@ -226,12 +224,8 @@ const App = () => {
     !!token && setAuthToken(token);
   }, [setAuthToken, token]);
 
-
   useEffect(() => {
-    isAuthenticated && (
-      console.log({user})
-      
-    )
+    isAuthenticated && console.log({ user });
   }, [isAuthenticated, user]);
 
   if (isLoading) {
@@ -249,47 +243,95 @@ const App = () => {
         <Routes>
           <Route
             path="/signin"
-            element={!authUser ? <Signin /> : <Home />}
+            element={
+              !authUser && !isAuthenticated ? (
+                <Signin />
+              ) : (
+                <Home />
+              )
+            }
             // element={<Signin />}
           />
           <Route
             path="/signup"
-            element={!authUser ? <SignUp /> : <Home />}
+            element={
+              !authUser && !isAuthenticated ? (
+                <SignUp />
+              ) : (
+                <Home />
+              )
+            }
           />
           <Route
             path="/messenger/:userId"
             element={
-              !!authUser ? <Messenger /> : <Signin />
+              !!authUser || isAuthenticated ? (
+                <Messenger />
+              ) : (
+                <Signin />
+              )
             }
           />
           <Route
             path="/messenger"
             element={
-              !!authUser ? <Messenger /> : <Signin />
+              !!authUser || isAuthenticated ? (
+                <Messenger />
+              ) : (
+                <Signin />
+              )
             }
           />
           <Route
             path="/profile/:username"
-            element={!!authUser ? <Profile /> : <Signin />}
+            element={
+              !!authUser || isAuthenticated ? (
+                <Profile />
+              ) : (
+                <Signin />
+              )
+            }
           />
           <Route
             path="/search"
-            element={!!authUser ? <Search /> : <Signin />}
+            element={
+              !!authUser || isAuthenticated ? (
+                <Search />
+              ) : (
+                <Signin />
+              )
+            }
           />
           <Route
             path="/friend/requests"
             element={
-              !!authUser ? <FriendRequests /> : <Signin />
+              !!authUser || isAuthenticated ? (
+                <FriendRequests />
+              ) : (
+                <Signin />
+              )
             }
           />
           <Route path="/ifaCity" element={<OponIfa />} />
           <Route
             path="/"
-            element={!!authUser ? <Home /> : <Signin />}
+            element={
+              !!authUser || isAuthenticated ? (
+                <Home />
+              ) : (
+                <Signin />
+              )
+            }
           />
           <Route
             path="*"
-            element={!!authUser ? <Home /> : <SignUp />}
+            element={
+              !!authUser || isAuthenticated ? (
+                <Home />
+              ) : (
+                <SignUp />
+              )
+            }
           />
         </Routes>
       </Container>
