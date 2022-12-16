@@ -228,6 +228,13 @@ const App = () => {
     isAuthenticated && console.log({ user });
   }, [isAuthenticated, user]);
 
+  useEffect(() => {
+    console.log(process.env.NODE_ENV);
+    console.log(process.env.REACT_APP_PUBLIC_FOLDER);
+    console.log(process.env.REACT_APP_API_URL);
+    console.log(process.env.REACT_APP_SOCKET_URL);
+  }, []);
+
   if (isLoading) {
     return <div>Loading ...</div>;
   }
