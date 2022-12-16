@@ -380,7 +380,6 @@ export const ifaSlice = createSlice({
         !!Math.round(Math.random()),
         !!Math.round(Math.random()),
       ];
-      
 
       state.current = {
         leg0,
@@ -420,12 +419,38 @@ export const ifaSlice = createSlice({
         );
       }
 
-      state.indexCurrentOdu = 0
+      state.indexCurrentOdu = 0;
     },
     blankTrail: (state) => {
       state.current = initialState.current;
       state.history = initialState.history;
       state.question = initialState.question;
+    },
+    incrementIndexCurrentOdu: (state) => {
+      if (
+        state.indexCurrentOdu <
+        state.history.length - 1
+      ) {
+        state.indexCurrentOdu += 1;
+      }
+    },
+    decrementIndexCurrentOdu: (state) => {
+      if (state.indexCurrentOdu > 0) {
+        state.indexCurrentOdu += -1;
+      }
+    },
+    incrementIndexCurrentQuestion: (state) => {
+      if (
+        state.indexCurrentQuestion <
+        state.questionHistory.length - 1
+      ) {
+        state.indexCurrentQuestion += 1;
+      }
+    },
+    decrementIndexCurrentQuestion: (state) => {
+      if (state.indexCurrentQuestion > 0) {
+        state.indexCurrentQuestion += -1;
+      }
     },
     modifyCurrentOdu: (
       state,
@@ -513,18 +538,21 @@ export const ifaSlice = createSlice({
           if (!!action.payload) {
             const question = action.payload;
             state.question = question;
-            state.questionHistory = [question, ...state.questionHistory];
-      if (state.questionHistory?.length > 16) {
-        state.questionHistory = state.questionHistory.filter(
-          (o) => state.questionHistory.indexOf(o) < 16,
-        );
-      }
+            state.questionHistory = [
+              question,
+              ...state.questionHistory,
+            ];
+            if (state.questionHistory?.length > 16) {
+              state.questionHistory =
+                state.questionHistory.filter(
+                  (o) =>
+                    state.questionHistory.indexOf(o) < 16,
+                );
+            }
 
-      state.indexCurrentQuestion = 0
+            state.indexCurrentQuestion = 0;
           }
         },
-
-        
       )
       .addCase(
         askQuestionAsync.rejected,

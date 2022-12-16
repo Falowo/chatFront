@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import { Container } from "@mui/material";
-import Home from "./pages/home/Home";
 import Signin from "./pages/signin/Signin";
+import Home from "./pages/home/Home";
 import SignUp from "./pages/register/Signup";
 import Messenger from "./pages/messenger/Messenger";
 import Profile from "./pages/profile/Profile";
