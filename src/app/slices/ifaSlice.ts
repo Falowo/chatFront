@@ -566,7 +566,7 @@ export const ifaSlice = createSlice({
   },
 });
 
-export const { castOdu, blankTrail, modifyCurrentOdu } =
+export const { castOdu, blankTrail, modifyCurrentOdu, incrementIndexCurrentOdu, incrementIndexCurrentQuestion, decrementIndexCurrentQuestion, decrementIndexCurrentOdu } =
   ifaSlice.actions;
 
 // The function below is called a selector and allows us to select a value from
