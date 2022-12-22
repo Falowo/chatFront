@@ -9,6 +9,7 @@ import {
   Mark,
   modifyCurrentOdu,
   selectCurrentOdu,
+  selectIndexCurrentOdu,
   selectOduHistory,
 } from "../../app/slices/ifaSlice";
 import * as timeago from "timeago.js";
@@ -18,6 +19,9 @@ export default function IsNotAsking() {
   const dispatch = useAppDispatch();
   const currentOdu = useAppSelector(selectCurrentOdu);
   const oduHistory = useAppSelector(selectOduHistory);
+  const indexCurrentOdu = useAppSelector(
+    selectIndexCurrentOdu,
+  );
   const textShadow = "-4px 1px #002021";
 
   return (
@@ -43,7 +47,8 @@ export default function IsNotAsking() {
             }}
           >
             {!!currentOdu &&
-              currentOdu?.leg1?.map(
+              !!oduHistory &&
+              oduHistory[indexCurrentOdu]?.leg1?.map(
                 (m: boolean, i: number) => (
                   <h2
                     key={i}
@@ -57,13 +62,14 @@ export default function IsNotAsking() {
                         mark,
                         currentOdu,
                       };
-                      dispatch(modifyCurrentOdu(payload));
+                      indexCurrentOdu === 0 &&
+                        dispatch(modifyCurrentOdu(payload));
                     }}
                     className="markItem"
                     style={{
                       textShadow,
-                      color: !!currentOdu.randomColor
-                        ? `${"#" + currentOdu.randomColor}`
+                      color: !!oduHistory[indexCurrentOdu].randomColor
+                        ? `${"#" + oduHistory[indexCurrentOdu].randomColor}`
                         : "white",
                     }}
                   >
@@ -82,29 +88,33 @@ export default function IsNotAsking() {
             }}
           >
             {!!currentOdu &&
-              currentOdu.leg0?.map((m, i) => (
-                <h2
-                  key={i}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const mark: Mark = {
-                      legEntry: false,
-                      indexOfLeg: i,
-                    };
-                    const payload = { mark, currentOdu };
-                    dispatch(modifyCurrentOdu(payload));
-                  }}
-                  className="markItem"
-                  style={{
-                    textShadow,
-                    color: !!currentOdu.randomColor
-                      ? `${"#" + currentOdu.randomColor}`
-                      : "white",
-                  }}
-                >
-                  {m === true ? "I" : "II"}
-                </h2>
-              ))}
+              !!oduHistory.length &&
+              oduHistory[indexCurrentOdu].leg0?.map(
+                (m, i) => (
+                  <h2
+                    key={i}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const mark: Mark = {
+                        legEntry: false,
+                        indexOfLeg: i,
+                      };
+                      const payload = { mark, currentOdu };
+                      indexCurrentOdu === 0 &&
+                        dispatch(modifyCurrentOdu(payload));
+                    }}
+                    className="markItem"
+                    style={{
+                      textShadow,
+                      color: !!oduHistory[indexCurrentOdu].randomColor
+                        ? `${"#" + oduHistory[indexCurrentOdu].randomColor}`
+                        : "white",
+                    }}
+                  >
+                    {m === true ? "I" : "II"}
+                  </h2>
+                ),
+              )}
           </div>
         </Grid>
 
@@ -115,25 +125,25 @@ export default function IsNotAsking() {
             display: "flex",
           }}
         >
-          {!!currentOdu &&
-            currentOdu.leg0.length === 4 &&
-            currentOdu.leg1.length === 4 && (
-            <Mediation
-              onClick={(e) => {
-                e.stopPropagation();
-                console.log("Mediation");
-              }}
-              sx={{
-                fontSize: "3rem",
-                fontWeight: "bolder",
-                cursor: "pointer",
-                margin: "16px",
-                minWidth: "64px",
-                minHeight: "64px",
-                alignSelf: "center",
-              }}
-            />
-          )}
+          {!!oduHistory[indexCurrentOdu] &&
+            oduHistory[indexCurrentOdu].leg0.length === 4 &&
+            oduHistory[indexCurrentOdu].leg1.length === 4 && (
+              <Mediation
+                onClick={(e) => {
+                  e.stopPropagation();
+                  console.log("Mediation");
+                }}
+                sx={{
+                  fontSize: "3rem",
+                  fontWeight: "bolder",
+                  cursor: "pointer",
+                  margin: "16px",
+                  minWidth: "64px",
+                  minHeight: "64px",
+                  alignSelf: "center",
+                }}
+              />
+            )}
         </Grid>
 
         <Grid item xs={8}></Grid>

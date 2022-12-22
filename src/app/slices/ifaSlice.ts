@@ -423,7 +423,7 @@ export const ifaSlice = createSlice({
     },
     blankTrail: (state) => {
       state.current = initialState.current;
-      state.history = initialState.history;
+      // state.history = initialState.history;
       state.question = initialState.question;
     },
     incrementIndexCurrentOdu: (state) => {
@@ -566,8 +566,15 @@ export const ifaSlice = createSlice({
   },
 });
 
-export const { castOdu, blankTrail, modifyCurrentOdu, incrementIndexCurrentOdu, incrementIndexCurrentQuestion, decrementIndexCurrentQuestion, decrementIndexCurrentOdu } =
-  ifaSlice.actions;
+export const {
+  castOdu,
+  blankTrail,
+  modifyCurrentOdu,
+  incrementIndexCurrentOdu,
+  incrementIndexCurrentQuestion,
+  decrementIndexCurrentQuestion,
+  decrementIndexCurrentOdu,
+} = ifaSlice.actions;
 
 // The function below is called a selector and allows us to select a value from
 // the state. Selectors can also be defined inline where they're used instead of
@@ -579,6 +586,10 @@ export const selectOduHistory = (state: RootState) =>
   state.ifa.history;
 export const selectQuestion = (state: RootState) =>
   state.ifa.question;
+export const selectIndexCurrentOdu = (state: RootState) =>
+  state.ifa.indexCurrentOdu;
+export const selectIndexCurrentQuestion = (state: RootState) =>
+  state.ifa.indexCurrentQuestion;
 // We can also write thunks by hand, which may contain both sync and async logic.
 // Here's an example of conditionally dispatching actions based on current state.
 // export const incrementIfOdd =

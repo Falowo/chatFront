@@ -17,7 +17,11 @@ import {
   askQuestionAsync,
   blankTrail,
   castOdu,
-  selectCurrentOdu,
+  incrementIndexCurrentOdu,
+  incrementIndexCurrentQuestion,
+  // selectCurrentOdu,
+  selectIndexCurrentOdu,
+  selectOduHistory,
 } from "../../app/slices/ifaSlice";
 import IsNotAsking from "../../components/oduGrids/IsNotAsking";
 import IsAsking from "../../components/oduGrids/IsAsking";
@@ -26,8 +30,12 @@ import FastRewindIcon from "@mui/icons-material/FastRewind";
 export default function OponIfa() {
   const [isAsking, setIsAsking] = useState<boolean>(false);
   const dispatch = useAppDispatch();
-  const currentOdu = useAppSelector(selectCurrentOdu);
-
+  // const currentOdu = useAppSelector(selectCurrentOdu);
+  const indexCurrentOdu = useAppSelector(
+    selectIndexCurrentOdu,
+  );
+  const oduHistory = useAppSelector(selectOduHistory);
+  let currentOdu = oduHistory[indexCurrentOdu];
   return (
     <Box
       sx={{
@@ -104,8 +112,9 @@ export default function OponIfa() {
             style={{
               textAlign: "center",
               color: `${
-                !!currentOdu.randomColor
-                  ? "#" + currentOdu.randomColor
+                !!currentOdu?.randomColor
+                  ? "#" +
+                  currentOdu.randomColor
                   : "white"
               }`,
             }}
@@ -124,7 +133,6 @@ export default function OponIfa() {
           />
         )}
         <div style={{ minWidth: "64px" }}>
-       
           {!!currentOdu &&
             currentOdu.leg0.length === 4 &&
             currentOdu.leg1.length === 4 && (
@@ -143,20 +151,26 @@ export default function OponIfa() {
                 }}
               />
             )}
-             { (  <FastRewindIcon
-            onClick={(e) => {
-              e.stopPropagation();
-              console.log("FastRewindIcon");
-            }}
-            sx={{
-              fontSize: "3rem",
-              fontWeight: "bolder",
-              cursor: "pointer",
-              margin: "16px",
-              minWidth: "64px",
-              minHeight: "64px",
-            }}
-          />)}
+          {
+            <FastRewindIcon
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!!isAsking) {
+                  dispatch(incrementIndexCurrentQuestion());
+                } else {
+                  dispatch(incrementIndexCurrentOdu());
+                }
+              }}
+              sx={{
+                fontSize: "3rem",
+                fontWeight: "bolder",
+                cursor: "pointer",
+                margin: "16px",
+                minWidth: "64px",
+                minHeight: "64px",
+              }}
+            />
+          }
         </div>
       </div>
 
