@@ -6,6 +6,9 @@ import {
   Cached,
   QuestionMark,
   PlayArrow,
+  SkipPrevious,
+  SkipNext,
+  MeetingRoom,
 } from "@mui/icons-material";
 import { Input } from "@mui/material";
 
@@ -17,6 +20,8 @@ import {
   askQuestionAsync,
   blankTrail,
   castOdu,
+  decrementIndexCurrentOdu,
+  decrementIndexCurrentQuestion,
   incrementIndexCurrentOdu,
   incrementIndexCurrentQuestion,
   // selectCurrentOdu,
@@ -25,8 +30,7 @@ import {
 } from "../../app/slices/ifaSlice";
 import IsNotAsking from "../../components/oduGrids/IsNotAsking";
 import IsAsking from "../../components/oduGrids/IsAsking";
-import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
-import FastRewindIcon from "@mui/icons-material/FastRewind";
+
 export default function OponIfa() {
   const [isAsking, setIsAsking] = useState<boolean>(false);
   const dispatch = useAppDispatch();
@@ -70,7 +74,7 @@ export default function OponIfa() {
             }}
           />
         ) : (
-          <MeetingRoomIcon
+          <MeetingRoom
             onClick={(e) => {
               e.stopPropagation();
               setIsAsking(false);
@@ -113,8 +117,7 @@ export default function OponIfa() {
               textAlign: "center",
               color: `${
                 !!currentOdu?.randomColor
-                  ? "#" +
-                  currentOdu.randomColor
+                  ? "#" + currentOdu.randomColor
                   : "white"
               }`,
             }}
@@ -152,24 +155,48 @@ export default function OponIfa() {
               />
             )}
           {
-            <FastRewindIcon
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!!isAsking) {
-                  dispatch(incrementIndexCurrentQuestion());
-                } else {
-                  dispatch(incrementIndexCurrentOdu());
-                }
-              }}
-              sx={{
-                fontSize: "3rem",
-                fontWeight: "bolder",
-                cursor: "pointer",
-                margin: "16px",
-                minWidth: "64px",
-                minHeight: "64px",
-              }}
-            />
+            <>
+              <SkipPrevious
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!!isAsking) {
+                    dispatch(
+                      incrementIndexCurrentQuestion(),
+                    );
+                  } else {
+                    dispatch(incrementIndexCurrentOdu());
+                  }
+                }}
+                sx={{
+                  fontSize: "3rem",
+                  fontWeight: "bolder",
+                  cursor: "pointer",
+                  margin: "16px",
+                  minWidth: "64px",
+                  minHeight: "64px",
+                }}
+              />
+              <SkipNext
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!!isAsking) {
+                    dispatch(
+                      decrementIndexCurrentQuestion(),
+                    );
+                  } else {
+                    dispatch(decrementIndexCurrentOdu());
+                  }
+                }}
+                sx={{
+                  fontSize: "3rem",
+                  fontWeight: "bolder",
+                  cursor: "pointer",
+                  margin: "16px",
+                  minWidth: "64px",
+                  minHeight: "64px",
+                }}
+              />
+            </>
           }
         </div>
       </div>
