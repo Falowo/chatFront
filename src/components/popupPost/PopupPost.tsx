@@ -17,7 +17,10 @@ import {
   sendFriendRequestOrAcceptAsync,
   unfollowUserAsync,
 } from "../../app/slices/currentUserSlice";
-import { selectIsEditing, setIsEditing } from "../../app/slices/postsSlice";
+import {
+  selectIsEditing,
+  setIsEditing,
+} from "../../app/slices/postsSlice";
 import { IPost } from "../../interfaces";
 import SharePopup from "../share/SharePopup";
 import "./popupPost.css";
@@ -26,7 +29,7 @@ export default function PopupPost(props: { post: IPost }) {
   const { post } = props;
   const userId = post.userId;
   const dispatch = useAppDispatch();
-  
+
   const currentUser = useAppSelector(selectCurrentUser);
   const isEditing = useAppSelector(selectIsEditing);
   const friendRequestsFrom = useAppSelector(
@@ -41,7 +44,6 @@ export default function PopupPost(props: { post: IPost }) {
   const followedByCurrentUser = useAppSelector(
     selectFollowedByCurrentUser,
   );
-
 
   // const dispatch = useAppDispatch();
   // const navigate = useNavigate();
@@ -109,7 +111,7 @@ export default function PopupPost(props: { post: IPost }) {
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              setIsEditing(!isEditing);
+              dispatch(setIsEditing(!isEditing));
             }}
           >
             Edit
