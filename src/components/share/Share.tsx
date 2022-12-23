@@ -92,7 +92,6 @@ export default function Share() {
   return (
     <div
       className="share"
-      // ref={refToTop}
     >
       <div className="shareWrapper">
         <div className="shareTop">
@@ -101,7 +100,7 @@ export default function Share() {
             src={
               currentUser?.profilePicture
                 ? PF + currentUser?.profilePicture
-                : PF + "person/noAvatar.png"
+                : PF + "person/noAvatar.webp"
             }
             alt=""
           />
