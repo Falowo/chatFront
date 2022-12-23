@@ -13,7 +13,10 @@ import {
   selectFollowedByCurrentUser,
   selectFriendsOfCurrentUser,
 } from "../../app/slices/currentUserSlice";
-import { likePostAsync } from "../../app/slices/postsSlice";
+import {
+  likePostAsync,
+  selectIsEditing,
+} from "../../app/slices/postsSlice";
 import PopupPost from "../popupPost/PopupPost";
 
 export interface PostProps {
@@ -36,6 +39,7 @@ export default function Post(props: PostProps) {
   const [user, setUser] = useState<IUser>();
   const PF = process.env.REACT_APP_PUBLIC_FOLDER;
   const currentUser = useAppSelector(selectCurrentUser);
+  const isEditing = useAppSelector(selectIsEditing);
   const dispatch = useAppDispatch();
 
   const [isLiked, setIsLiked] = useState(
@@ -48,6 +52,10 @@ export default function Post(props: PostProps) {
         !!post.likersId?.includes(currentUser._id!),
       );
   }, [currentUser, post.likersId]);
+
+  useEffect(() => {
+    !!isEditing && setIsOpenMoreVertPopUp(false);
+  }, [isEditing]);
 
   useEffect(() => {
     const fetchUser = () => {
@@ -64,10 +72,6 @@ export default function Post(props: PostProps) {
           setUser(usR);
         } else {
           setUser(currentUser);
-
-          console.log(
-            `problem the post  ${post._id} has no user!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!`,
-          );
         }
       } else {
         setUser(currentUser);
