@@ -43,6 +43,7 @@ export interface PostsState {
   isFetching: boolean;
   isEditing: boolean;
   error: any;
+  postEditing?: IPost;
 }
 
 const initialState: PostsState = {
@@ -176,6 +177,12 @@ export const postsSlice = createSlice({
       action: PayloadAction<boolean>,
     ) => {
       state.isEditing = action.payload;
+    },
+    setPostEditing: (
+      state,
+      action: PayloadAction<IPost>,
+    ) => {
+      state.postEditing = action.payload;
     },
   },
   // The `extraReducers` field lets the slice handle actions defined elsewhere,
@@ -372,22 +379,22 @@ export const postsSlice = createSlice({
   },
 });
 
-export const { setIsEditing } = postsSlice.actions;
+export const { setIsEditing, setPostEditing } =
+  postsSlice.actions;
 
 // The function below is called a selector and allows us to select a value from
 // the state. Selectors can also be defined inline where they're used instead of
 // in the slice file. For example: `useSelector((state: RootState) => state.counter.value)`
 export const selectPosts = (state: RootState) =>
   state.posts;
-
 export const selectCurrentUserPosts = (state: RootState) =>
   state.posts.selectedUserPosts;
-
 export const selectTimeline = (state: RootState) =>
   state.posts.timeline;
-  
 export const selectIsEditing = (state: RootState) =>
   state.posts.isEditing;
+export const selectPostEditing = (state: RootState) =>
+  state.posts.postEditing;
 
 // We can also write thunks by hand, which may contain both sync and async logic.
 // Here's an example of conditionally dispatching actions based on current state.

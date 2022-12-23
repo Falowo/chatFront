@@ -125,8 +125,7 @@ export default function Post(props: PostProps) {
               }
             />
             {!!isOpenMoreVertPopUp && (
-              <PopupPost 
-              post={post} />
+              <PopupPost post={post} />
             )}
           </div>
         </div>

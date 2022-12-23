@@ -48,6 +48,7 @@ import {
 } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import { useAuth0 } from "@auth0/auth0-react";
+import { selectIsEditing } from "./app/slices/postsSlice";
 
 const darkTheme = createTheme({
   palette: {
@@ -68,6 +69,8 @@ const App = () => {
   const [conversationsIdsSet, setConversationsIdsSet] =
     useState<Set<string> | undefined>(undefined);
   const [authToken, setAuthToken] = useCookie("token", "");
+
+
 
   useEffect(() => {
     if (!!authUser && !!authToken) {

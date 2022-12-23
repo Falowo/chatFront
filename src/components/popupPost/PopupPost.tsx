@@ -20,9 +20,10 @@ import {
 import {
   selectIsEditing,
   setIsEditing,
+  setPostEditing,
 } from "../../app/slices/postsSlice";
 import { IPost } from "../../interfaces";
-import SharePopup from "../share/SharePopup";
+// import SharePopup from "../share/SharePopup";
 import "./popupPost.css";
 
 export default function PopupPost(props: { post: IPost }) {
@@ -112,13 +113,14 @@ export default function PopupPost(props: { post: IPost }) {
               e.preventDefault();
               e.stopPropagation();
               dispatch(setIsEditing(!isEditing));
+              dispatch(setPostEditing(post))
             }}
           >
             Edit
           </Link>
         )}
       </div>
-      {!!isEditing && !!post && <SharePopup post={post} />}
+      {/* {!!isEditing && !!post && <SharePopup post={post} />} */}
     </>
   );
 }
