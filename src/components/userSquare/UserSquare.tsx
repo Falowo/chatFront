@@ -14,7 +14,7 @@ export default function UserSquare(props: {
         src={
           friend.profilePicture
             ? PF + friend.profilePicture
-            : PF + "person/noAvatar.png"
+            : PF + "person/noAvatar.webp"
         }
         alt=""
         className="rightbarFollowingImg"

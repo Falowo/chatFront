@@ -107,9 +107,10 @@ export default function Post(props: PostProps) {
               <img
                 className="postProfileImg"
                 src={
-                  user?.profilePicture
+                  (user?.profilePicture
                     ? PF + user.profilePicture
-                    : PF + "person/noAvatar.webp"
+                    : PF + "person/noAvatar.webp") ||
+                  PF + "person/noAvatar.webp"
                 }
                 alt=""
               />

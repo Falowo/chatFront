@@ -33,7 +33,7 @@ export default function Share() {
   const postEditing = useAppSelector(selectPostEditing);
   const { username } = useParams();
   const PF = process.env.REACT_APP_PUBLIC_FOLDER;
-  const desc: any = useRef();
+  let desc: any = useRef();
   // const refToTop: any = useRef();
   const [file, setFile] = useState<File | undefined>();
   const dispatch = useAppDispatch();
@@ -74,7 +74,11 @@ export default function Share() {
       );
       dispatch(setIsEditing(false));
     }
+    console.log("kilode");
+    console.log(desc.current.value);
+
     desc.current.value = "";
+    console.log(desc.current.value);
     setFile(undefined);
   };
   useEffect(() => {
@@ -90,17 +94,16 @@ export default function Share() {
   }, [isEditing]);
 
   return (
-    <div
-      className="share"
-    >
+    <div className="share">
       <div className="shareWrapper">
         <div className="shareTop">
           <img
             className="shareProfileImg"
             src={
-              currentUser?.profilePicture
+              (!!currentUser?.profilePicture
                 ? PF + currentUser?.profilePicture
-                : PF + "person/noAvatar.webp"
+                : PF + "person/noAvatar.webp") ||
+              PF + "person/noAvatar.webp"
             }
             alt=""
           />
