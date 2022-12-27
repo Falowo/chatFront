@@ -7,9 +7,11 @@ import { useAppSelector } from "../../app/hooks";
 
 import {
   selectCurrentUserPosts,
-  selectPosts,
+  selectSelectedUserPosts,
   selectTimeline,
+  // getTimelineAsync
 } from "../../app/slices/postsSlice";
+import { useEffect } from "react";
 
 export interface FeedProps {
   username?: string;
@@ -19,21 +21,31 @@ export default function Feed(props: FeedProps) {
   const { username } = props;
 
   const currentUser = useAppSelector(selectCurrentUser);
-
   const currentUserPosts = useAppSelector(
     selectCurrentUserPosts,
   );
 
-   
+  const selectedUserPosts = useAppSelector(
+    selectSelectedUserPosts,
+  );
 
-  const postsState = useAppSelector(selectPosts);
-  const selectedUserPosts = postsState.selectedUserPosts;
   const timeline = useAppSelector(selectTimeline);
 
-  // const url = process.env.REACT_APP_API_URL;
-
-
-
+  useEffect(() => {
+    !!username
+      ? username === currentUser?.username
+        ? !!currentUserPosts.length &&
+          console.log({ currentUserPosts })
+        : !!selectedUserPosts.length &&
+          console.log({ selectedUserPosts })
+      : !!timeline.length && console.log({ timeline });
+  }, [
+    currentUser?.username,
+    currentUserPosts,
+    selectedUserPosts,
+    timeline,
+    username,
+  ]);
 
   return (
     <div className="feed">
@@ -42,13 +54,16 @@ export default function Feed(props: FeedProps) {
 
         {!!username
           ? username === currentUser?.username
-            ?  !!currentUserPosts.length && currentUserPosts.map((p) => (
+            ? !!currentUserPosts.length &&
+              currentUserPosts.map((p) => (
                 <Post key={p._id} post={p} />
               ))
-            : !!selectedUserPosts.length && selectedUserPosts!.map((p) => (
+            : !!selectedUserPosts.length &&
+              selectedUserPosts!.map((p) => (
                 <Post key={p._id} post={p} />
               ))
-          : !!timeline.length && timeline?.map((p) => (
+          : !!timeline.length &&
+            timeline?.map((p) => (
               <Post key={p._id} post={p} />
             ))}
       </div>

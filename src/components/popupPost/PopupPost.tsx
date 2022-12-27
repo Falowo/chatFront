@@ -19,6 +19,7 @@ import {
 } from "../../app/slices/currentUserSlice";
 import {
   selectIsEditing,
+  selectPostEditing,
   setIsEditing,
   setPostEditing,
 } from "../../app/slices/postsSlice";
@@ -33,6 +34,7 @@ export default function PopupPost(props: { post: IPost }) {
 
   const currentUser = useAppSelector(selectCurrentUser);
   const isEditing = useAppSelector(selectIsEditing);
+  const postEditing = useAppSelector(selectPostEditing);
   const friendRequestsFrom = useAppSelector(
     selectFriendRequestsFrom,
   );
@@ -112,15 +114,19 @@ export default function PopupPost(props: { post: IPost }) {
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
+
+              if (!postEditing) {
+                dispatch(setPostEditing(post));
+              } else {
+                dispatch(setPostEditing(null));
+              }
               dispatch(setIsEditing(!isEditing));
-              dispatch(setPostEditing(post))
             }}
           >
             Edit
           </Link>
         )}
       </div>
-      {/* {!!isEditing && !!post && <SharePopup post={post} />} */}
     </>
   );
 }

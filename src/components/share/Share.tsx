@@ -20,6 +20,7 @@ import {
   selectIsEditing,
   selectPostEditing,
   setIsEditing,
+  setPostEditing,
 } from "../../app/slices/postsSlice";
 import { useParams } from "react-router-dom";
 import { selectSelectedUser } from "../../app/slices/selectedUserSlice";
@@ -38,6 +39,12 @@ export default function Share() {
   const [file, setFile] = useState<File | undefined>();
   const dispatch = useAppDispatch();
   let onTheWallOf: string;
+
+  useEffect(() => {
+    if (isEditing === false) {
+      desc.current.value = "";
+    }
+  }, [isEditing]);
 
   const submitHandler = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,18 +79,16 @@ export default function Share() {
           file,
         }),
       );
-      dispatch(setIsEditing(false));
     }
-    console.log("kilode");
+    dispatch(setIsEditing(false));
+    dispatch(setPostEditing(null));
     console.log(desc.current.value);
 
     desc.current.value = "";
     console.log(desc.current.value);
     setFile(undefined);
   };
-  useEffect(() => {
-    console.log(file);
-  }, [file]);
+
   useEffect(() => {
     !!isEditing &&
       window.scroll({

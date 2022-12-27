@@ -43,7 +43,7 @@ export interface PostsState {
   isFetching: boolean;
   isEditing: boolean;
   error: any;
-  postEditing?: IPost;
+  postEditing?: IPost | null;
 }
 
 const initialState: PostsState = {
@@ -180,7 +180,7 @@ export const postsSlice = createSlice({
     },
     setPostEditing: (
       state,
-      action: PayloadAction<IPost>,
+      action: PayloadAction<IPost | null>,
     ) => {
       state.postEditing = action.payload;
     },
@@ -241,7 +241,13 @@ export const postsSlice = createSlice({
                 return newPost;
               } else return p;
             });
-            if (action.payload.onTheWallOf) {
+            state.currentUserPosts =
+              state.currentUserPosts.map((p) => {
+                if (p._id === newPost._id) {
+                  return newPost;
+                } else return p;
+              });
+            if (!!action.payload.onTheWallOf) {
               state.selectedUserPosts =
                 state.selectedUserPosts.map((p) => {
                   if (p._id === newPost._id) {
@@ -290,6 +296,7 @@ export const postsSlice = createSlice({
           state.isFetching = false;
           if (!!action.payload) {
             state.timeline = action.payload;
+            
           }
         },
       )
@@ -385,9 +392,10 @@ export const { setIsEditing, setPostEditing } =
 // The function below is called a selector and allows us to select a value from
 // the state. Selectors can also be defined inline where they're used instead of
 // in the slice file. For example: `useSelector((state: RootState) => state.counter.value)`
-export const selectPosts = (state: RootState) =>
-  state.posts;
+
 export const selectCurrentUserPosts = (state: RootState) =>
+  state.posts.currentUserPosts;
+export const selectSelectedUserPosts = (state: RootState) =>
   state.posts.selectedUserPosts;
 export const selectTimeline = (state: RootState) =>
   state.posts.timeline;
@@ -395,6 +403,8 @@ export const selectIsEditing = (state: RootState) =>
   state.posts.isEditing;
 export const selectPostEditing = (state: RootState) =>
   state.posts.postEditing;
+export const selectIsFetchingPosts = (state: RootState) =>
+  state.posts.isFetching;
 
 // We can also write thunks by hand, which may contain both sync and async logic.
 // Here's an example of conditionally dispatching actions based on current state.

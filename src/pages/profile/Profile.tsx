@@ -19,7 +19,9 @@ import {
 } from "../../app/slices/selectedUserSlice";
 import {
   getSelectedUserPostsAsync,
-  selectPosts,
+  getCurrentUserPostsAsync,
+  selectIsFetchingPosts,
+  selectCurrentUserPosts,
 } from "../../app/slices/postsSlice";
 import { checkExp } from "../../app/slices/authSlice";
 import {
@@ -39,8 +41,11 @@ export default function Profile() {
   const currentUser = useAppSelector(selectCurrentUser);
   const selectedUser = useAppSelector(selectSelectedUser);
   const editDescMode = useAppSelector(selectEditDescMode);
+  const currentUserPosts = useAppSelector(
+    selectCurrentUserPosts,
+  );
 
-  const isFetching = useAppSelector(selectPosts).isFetching;
+  const isFetching = useAppSelector(selectIsFetchingPosts);
   const [fileProfilePicture, setFileProfilePicture] =
     useState<File | undefined>();
   const [fileCoverPicture, setFileCoverPicture] = useState<
@@ -91,6 +96,14 @@ export default function Profile() {
     selectedUser?.username,
     isCurrentUserPage,
   ]);
+  useEffect(() => {
+    !!currentUser?._id &&
+      !!isCurrentUserPage &&
+      !currentUserPosts?.length &&
+      dispatch(
+        getCurrentUserPostsAsync(currentUser.username),
+      );
+  }, [currentUser?._id, currentUser?.username, currentUserPosts?.length, dispatch, isCurrentUserPage]);
 
   useEffect(() => {
     !!selectedUser?._id &&
@@ -253,9 +266,12 @@ export default function Profile() {
                       ? currentUser?.username
                       : selectedUser?.username}
                   </h4>
-                  <Box sx={{ display: "flex",
-                        alignItems: "center"
-                }} >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
                     {!!editDescMode ? (
                       <ProfileDescForm />
                     ) : (
