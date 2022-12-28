@@ -241,12 +241,7 @@ export const postsSlice = createSlice({
                 return newPost;
               } else return p;
             });
-            state.currentUserPosts =
-              state.currentUserPosts.map((p) => {
-                if (p._id === newPost._id) {
-                  return newPost;
-                } else return p;
-              });
+            
             if (!!action.payload.onTheWallOf) {
               state.selectedUserPosts =
                 state.selectedUserPosts.map((p) => {

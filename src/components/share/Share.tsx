@@ -43,8 +43,10 @@ export default function Share() {
   useEffect(() => {
     if (isEditing === false) {
       desc.current.value = "";
+    } else if (!!postEditing?.desc) {
+      desc.current.value = postEditing?.desc;
     }
-  }, [isEditing]);
+  }, [isEditing, postEditing]);
 
   const submitHandler = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,7 +112,7 @@ export default function Share() {
                 : PF + "person/noAvatar.webp") ||
               PF + "person/noAvatar.webp"
             }
-            alt=""
+            alt="User's avatar"
           />
           <input
             placeholder={
@@ -119,11 +121,11 @@ export default function Share() {
                 ? "What's in your mind " +
                   currentUser?.username +
                   "?"
-                : `Write something on ${selectedUser?.username}'s wall `
+                : `Write something on ${selectedUser?.username}'s wall`
             }
             className="shareInput"
             ref={desc}
-            defaultValue={postEditing?.desc}
+            // defaultValue={postEditing?.desc}
           />
         </div>
         <hr className="shareHr" />
