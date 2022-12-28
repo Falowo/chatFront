@@ -112,7 +112,7 @@ export default function Share() {
                 : PF + "person/noAvatar.webp") ||
               PF + "person/noAvatar.webp"
             }
-            alt="files are not persisted for long because of free service"
+            alt=""
           />
           <input
             placeholder={
