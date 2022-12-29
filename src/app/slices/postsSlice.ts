@@ -42,6 +42,7 @@ export interface PostsState {
   selectedUserPosts: IPost[];
   isFetching: boolean;
   isEditing: boolean;
+  isCreating: boolean;
   error: any;
   postEditing?: IPost | null;
 }
@@ -52,6 +53,7 @@ const initialState: PostsState = {
   selectedUserPosts: [],
   isFetching: false,
   isEditing: false,
+  isCreating: false,
   error: null,
 };
 
@@ -172,6 +174,12 @@ export const postsSlice = createSlice({
   initialState,
   // The `reducers` field lets us define reducers and generate associated actions
   reducers: {
+    setIsCreating: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      state.isCreating = action.payload;
+    },
     setIsEditing: (
       state,
       action: PayloadAction<boolean>,
@@ -241,7 +249,7 @@ export const postsSlice = createSlice({
                 return newPost;
               } else return p;
             });
-            
+
             if (!!action.payload.onTheWallOf) {
               state.selectedUserPosts =
                 state.selectedUserPosts.map((p) => {
@@ -291,7 +299,6 @@ export const postsSlice = createSlice({
           state.isFetching = false;
           if (!!action.payload) {
             state.timeline = action.payload;
-            
           }
         },
       )
@@ -381,8 +388,11 @@ export const postsSlice = createSlice({
   },
 });
 
-export const { setIsEditing, setPostEditing } =
-  postsSlice.actions;
+export const {
+  setIsCreating,
+  setIsEditing,
+  setPostEditing,
+} = postsSlice.actions;
 
 // The function below is called a selector and allows us to select a value from
 // the state. Selectors can also be defined inline where they're used instead of
@@ -394,6 +404,8 @@ export const selectSelectedUserPosts = (state: RootState) =>
   state.posts.selectedUserPosts;
 export const selectTimeline = (state: RootState) =>
   state.posts.timeline;
+export const selectIsCreating = (state: RootState) =>
+  state.posts.isCreating;
 export const selectIsEditing = (state: RootState) =>
   state.posts.isEditing;
 export const selectPostEditing = (state: RootState) =>

@@ -9,6 +9,16 @@
   padding: 10px;
 }
 
+.border {
+  border: solid 0.2px grey;
+  border-radius: 5px;
+}
+
+.borderEdit {
+  border: solid 2px red;
+  border-radius: 5px;
+}
+
 .shareTop {
   display: flex;
   align-items: center;

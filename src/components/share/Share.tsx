@@ -21,6 +21,7 @@ import {
   selectPostEditing,
   setIsEditing,
   setPostEditing,
+  setIsCreating,
 } from "../../app/slices/postsSlice";
 import { useParams } from "react-router-dom";
 import { selectSelectedUser } from "../../app/slices/selectedUserSlice";
@@ -28,6 +29,13 @@ import { selectSelectedUser } from "../../app/slices/selectedUserSlice";
 // import SharePopup from "./SharePopup";
 
 export default function Share() {
+  const [scrollPosition, setPosition] = useState({
+    scrollX: 0,
+    scrollY: 0,
+  });
+  const [wrapperClass, setWrapperClass] = useState<string>(
+    "shareWrapper border",
+  );
   const currentUser = useAppSelector(selectCurrentUser);
   const selectedUser = useAppSelector(selectSelectedUser);
   const isEditing = useAppSelector(selectIsEditing);
@@ -39,14 +47,6 @@ export default function Share() {
   const [file, setFile] = useState<File | undefined>();
   const dispatch = useAppDispatch();
   let onTheWallOf: string;
-
-  useEffect(() => {
-    if (isEditing === false) {
-      desc.current.value = "";
-    } else if (!!postEditing?.desc) {
-      desc.current.value = postEditing?.desc;
-    }
-  }, [isEditing, postEditing]);
 
   const submitHandler = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,6 +64,8 @@ export default function Share() {
           file,
         }),
       );
+      desc.current.value = "";
+      dispatch(setIsCreating(false))
     } else if (
       !!isEditing &&
       !!postEditing &&
@@ -81,28 +83,52 @@ export default function Share() {
           file,
         }),
       );
+      dispatch(setIsEditing(false));
+      dispatch(setPostEditing(null));
+      window.scrollTo({
+        left: scrollPosition.scrollX,
+        top: scrollPosition.scrollY,
+        behavior: "smooth",
+      });
     }
-    dispatch(setIsEditing(false));
-    dispatch(setPostEditing(null));
-    console.log(desc.current.value);
 
-    desc.current.value = "";
-    console.log(desc.current.value);
     setFile(undefined);
   };
 
   useEffect(() => {
-    !!isEditing &&
+    if (isEditing === false) {
+      desc.current.value = "";
+    } else if (!!postEditing?.desc) {
+      desc.current.value = postEditing?.desc;
+    }
+  }, [isEditing, postEditing]);
+
+  useEffect(() => {
+    if (!!isEditing) {
+      setWrapperClass("shareWrapper borderEdit");
+      setPosition({
+        scrollX: window.scrollX,
+        scrollY: window.scrollY,
+      });
       window.scroll({
         top: 0,
         left: 0,
         behavior: "smooth",
       });
+    } else {
+      setWrapperClass("shareWrapper border");
+    }
   }, [isEditing]);
 
   return (
     <div className="share">
-      <div className="shareWrapper">
+      <div
+        className={wrapperClass}
+        onClick={(e) => {
+          e.stopPropagation();
+          setWrapperClass("shareWrapper borderEdit");
+        }}
+      >
         <div className="shareTop">
           <img
             className="shareProfileImg"
