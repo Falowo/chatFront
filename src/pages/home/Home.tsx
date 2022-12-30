@@ -4,7 +4,12 @@ import Sidebar from "../../components/sidebar/Sidebar";
 import Feed from "../../components/feed/Feed";
 import Rightbar from "../../components/rightbar/Rightbar";
 import "./home.css";
-import { getTimelineAsync } from "../../app/slices/postsSlice";
+import {
+  getTimelineAsync,
+  setIsCreating,
+  setIsEditing,
+  setPostEditing,
+} from "../../app/slices/postsSlice";
 import {
   useAppDispatch,
   useAppSelector,
@@ -36,7 +41,13 @@ export default function Home() {
   });
 
   return (
-    <>
+    <div
+      onClick={() => {
+        dispatch(setIsCreating(false));
+        dispatch(setIsEditing(false));
+        dispatch(setPostEditing(null));
+      }}
+    >
       <Topbar />
       <div className="homeContainer">
         <Sidebar />
@@ -52,6 +63,6 @@ export default function Home() {
 
         <Rightbar />
       </div>
-    </>
+    </div>
   );
 }

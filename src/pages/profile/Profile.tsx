@@ -22,6 +22,9 @@ import {
   getCurrentUserPostsAsync,
   selectIsFetchingPosts,
   selectCurrentUserPosts,
+  setIsCreating,
+  setIsEditing,
+  setPostEditing,
 } from "../../app/slices/postsSlice";
 import { checkExp } from "../../app/slices/authSlice";
 import {
@@ -103,7 +106,13 @@ export default function Profile() {
       dispatch(
         getCurrentUserPostsAsync(currentUser.username),
       );
-  }, [currentUser?._id, currentUser?.username, currentUserPosts?.length, dispatch, isCurrentUserPage]);
+  }, [
+    currentUser?._id,
+    currentUser?.username,
+    currentUserPosts?.length,
+    dispatch,
+    isCurrentUserPage,
+  ]);
 
   useEffect(() => {
     !!selectedUser?._id &&
@@ -132,7 +141,13 @@ export default function Profile() {
   return (
     <>
       {!!selectedUser && (
-        <>
+        <div
+          onClick={() => {
+            dispatch(setIsCreating(false));
+            dispatch(setIsEditing(false));
+            dispatch(setPostEditing(null));
+          }}
+        >
           <Topbar />
           <div className="profile">
             <Sidebar />
@@ -318,7 +333,7 @@ export default function Profile() {
               </div>
             </div>
           </div>
-        </>
+        </div>
       )}
     </>
   );

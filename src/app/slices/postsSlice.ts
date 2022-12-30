@@ -229,6 +229,36 @@ export const postsSlice = createSlice({
           toast(action.error.message, position);
         },
       )
+      .addCase(deletePostAsync.pending, (state) => {
+        state.isFetching = true;
+      })
+      .addCase(
+        deletePostAsync.fulfilled,
+        (state, action) => {
+          state.isFetching = false;
+          if (!!action.payload) {
+            const id = action.payload;
+            state.currentUserPosts =
+              state.currentUserPosts.filter(
+                (p) => p._id !== id,
+              );
+            state.timeline = state.timeline.filter(
+              (p) => p._id !== id,
+            );
+            state.selectedUserPosts =
+              state.selectedUserPosts.filter(
+                (p) => p._id !== id,
+              );
+          }
+        },
+      )
+      .addCase(
+        deletePostAsync.rejected,
+        (state, action) => {
+          state.isFetching = false;
+          toast(action.error.message, position);
+        },
+      )
       .addCase(updatePostAsync.pending, (state) => {
         state.isFetching = true;
       })

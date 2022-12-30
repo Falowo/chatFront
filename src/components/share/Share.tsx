@@ -22,6 +22,7 @@ import {
   setIsEditing,
   setPostEditing,
   setIsCreating,
+  selectIsCreating,
 } from "../../app/slices/postsSlice";
 import { useParams } from "react-router-dom";
 import { selectSelectedUser } from "../../app/slices/selectedUserSlice";
@@ -39,6 +40,7 @@ export default function Share() {
   const currentUser = useAppSelector(selectCurrentUser);
   const selectedUser = useAppSelector(selectSelectedUser);
   const isEditing = useAppSelector(selectIsEditing);
+  const isCreating = useAppSelector(selectIsCreating);
   const postEditing = useAppSelector(selectPostEditing);
   const { username } = useParams();
   const PF = process.env.REACT_APP_PUBLIC_FOLDER;
@@ -65,7 +67,7 @@ export default function Share() {
         }),
       );
       desc.current.value = "";
-      dispatch(setIsCreating(false))
+      dispatch(setIsCreating(false));
     } else if (
       !!isEditing &&
       !!postEditing &&
@@ -85,6 +87,7 @@ export default function Share() {
       );
       dispatch(setIsEditing(false));
       dispatch(setPostEditing(null));
+      dispatch(setIsCreating(false));
       window.scrollTo({
         left: scrollPosition.scrollX,
         top: scrollPosition.scrollY,
@@ -102,6 +105,20 @@ export default function Share() {
       desc.current.value = postEditing?.desc;
     }
   }, [isEditing, postEditing]);
+
+  useEffect(() => {
+    if (!!isCreating) {
+      setWrapperClass("shareWrapper borderEdit");
+    }
+  }, [isCreating]);
+
+  useEffect(() => {
+    if (!isCreating && !isEditing) {
+      setWrapperClass("shareWrapper");
+      setFile(undefined);
+      desc.current.value = "";
+    }
+  }, [isCreating, isEditing]);
 
   useEffect(() => {
     if (!!isEditing) {
@@ -126,7 +143,8 @@ export default function Share() {
         className={wrapperClass}
         onClick={(e) => {
           e.stopPropagation();
-          setWrapperClass("shareWrapper borderEdit");
+          !isCreating && dispatch(setIsCreating(true));
+          console.log({ isCreating });
         }}
       >
         <div className="shareTop">

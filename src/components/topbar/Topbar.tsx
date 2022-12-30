@@ -31,7 +31,7 @@ import { socketRemoveUser } from "../../app/slices/socketSlice";
 import { useAuth0 } from "@auth0/auth0-react";
 
 export default function Topbar() {
-  const { logout } = useAuth0();
+  const {  isAuthenticated, logout } = useAuth0();
 
   const [
     showPopupNotifications,
@@ -203,7 +203,10 @@ export default function Topbar() {
 
               dispatch(signoutAsync());
             }
-            logout({ returnTo: window.location.origin })
+
+            if (!!isAuthenticated) {
+              logout({ returnTo: window.location.origin });
+            }
           }}
           to={"/signin"}
         >

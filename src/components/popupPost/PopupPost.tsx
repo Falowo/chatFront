@@ -18,6 +18,7 @@ import {
   unfollowUserAsync,
 } from "../../app/slices/currentUserSlice";
 import {
+  deletePostAsync,
   selectIsEditing,
   selectPostEditing,
   setIsEditing,
@@ -124,6 +125,20 @@ export default function PopupPost(props: { post: IPost }) {
             }}
           >
             Edit
+          </Link>
+        )}
+        {userId === currentUser?._id! && (
+          <Link
+            to={`./${userId}`}
+            className="popupAction"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+
+              dispatch(deletePostAsync(post._id!));
+            }}
+          >
+            Delete
           </Link>
         )}
       </div>
