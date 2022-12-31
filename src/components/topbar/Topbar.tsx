@@ -31,7 +31,7 @@ import { socketRemoveUser } from "../../app/slices/socketSlice";
 import { useAuth0 } from "@auth0/auth0-react";
 
 export default function Topbar() {
-  const {  isAuthenticated, logout } = useAuth0();
+  const { isAuthenticated, logout } = useAuth0();
 
   const [
     showPopupNotifications,
@@ -200,7 +200,6 @@ export default function Topbar() {
           onClick={() => {
             if (!!currentUser) {
               dispatch(socketRemoveUser());
-
               dispatch(signoutAsync());
             }
 

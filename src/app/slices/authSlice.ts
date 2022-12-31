@@ -15,7 +15,7 @@ import {
 } from "../../api/auth.api";
 import { toast } from "react-toastify";
 import { AxiosResponse } from "axios";
-import { getCookie, setCookie } from "react-use-cookie";
+
 const position = {
   position: toast.POSITION.BOTTOM_RIGHT,
 };
@@ -34,10 +34,10 @@ export interface AuthState {
 }
 
 const initialState: AuthState = {
-  token: getCookie("token"),
-  locals: !!getCookie("token")
-    ? jwtDecode(getCookie("token")!)
-      ? jwtDecode(getCookie("token")!)
+  token: localStorage.getItem("token"),
+  locals: !!localStorage.getItem("token")
+    ? jwtDecode(localStorage.getItem("token")!)
+      ? jwtDecode(localStorage.getItem("token")!)
       : undefined
     : undefined,
   isFetching: false,
@@ -56,7 +56,7 @@ export const signinAsync = createAsyncThunk(
     const response = await signin(creds);
     // The value we return becomes the `fulfilled` action payload
     const token = response.data;
-    await setCookie("token", token);
+    localStorage.setItem("token", token);
     return token;
   },
 );
@@ -64,8 +64,8 @@ export const signoutAsync = createAsyncThunk(
   "auth/signout",
   async () => {
     // The value we return becomes the `fulfilled` action payload
+    localStorage.removeItem("token");
     await logout();
-    await localStorage.removeItem("token");
     return true;
   },
 );
@@ -75,7 +75,7 @@ export const signupAsync = createAsyncThunk(
     const response = await signup(user);
     // The value we return becomes the `fulfilled` action payload
     const token = response.data;
-    await setCookie("token", token);
+    localStorage.setItem("token", token);
     toast(`Welcome ${user.username}`, position);
     return token;
   },
@@ -83,7 +83,7 @@ export const signupAsync = createAsyncThunk(
 export const refreshTokenAsync = createAsyncThunk(
   "auth/refreshToken",
   async () => {
-    const token = getCookie("token");
+    const token = localStorage.getItem("token");
     let res: AxiosResponse<string, any>;
     if (!!token) {
       res = await refreshToken({ oldToken: token });

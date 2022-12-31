@@ -12,7 +12,7 @@ import {
   useAppSelector,
   useAppDispatch,
 } from "./app/hooks";
-import useCookie from "react-use-cookie";
+// import useCookie from "react-use-cookie";
 import {
   selectAuthUser,
   selectToken,
@@ -67,9 +67,7 @@ const App = () => {
   );
   const [conversationsIdsSet, setConversationsIdsSet] =
     useState<Set<string> | undefined>(undefined);
-  const [authToken, setAuthToken] = useCookie("token", "");
-
-
+  const authToken = localStorage.getItem("token");
 
   useEffect(() => {
     if (!!authUser && !!authToken) {
@@ -223,8 +221,8 @@ const App = () => {
   }, [authToken, connectedUsers]);
 
   useEffect(() => {
-    !!token && setAuthToken(token);
-  }, [setAuthToken, token]);
+    !!token &&  localStorage.setItem("token", token);
+  }, [token]);
 
   useEffect(() => {
     isAuthenticated && console.log({ user });
