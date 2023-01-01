@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import "./share.css";
 import {
   PermMedia,
@@ -6,9 +7,7 @@ import {
   EmojiEmotions,
   Cancel,
 } from "@material-ui/icons";
-import { useEffect, useRef, useState } from "react";
-// import axios from "axios";
-// import { createPost } from "../../api/posts.api";
+
 import {
   useAppDispatch,
   useAppSelector,
@@ -26,13 +25,11 @@ import {
 } from "../../app/slices/postsSlice";
 import { useParams } from "react-router-dom";
 import { selectSelectedUser } from "../../app/slices/selectedUserSlice";
-// import { IPost } from "../../interfaces";
-// import SharePopup from "./SharePopup";
 
 export default function Share() {
   const [scrollPosition, setPosition] = useState({
-    scrollX: 0,
-    scrollY: 0,
+    scrollX: window.scrollX,
+    scrollY: window.scrollY,
   });
   const [wrapperClass, setWrapperClass] = useState<string>(
     "shareWrapper border",
@@ -45,7 +42,7 @@ export default function Share() {
   const { username } = useParams();
   const PF = process.env.REACT_APP_PUBLIC_FOLDER;
   let desc: any = useRef();
-  // const refToTop: any = useRef();
+  const refToScrollIntoView: any = useRef();
   const [file, setFile] = useState<File | undefined>();
   const dispatch = useAppDispatch();
   let onTheWallOf: string;
@@ -88,11 +85,15 @@ export default function Share() {
       dispatch(setIsEditing(false));
       dispatch(setPostEditing(null));
       dispatch(setIsCreating(false));
+
+      console.log({ y: window.scrollY });
+
       window.scrollTo({
         left: scrollPosition.scrollX,
         top: scrollPosition.scrollY,
-        behavior: "smooth",
       });
+
+      console.log({ y: window.scrollY });
     }
 
     setFile(undefined);
@@ -123,14 +124,17 @@ export default function Share() {
   useEffect(() => {
     if (!!isEditing) {
       setWrapperClass("shareWrapper borderEdit");
+      console.log({ y: window.scrollY });
+
       setPosition({
         scrollX: window.scrollX,
         scrollY: window.scrollY,
       });
-      window.scroll({
-        top: 0,
-        left: 0,
+
+      refToScrollIntoView.current.scrollIntoView({
         behavior: "smooth",
+        block: "center",
+        inline: "start",
       });
     } else {
       setWrapperClass("shareWrapper border");
@@ -138,7 +142,7 @@ export default function Share() {
   }, [isEditing]);
 
   return (
-    <div className="share">
+    <div className="share" ref={refToScrollIntoView}>
       <div
         className={wrapperClass}
         onClick={(e) => {
@@ -169,7 +173,6 @@ export default function Share() {
             }
             className="shareInput"
             ref={desc}
-            // defaultValue={postEditing?.desc}
           />
         </div>
         <hr className="shareHr" />
