@@ -175,24 +175,40 @@ export default function Share() {
         <hr className="shareHr" />
         <div className="shareImgContainer">
           {file ? (
-            <img
-              className="shareImg"
-              src={URL.createObjectURL(file)}
-              alt=""
-            />
+            <>
+              <img
+                className="shareImg"
+                src={URL.createObjectURL(file)}
+                alt=""
+              />
+              <Cancel
+                className="shareCancelImg"
+                onClick={() => setFile(undefined)}
+              />
+            </>
           ) : !!isEditing &&
             !!postEditing &&
             postEditing.img ? (
-            <img
-              className="shareImg"
-              src={PF! + postEditing.img}
-              alt=""
-            />
+            <>
+              <img
+                className="shareImg"
+                src={PF! + postEditing.img}
+                alt=""
+              />
+              <Cancel
+                className="shareCancelImg"
+                onClick={() => {
+                  setFile(undefined);
+                  dispatch(
+                    setPostEditing({
+                      ...postEditing,
+                      img: undefined,
+                    }),
+                  );
+                }}
+              />
+            </>
           ) : null}
-          <Cancel
-            className="shareCancelImg"
-            onClick={() => setFile(undefined)}
-          />
         </div>
         <form
           className="shareBottom"
