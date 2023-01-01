@@ -74,7 +74,6 @@ export default function Share() {
         ...postEditing,
         desc: desc.current.value,
       };
-      console.log({ file, newPost });
 
       dispatch(
         updatePostAsync({
@@ -86,14 +85,12 @@ export default function Share() {
       dispatch(setPostEditing(null));
       dispatch(setIsCreating(false));
 
-      console.log({ y: window.scrollY });
 
       window.scrollTo({
         left: scrollPosition.scrollX,
         top: scrollPosition.scrollY,
       });
 
-      console.log({ y: window.scrollY });
     }
 
     setFile(undefined);
@@ -124,7 +121,6 @@ export default function Share() {
   useEffect(() => {
     if (!!isEditing) {
       setWrapperClass("shareWrapper borderEdit");
-      console.log({ y: window.scrollY });
 
       setPosition({
         scrollX: window.scrollX,
@@ -148,7 +144,6 @@ export default function Share() {
         onClick={(e) => {
           e.stopPropagation();
           !isCreating && dispatch(setIsCreating(true));
-          console.log({ isCreating });
         }}
       >
         <div className="shareTop">
