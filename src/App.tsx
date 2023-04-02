@@ -41,7 +41,6 @@ import {
 } from "./app/slices/messengerSlice";
 import useDeepCompareEffect from "use-deep-compare-effect";
 import FriendRequests from "./pages/friendRequests/FriendRequests";
-import OponIfa from "./pages/oponIfa/OponIfa";
 import {
   ThemeProvider,
   createTheme,
