@@ -8,7 +8,6 @@ import {
   selectAuth,
   signinAsync,
 } from "../../app/slices/authSlice";
-import { useAuth0 } from "@auth0/auth0-react";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 export interface UserCredentials {
@@ -17,7 +16,6 @@ export interface UserCredentials {
 }
 
 export default function Signin() {
-  const { loginWithRedirect } = useAuth0();
   const email = useRef<any>();
   const password = useRef<any>();
   const [passwordType, setPasswordType] =
@@ -103,17 +101,8 @@ export default function Signin() {
                 "Log In"
               )}
             </button>
-            {/* auth0 button  */}
 
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                loginWithRedirect();
-              }}
-            >
-              Log In with auth0
-            </button>
+         
           </form>
           <span className="loginForgot">
             Forgot Password?

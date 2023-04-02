@@ -12,7 +12,6 @@ import postsReducer from "./slices/postsSlice";
 import messengerReducer from "./slices/messengerSlice";
 import searchReducer from "./slices/searchSlice";
 import socketReducer from "./slices/socketSlice";
-import ifaReducer from "./slices/ifaSlice";
 
 export const rootReducer = combineReducers({
   auth: authReducer,
@@ -22,7 +21,6 @@ export const rootReducer = combineReducers({
   messenger: messengerReducer,
   search: searchReducer,
   socket: socketReducer,
-  ifa: ifaReducer,
 });
 
 export const store = configureStore({

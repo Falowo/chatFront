@@ -219,7 +219,7 @@ export default function Share() {
                 className="shareIcon"
               />
               <span className="shareOptionText">
-                Photo or Video
+                Photo
               </span>
               <input
                 style={{ display: "none" }}

@@ -81,6 +81,8 @@ export const createPostAsync = createAsyncThunk(
       data.append("name", fileName);
       data.append("file", file);
       newPost.img = fileName;
+      console.log({data});
+      
       await uploadFile(data);
     }
     const res = await createPost({ ...newPost });

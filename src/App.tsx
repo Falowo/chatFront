@@ -47,7 +47,6 @@ import {
   createTheme,
 } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
-import { useAuth0 } from "@auth0/auth0-react";
 
 const darkTheme = createTheme({
   palette: {
@@ -56,7 +55,6 @@ const darkTheme = createTheme({
 });
 
 const App = () => {
-  const { user, isAuthenticated, isLoading } = useAuth0();
   const dispatch = useAppDispatch();
   const authUser = useAppSelector(selectAuthUser);
   const token = useAppSelector(selectToken);
@@ -221,23 +219,26 @@ const App = () => {
   }, [authToken, connectedUsers]);
 
   useEffect(() => {
-    !!token &&  localStorage.setItem("token", token);
+    !!token && localStorage.setItem("token", token);
   }, [token]);
 
-  useEffect(() => {
-    isAuthenticated && console.log({ user });
-  }, [isAuthenticated, user]);
-
+  
   useEffect(() => {
     console.log(process.env.NODE_ENV);
     console.log(process.env.REACT_APP_PUBLIC_FOLDER);
     console.log(process.env.REACT_APP_API_URL);
     console.log(process.env.REACT_APP_SOCKET_URL);
+    const hexToDecimal = (hex:string) => parseInt(hex, 16);
+    console.log(
+      String.fromCharCode(
+        hexToDecimal("661F"),
+        hexToDecimal("671F"),
+        hexToDecimal("56DB"),
+      ),
+    );
   }, []);
 
-  if (isLoading) {
-    return <div>Loading ...</div>;
-  }
+ 
 
   return (
     <ThemeProvider theme={darkTheme}>
@@ -251,7 +252,7 @@ const App = () => {
           <Route
             path="/signin"
             element={
-              !authUser && !isAuthenticated ? (
+              !authUser ? (
                 <Signin />
               ) : (
                 <Home />
@@ -262,7 +263,7 @@ const App = () => {
           <Route
             path="/signup"
             element={
-              !authUser && !isAuthenticated ? (
+              !authUser ? (
                 <SignUp />
               ) : (
                 <Home />
@@ -272,7 +273,7 @@ const App = () => {
           <Route
             path="/messenger/:userId"
             element={
-              !!authUser || isAuthenticated ? (
+              !!authUser ? (
                 <Messenger />
               ) : (
                 <Signin />
@@ -282,7 +283,7 @@ const App = () => {
           <Route
             path="/messenger"
             element={
-              !!authUser || isAuthenticated ? (
+              !!authUser  ? (
                 <Messenger />
               ) : (
                 <Signin />
@@ -292,7 +293,7 @@ const App = () => {
           <Route
             path="/profile/:username"
             element={
-              !!authUser || isAuthenticated ? (
+              !!authUser  ? (
                 <Profile />
               ) : (
                 <Signin />
@@ -302,7 +303,7 @@ const App = () => {
           <Route
             path="/search"
             element={
-              !!authUser || isAuthenticated ? (
+              !!authUser  ? (
                 <Search />
               ) : (
                 <Signin />
@@ -312,18 +313,18 @@ const App = () => {
           <Route
             path="/friend/requests"
             element={
-              !!authUser || isAuthenticated ? (
+              !!authUser ? (
                 <FriendRequests />
               ) : (
                 <Signin />
               )
             }
           />
-          <Route path="/ifaCity" element={<OponIfa />} />
+          
           <Route
             path="/"
             element={
-              !!authUser || isAuthenticated ? (
+              !!authUser  ? (
                 <Home />
               ) : (
                 <Signin />
@@ -333,7 +334,7 @@ const App = () => {
           <Route
             path="*"
             element={
-              !!authUser || isAuthenticated ? (
+              !!authUser  ? (
                 <Home />
               ) : (
                 <SignUp />

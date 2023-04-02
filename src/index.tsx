@@ -7,10 +7,16 @@ import reportWebVitals from "./reportWebVitals";
 import { Provider } from "react-redux";
 import { store } from "./app/store";
 
+const clientId = process.env.REACT_APP_CLIENT_ID;
+const domain =
+  process.env.NODE_ENV === "development"
+    ? process.env.DOMAIN
+    : "falowo.eu.auth0.com";
+
 ReactDOM.render(
   <Auth0Provider
-    domain="falowo.eu.auth0.com"
-    clientId="od75g3HkAZ5obdXMVzMpZwcF1MjUUPgH"
+    domain={domain!}
+    clientId={clientId!}
     redirectUri={window.location.origin}
   >
     <React.StrictMode>
