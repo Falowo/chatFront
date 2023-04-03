@@ -16,10 +16,8 @@ import { useAppSelector } from "../../app/hooks";
 import {
   selectFriendsOfCurrentUser,
   selectCurrentUserRelatives,
-  selectCurrentUser,
+ 
 } from "../../app/slices/currentUserSlice";
-import SquareOpon from "./square-opon-ifa-black.jpg";
-import { NavLink } from "react-router-dom";
 
 export default function Sidebar() {
   const currentUserFriends = useAppSelector(
@@ -28,7 +26,7 @@ export default function Sidebar() {
   const currentUserRelatives = useAppSelector(
     selectCurrentUserRelatives,
   );
-  const currentUser = useAppSelector(selectCurrentUser);
+  
 
   return (
     <div className="sidebar">
