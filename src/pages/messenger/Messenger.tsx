@@ -383,13 +383,7 @@ const Messenger = () => {
             )}
           </div>
         </div>
-        <div className="chatOnline">
-          <div className="chatOnlineWrapper">
-            <button className="onClickButtonWrapper">
-              {/* <ChatOnline /> */}
-            </button>
-          </div>
-        </div>
+        
       </div>
     </>
   );
