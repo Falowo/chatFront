@@ -24,8 +24,10 @@ import {
   selectCurrentChat,
   selectLastMessage,
   selectLastMessagesCheckedByCurrentUser,
+  selectMessageEditing,
   selectSelectedConversation,
   setCurrentChatAsync,
+  setMessageEditing,
 } from "../../app/slices/messengerSlice";
 import { useParams } from "react-router-dom";
 import {
@@ -78,6 +80,9 @@ const Messenger = () => {
   const selectedConversation = useAppSelector(
     selectSelectedConversation,
   );
+  const messageEditing = useAppSelector(
+    selectMessageEditing,
+  );
   const { userId } = useParams();
   const lastMessage = useAppSelector(selectLastMessage);
   const lastMessagesCheckedByCurrentUser = useAppSelector(
@@ -102,6 +107,33 @@ const Messenger = () => {
       );
     } catch (e) {
       console.log(e);
+    }
+  };
+
+ const handleSubmit = () => {
+  if(!messageEditing)  {sendNewMessage(currentUser!._id!)}else{
+    dispatch(
+      setMessageEditing({
+        ...messageEditing,
+        text: newMessage,
+      }),
+    );
+  }
+  }
+
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLTextAreaElement>,
+  ) => {
+    if (!messageEditing) {
+      setNewMessage(e.target.value);
+    } else {
+      dispatch(
+        setMessageEditing({
+          ...messageEditing,
+          text: e.target.value,
+        }),
+      );
     }
   };
 
@@ -352,9 +384,7 @@ const Messenger = () => {
                 <textarea
                   className="chatMessageInput"
                   placeholder="Write something"
-                  onChange={(e) =>
-                    setNewMessage(e.target.value)
-                  }
+                  onChange={(e) => handleChange(e)}
                   onFocus={() => {
                     !!currentUser?._id &&
                       !!currentChat?.conversation?._id! &&
@@ -369,21 +399,23 @@ const Messenger = () => {
                         ),
                       );
                   }}
-                  value={newMessage}
+                  value={
+                    !messageEditing
+                      ? newMessage
+                      : messageEditing.text
+                  }
                 />
                 <button
                   className="chatSubmitButton"
-                  onClick={() =>
-                    sendNewMessage(currentUser!._id!)
+                  onClick={() =>handleSubmit()
                   }
                 >
-                  Send
+                  {!messageEditing ? `Send` : `Edit`}
                 </button>
               </div>
             )}
           </div>
         </div>
-        
       </div>
     </>
   );

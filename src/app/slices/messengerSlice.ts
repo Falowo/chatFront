@@ -55,6 +55,7 @@ export interface MessengerState {
   lastMessagesCheckedByCurrentUser: string[];
   currentChat?: IChat;
   lastMessage?: IPMessage;
+  messageEditing?: IPMessage;
   isFetching: boolean;
   error: any;
 }
@@ -152,6 +153,15 @@ export const getUncheckedByCurrentUserAsync =
     },
   );
 export const createNewMessageAsync = createAsyncThunk(
+  "messenger/createNewMessage",
+  async (newMessage: IMessage) => {
+    const response = await createMessage(newMessage);
+    // The value we return becomes the `fulfilled` action payload
+    const pMessage: IPMessage = response.data;
+    return pMessage;
+  },
+);
+export const updateMessageAsync = createAsyncThunk(
   "messenger/createNewMessage",
   async (newMessage: IMessage) => {
     const response = await createMessage(newMessage);
@@ -580,6 +590,12 @@ export const messengerSlice = createSlice({
         }
       });
     },
+    setMessageEditing: (
+      state,
+      action: PayloadAction<IPMessage | undefined>,
+    ) => {
+      state.messageEditing = action.payload;
+    },
     // setConversationPicture: (
     //   state,
     //   action: PayloadAction<{
@@ -1005,6 +1021,7 @@ export const {
   messageReceivedByRemoteUser,
   messageCheckedByRemoteUser,
   setConversationName,
+  setMessageEditing,
 } = messengerSlice.actions;
 
 // The function below is called a selector and allows us to select a value from
@@ -1030,6 +1047,8 @@ export const selectLastMessagesCheckedByCurrentUser = (
 export const selectUncheckedByCurrentUser = (
   state: RootState,
 ) => state.messenger.uncheckedByCurrentUser;
+export const selectMessageEditing = (state: RootState) =>
+  state.messenger.messageEditing;
 
 // We can also write thunks by hand, which may contain both sync and async logic.
 // Here's an example of conditionally dispatching actions based on current state.
