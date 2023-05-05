@@ -1,7 +1,5 @@
 import { useEffect } from "react";
 import Topbar from "../../components/topbar/Topbar";
-import Sidebar from "../../components/sidebar/Sidebar";
-import "./friendRequests.css";
 import {
   useAppDispatch,
   useAppSelector,
@@ -23,7 +21,6 @@ const Search = () => {
     <>
       <Topbar />
       <div className="searchContainer">
-        <Sidebar />
         <div className="search">
           {!!usersRequestingFriendship.length &&
             usersRequestingFriendship.map((u) => (

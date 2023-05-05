@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import "./profile.css";
 import Topbar from "../../components/topbar/Topbar";
-import Sidebar from "../../components/sidebar/Sidebar";
-import Feed from "../../components/feed/Feed";
 import Rightbar from "../../components/rightbar/Rightbar";
 import PhotoCameraRoundedIcon from "@mui/icons-material/PhotoCameraRounded";
 import { useParams } from "react-router";
@@ -17,15 +15,7 @@ import {
   selectSelectedUser,
   setSelectedUserAsync,
 } from "../../app/slices/selectedUserSlice";
-import {
-  getSelectedUserPostsAsync,
-  getCurrentUserPostsAsync,
-  selectIsFetchingPosts,
-  selectCurrentUserPosts,
-  setIsCreating,
-  setIsEditing,
-  setPostEditing,
-} from "../../app/slices/postsSlice";
+
 import { checkExp } from "../../app/slices/authSlice";
 import {
   selectCurrentUser,
@@ -44,11 +34,7 @@ export default function Profile() {
   const currentUser = useAppSelector(selectCurrentUser);
   const selectedUser = useAppSelector(selectSelectedUser);
   const editDescMode = useAppSelector(selectEditDescMode);
-  const currentUserPosts = useAppSelector(
-    selectCurrentUserPosts,
-  );
 
-  const isFetching = useAppSelector(selectIsFetchingPosts);
   const [fileProfilePicture, setFileProfilePicture] =
     useState<File | undefined>();
   const [fileCoverPicture, setFileCoverPicture] = useState<
@@ -91,33 +77,6 @@ export default function Profile() {
     !!selectedUser?._id &&
       !isCurrentUserPage &&
       dispatch(
-        getSelectedUserPostsAsync(selectedUser.username!),
-      );
-  }, [
-    selectedUser?._id,
-    dispatch,
-    selectedUser?.username,
-    isCurrentUserPage,
-  ]);
-  useEffect(() => {
-    !!currentUser?._id &&
-      !!isCurrentUserPage &&
-      !currentUserPosts?.length &&
-      dispatch(
-        getCurrentUserPostsAsync(currentUser.username),
-      );
-  }, [
-    currentUser?._id,
-    currentUser?.username,
-    currentUserPosts?.length,
-    dispatch,
-    isCurrentUserPage,
-  ]);
-
-  useEffect(() => {
-    !!selectedUser?._id &&
-      !isCurrentUserPage &&
-      dispatch(
         getFriendsOfSelectedUserAsync(selectedUser._id),
       );
   }, [dispatch, isCurrentUserPage, selectedUser?._id]);
@@ -141,16 +100,9 @@ export default function Profile() {
   return (
     <>
       {!!selectedUser && (
-        <div
-          onClick={() => {
-            dispatch(setIsCreating(false));
-            dispatch(setIsEditing(false));
-            dispatch(setPostEditing(null));
-          }}
-        >
+        <div>
           <Topbar />
           <div className="profile">
-            <Sidebar />
             <div className="profileRight">
               <div className="profileRightTop">
                 <div className="profileCover">
@@ -323,12 +275,6 @@ export default function Profile() {
                 </div>
               </div>
               <div className="profileRightBottom">
-                {!isFetching ? (
-                  <Feed username={username} />
-                ) : (
-                  <h1>Fetching...</h1>
-                )}
-
                 <Rightbar />
               </div>
             </div>

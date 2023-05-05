@@ -34,7 +34,7 @@ import {
   updateCurrentUserInfo,
 } from "../../api/users.api";
 import { socketSendFriendRequest } from "./socketSlice";
-import { uploadFile } from "../../api/posts.api";
+import { uploadFile } from "../../api/files.api";
 import { signoutAsync } from "./authSlice";
 
 const position = {

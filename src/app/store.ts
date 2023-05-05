@@ -8,7 +8,6 @@ import {
 import authReducer from "./slices/authSlice";
 import currentUserReducer from "./slices/currentUserSlice";
 import selectedUserReducer from "./slices/selectedUserSlice";
-import postsReducer from "./slices/postsSlice";
 import messengerReducer from "./slices/messengerSlice";
 import searchReducer from "./slices/searchSlice";
 import socketReducer from "./slices/socketSlice";
@@ -17,7 +16,6 @@ export const rootReducer = combineReducers({
   auth: authReducer,
   currentUserRelatives: currentUserReducer,
   selectedUserAndRelatives: selectedUserReducer,
-  posts: postsReducer,
   messenger: messengerReducer,
   search: searchReducer,
   socket: socketReducer,

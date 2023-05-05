@@ -321,7 +321,7 @@ const App = () => {
           />
           
           <Route
-            path="/"
+            path="/:?userId"
             element={
               !!authUser  ? (
                 <Home />

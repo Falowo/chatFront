@@ -16,7 +16,6 @@ import {
   selectCurrentUser,
   selectEditInfoMode,
   setEditInfoMode,
- 
 } from "../../app/slices/currentUserSlice";
 import {
   followUserAsync,
@@ -33,8 +32,6 @@ import {
 } from "../../app/slices/selectedUserSlice";
 import UserSquare from "../userSquare/UserSquare";
 import ProfileInfoForm from "../profileInfoForm/ProfileInfoForm";
-
-
 
 export default function Rightbar() {
   const { username } = useParams();
@@ -134,23 +131,9 @@ export default function Rightbar() {
 
   const HomeRightbar = () => {
     return (
-      <>
-        <div className="birthdayContainer">
-          <img
-            className="birthdayImg"
-            src="assets/gift.png"
-            alt=""
-          />
-          <span className="birthdayText">
-            <b>Ceeza Milli</b> and <b>3 other friends</b>{" "}
-            have their birhday today.
-          </span>
-        </div>
-        <img
-          className="rightbarAd"
-          src="assets/kame-house.jpg"
-          alt=""
-        />
+      <div
+      className="rightbar"
+      >
         {!currentUserRelatives.isFetching ? (
           <h4 className="rightbarTitle">Your Friends</h4>
         ) : (
@@ -162,7 +145,7 @@ export default function Rightbar() {
             !!currentUserFriends?.length &&
             currentUserFriends?.map((u) => (
               <Link
-                to={`/messenger/${u._id!}`}
+                to={`/${u._id!}`}
                 key={u._id}
                 className="link"
               >
@@ -170,7 +153,7 @@ export default function Rightbar() {
               </Link>
             ))}
         </ul>
-      </>
+      </div>
     );
   };
 

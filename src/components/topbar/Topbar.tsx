@@ -108,7 +108,7 @@ export default function Topbar() {
         <div className="searchbar">
           <Search className="searchIcon" />
           <input
-            placeholder="Search for friend, post or video"
+            placeholder="Search for friend"
             className="searchInput"
             ref={searchRef}
             onChange={(e: React.ChangeEvent) =>
@@ -144,7 +144,7 @@ export default function Topbar() {
             </Link>
           </div>
           <div className="topbarIconItem">
-            <Link className="topbarLink" to="/messenger">
+            <Link className="topbarLink" to="/">
               <Chat />
               {reducedUncheckedByCurrentUser > 0 && (
                 <span className="topbarIconBadge">

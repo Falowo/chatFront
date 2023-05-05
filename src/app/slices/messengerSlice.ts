@@ -13,9 +13,8 @@ import {
 } from "../../interfaces";
 import {
   RootState,
-  //  AppThunk
 } from "../store";
-import { toast } from "react-toastify";
+// import { toast } from "react-toastify";
 import {
   createNewConversation,
   getCurrentUserConversations,
@@ -33,12 +32,11 @@ import {
 import { selectCurrentUser } from "./currentUserSlice";
 import { getUserByUserIdQuery } from "../../api/users.api";
 import { signoutAsync } from "./authSlice";
-// import { socket } from "../../config/config.socket";
-// import { getUserByUserIdQuery } from "../../api/users.api";
 
-const position = {
-  position: toast.POSITION.BOTTOM_RIGHT,
-};
+
+// const position = {
+//   position: toast.POSITION.BOTTOM_RIGHT,
+// };
 
 export interface IChat {
   conversation: IConversation;
@@ -637,7 +635,7 @@ export const messengerSlice = createSlice({
         getConversationsAsync.rejected,
         (state, action) => {
           state.isFetching = false;
-          toast(action.error.message, position);
+          // toast(action.error.message, position);
         },
       )
       .addCase(
@@ -672,9 +670,9 @@ export const messengerSlice = createSlice({
       )
       .addCase(
         getConversationNameAndPictureAsync.rejected,
-        (state, action) => {
+        (state) => {
           state.isFetching = false;
-          toast(action.error.message, position);
+          // toast(action.error.message, position);
         },
       )
       .addCase(
@@ -694,9 +692,9 @@ export const messengerSlice = createSlice({
       )
       .addCase(
         getUncheckedByCurrentUserAsync.rejected,
-        (state, action) => {
+        (state) => {
           state.isFetching = false;
-          toast(action.error.message, position);
+          // toast(action.error.message, position);
         },
       )
 
@@ -783,9 +781,9 @@ export const messengerSlice = createSlice({
       )
       .addCase(
         messageReceivedByCurrentUserAsync.rejected,
-        (state, action) => {
+        (state) => {
           state.isFetching = false;
-          toast(action.error.message, position);
+          // toast(action.error.message, position);
         },
       )
 
@@ -907,9 +905,9 @@ export const messengerSlice = createSlice({
       )
       .addCase(
         conversationCheckedByCurrentUserAsync.rejected,
-        (state, action) => {
+        (state) => {
           state.isFetching = false;
-          toast(action.error.message, position);
+          // toast(action.error.message, position);
         },
       )
       .addCase(setCurrentChatAsync.pending, (state) => {
@@ -926,10 +924,10 @@ export const messengerSlice = createSlice({
       )
       .addCase(
         setCurrentChatAsync.rejected,
-        (state, action) => {
+        (state) => {
           state.isFetching = false;
           state.selectedConversation = undefined;
-          toast(action.error.message, position);
+          // toast(action.error.message, position);
         },
       )
       .addCase(createNewMessageAsync.pending, (state) => {
@@ -966,10 +964,10 @@ export const messengerSlice = createSlice({
       )
       .addCase(
         createNewMessageAsync.rejected,
-        (state, action) => {
+        (state) => {
           state.isFetching = false;
           state.lastMessage = undefined;
-          toast(action.error.message, position);
+          // toast(action.error.message, position);
         },
       )
       .addCase(
@@ -1000,7 +998,7 @@ export const messengerSlice = createSlice({
         (state, action) => {
           state.isFetching = false;
           console.log(action);
-          toast(action.error.message, position);
+          // toast(action.error.message, position);
         },
       )
       .addCase(signoutAsync.fulfilled, (state) => {

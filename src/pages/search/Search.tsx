@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import Topbar from "../../components/topbar/Topbar";
-import Sidebar from "../../components/sidebar/Sidebar";
 import "./search.css";
 import {
   useAppDispatch,
@@ -21,7 +20,6 @@ const Search = () => {
     <>
       <Topbar />
       <div className="searchContainer">
-        <Sidebar />
         <div className="search">
           {!!searchUsers.length &&
             searchUsers.map((u) => (

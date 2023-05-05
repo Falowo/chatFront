@@ -1,10 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import useDeepCompareEffect from "use-deep-compare-effect";
 import "./messenger.css";
-import Topbar from "../../components/topbar/Topbar";
 import Conversation from "../../components/conversation/Conversation";
-import Message from "../../components/message/Message";
-// import ChatOnline from "../../components/chatOnline/ChatOnline";
 // import { io, Socket } from "socket.io-client";
 import { socket } from "../../config/config.socket";
 import { IConversation, IPMessage } from "../../interfaces";
@@ -12,10 +9,8 @@ import {
   useAppDispatch,
   useAppSelector,
 } from "../../app/hooks";
-import { selectCurrentUser } from "../../app/slices/currentUserSlice";
 import {
   conversationCheckedByCurrentUserAsync,
-  createNewMessageAsync,
   getExisitingConversationOrCreateOneAsync,
   messageCheckedByRemoteUser,
   messageReceivedByCurrentUserAsync,
@@ -24,21 +19,20 @@ import {
   selectCurrentChat,
   selectLastMessage,
   selectLastMessagesCheckedByCurrentUser,
-  selectMessageEditing,
   selectSelectedConversation,
   setCurrentChatAsync,
-  setMessageEditing,
 } from "../../app/slices/messengerSlice";
 import { useParams } from "react-router-dom";
 import {
   addFriendAsync,
+  selectCurrentUser,
   selectFriendsOfCurrentUser,
 } from "../../app/slices/currentUserSlice";
 import {
   socketCurrentUserCheckMessagesAsync,
   socketGotMessage,
-  socketSendMessage,
 } from "../../app/slices/socketSlice";
+import ChatBox from "./ChatBox";
 export interface IChat {
   conversation: IConversation;
   messages: IPMessage[];
@@ -54,9 +48,8 @@ export interface SocketReceivedMessage {
 }
 
 const Messenger = () => {
-  const scrollSpan = useRef<any>();
-
   const currentUser = useAppSelector(selectCurrentUser);
+
   const currentUserFriends = useAppSelector(
     selectFriendsOfCurrentUser,
   );
@@ -80,9 +73,7 @@ const Messenger = () => {
   const selectedConversation = useAppSelector(
     selectSelectedConversation,
   );
-  const messageEditing = useAppSelector(
-    selectMessageEditing,
-  );
+ 
   const { userId } = useParams();
   const lastMessage = useAppSelector(selectLastMessage);
   const lastMessagesCheckedByCurrentUser = useAppSelector(
@@ -92,75 +83,12 @@ const Messenger = () => {
   // const isFetching = useAppSelector(selectMessengerIsfetching)
   const dispatch = useAppDispatch();
 
-  const [newMessage, setNewMessage] = useState<string>("");
 
-  const sendNewMessage = async (senderId: string) => {
-    try {
-      dispatch(
-        createNewMessageAsync({
-          senderId,
-          conversationId: currentChat?.conversation?._id!,
-          text: newMessage,
-          receivedByIds: [],
-          checkedByIds: [],
-        }),
-      );
-    } catch (e) {
-      console.log(e);
-    }
-  };
+  
 
- const handleSubmit = () => {
-  if(!messageEditing)  {sendNewMessage(currentUser!._id!)}else{
-    dispatch(
-      setMessageEditing({
-        ...messageEditing,
-        text: newMessage,
-      }),
-    );
-  }
-  }
+  
 
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLTextAreaElement>,
-  ) => {
-    if (!messageEditing) {
-      setNewMessage(e.target.value);
-    } else {
-      dispatch(
-        setMessageEditing({
-          ...messageEditing,
-          text: e.target.value,
-        }),
-      );
-    }
-  };
-
-  useEffect(() => {
-    if (
-      !!lastMessage &&
-      currentUser?._id! &&
-      currentChat?.conversation?._id ===
-        lastMessage.conversationId &&
-      lastMessage.senderId?._id === currentUser?._id!
-    ) {
-      dispatch(
-        socketSendMessage({
-          conversation: currentChat?.conversation,
-          message: lastMessage,
-          currentUserId: currentUser?._id!,
-        }),
-      );
-      console.log("socketSendMessage");
-      setNewMessage("");
-    }
-  }, [
-    currentChat?.conversation,
-    currentUser?._id,
-    dispatch,
-    lastMessage,
-  ]);
+  
 
   useEffect(() => {
     if (
@@ -304,21 +232,14 @@ const Messenger = () => {
       );
   }, [currentUser, dispatch, selectedConversation, userId]);
 
-  useEffect(() => {
-    scrollSpan.current.scrollIntoView();
-  }, [currentChat, dispatch]);
+  
 
   return (
     <>
-      <Topbar />
       <div className="messenger">
         <div className="chatMenu">
           <div className="chatMenuWrapper">
-            <input
-              type="text"
-              placeholder="Search for friend"
-              className="chatMenuInput"
-            />
+            <h3>Conversations</h3>
             <div className="chatMenuListConversationsWrapper">
               {conversations && conversations?.length ? (
                 conversations?.map((c) => (
@@ -358,64 +279,7 @@ const Messenger = () => {
             </div>
           </div>
         </div>
-        <div className="chatBox">
-          <div className="chatBoxWrapper ">
-            <div className="chatBoxTop">
-              {!!currentChat && !!currentChat?.messages ? (
-                currentChat?.messages?.map((m) => (
-                  <Message
-                    message={m}
-                    own={
-                      m.senderId._id === currentUser!._id
-                    }
-                    key={m._id}
-                  />
-                ))
-              ) : (
-                <span className="noConversationText">
-                  Select or start a conversation
-                </span>
-              )}
-
-              <span ref={scrollSpan}></span>
-            </div>
-            {!!currentChat?.conversation && (
-              <div className="chatBoxBottom">
-                <textarea
-                  className="chatMessageInput"
-                  placeholder="Write something"
-                  onChange={(e) => handleChange(e)}
-                  onFocus={() => {
-                    !!currentUser?._id &&
-                      !!currentChat?.conversation?._id! &&
-                      dispatch(
-                        conversationCheckedByCurrentUserAsync(
-                          {
-                            conversationId:
-                              currentChat?.conversation
-                                ?._id!,
-                            currentUserId: currentUser._id!,
-                          },
-                        ),
-                      );
-                  }}
-                  value={
-                    !messageEditing
-                      ? newMessage
-                      : messageEditing.text
-                  }
-                />
-                <button
-                  className="chatSubmitButton"
-                  onClick={() =>handleSubmit()
-                  }
-                >
-                  {!messageEditing ? `Send` : `Edit`}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+        <ChatBox/>
       </div>
     </>
   );

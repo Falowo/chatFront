@@ -1,36 +1,17 @@
 import { useEffect } from "react";
 import Topbar from "../../components/topbar/Topbar";
-import Sidebar from "../../components/sidebar/Sidebar";
-import Feed from "../../components/feed/Feed";
 import Rightbar from "../../components/rightbar/Rightbar";
 import "./home.css";
-import {
-  getTimelineAsync,
-  setIsCreating,
-  setIsEditing,
-  setPostEditing,
-} from "../../app/slices/postsSlice";
-import {
-  useAppDispatch,
-  useAppSelector,
-} from "../../app/hooks";
-import { selectCurrentUserRelatives } from "../../app/slices/currentUserSlice";
-import { selectCurrentUser } from "../../app/slices/currentUserSlice";
+
+import { useAppDispatch } from "../../app/hooks";
+
 import { checkExp } from "../../app/slices/authSlice";
 import { setSelectedUserAsync } from "../../app/slices/selectedUserSlice";
 import CookieConsent from "react-cookie-consent";
+import Messenger from "../messenger/Messenger";
 
 export default function Home() {
   const dispatch = useAppDispatch();
-  const currentUser = useAppSelector(selectCurrentUser);
-  const currentUserRelatives = useAppSelector(
-    selectCurrentUserRelatives,
-  );
-  const currentUserRelativesIsFetching =
-    currentUserRelatives.isFetching;
-  useEffect(() => {
-    !!currentUser && dispatch(getTimelineAsync());
-  }, [currentUser, dispatch]);
 
   useEffect(() => {
     dispatch(checkExp());
@@ -41,27 +22,15 @@ export default function Home() {
   });
 
   return (
-    <div
-      onClick={() => {
-        dispatch(setIsCreating(false));
-        dispatch(setIsEditing(false));
-        dispatch(setPostEditing(null));
-      }}
-    >
+    <div>
       <Topbar />
       <div className="homeContainer">
-        <Sidebar />
         <CookieConsent>
           This website uses cookies to enhance the user
           experience.
         </CookieConsent>
-        {!currentUserRelativesIsFetching ? (
-          <Feed />
-        ) : (
-          <h1>Fetching...</h1>
-        )}
-
-        <Rightbar />
+        <Messenger />
+        {window.innerWidth >= 900 && <Rightbar />}
       </div>
     </div>
   );
