@@ -1,7 +1,9 @@
 .rightbar {
-  width: 100%;
+  width: 30vw;
   overflow-y: scroll;
-  max-height: calc(100vh - 70px);
+  height: calc(100vh - 70px);
+  border: 1px solid red;
+  justify-self: end;
 }
 
 .rightbarWrapper {

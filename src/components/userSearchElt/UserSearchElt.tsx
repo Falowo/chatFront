@@ -1,24 +1,31 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./userSearchElt.css";
-import { Add, MoreVert, Remove } from "@mui/icons-material";
+import { MoreVert } from "@mui/icons-material";
 import { Link } from "react-router-dom";
-import { selectCurrentUser } from "../../app/slices/currentUserSlice";
+import {
+  addFriendAsync,
+  // acceptFriendRequestAsync,
+  // addFriendAsync,
+  // declineFriendRequestAsync,
+  removeFriendAsync,
+  selectCurrentUser,
+  selectFriendsOfCurrentUser,
+} from "../../app/slices/currentUserSlice";
 import {
   useAppSelector,
   useAppDispatch,
 } from "../../app/hooks";
-import {
-  followUserAsync,
-  selectFriendRequestsFrom,
-  sendFriendRequestOrAcceptAsync,
-  unfollowUserAsync,
-} from "../../app/slices/currentUserSlice";
-import {
-  SearchedUser,
-  toggleFollowed,
-} from "../../app/slices/searchSlice";
+// import {
+// selectFriendRequestsFrom,
+// sendFriendRequestAsync,
+// } from "../../app/slices/currentUserSlice";
+import { SearchedUser } from "../../app/slices/searchSlice";
 import PopupUser from "../popupUser/PopupUser";
+import {
+  socketDeclineFriendRequest,
+  socketSendFriendRequest,
+} from "../../app/slices/socketSlice";
 
 export interface UserSearchProps {
   user: SearchedUser;
@@ -32,47 +39,39 @@ export default function UserSearchElt(
   const [showUserActions, setShowUserActions] =
     useState(false);
 
+  const [userIsFriend, setUserIsFriend] =
+    useState<boolean>(false);
   const PF = process.env.REACT_APP_PUBLIC_FOLDER;
   const currentUser = useAppSelector(selectCurrentUser);
-  const friendRequestFrom = useAppSelector(
-    selectFriendRequestsFrom,
+  const friendsOfCurrentUser = useAppSelector(
+    selectFriendsOfCurrentUser,
   );
+  // const friendRequestFrom = useAppSelector(
+  //   selectFriendRequestsFrom,
+  // );
   const dispatch = useAppDispatch();
 
   useEffect(() => {
     console.log(showUserActions);
   }, [showUserActions]);
 
-  const handleClick = async () => {
-    if (!!user && !!currentUser) {
-      try {
-        if (!!user.followed) {
-          dispatch(
-            unfollowUserAsync({
-              userId: user._id!,
-            }),
-          );
-        } else {
-          dispatch(
-            followUserAsync({
-              userId: user._id!,
-            }),
-          );
-        }
-        dispatch(toggleFollowed(user._id));
-      } catch (err) {
-        console.log(err);
-      }
-    }
-  };
+  useEffect(() => {
+    setUserIsFriend(
+      !!friendsOfCurrentUser.length &&
+        !!friendsOfCurrentUser
+          .map((f) => f._id)
+          .includes(user._id),
+    );
+  }, [currentUser, friendsOfCurrentUser, user]);
 
   return (
     <div className="user">
       <div className="userWrapper">
         <div className="userTop">
           <div className="userTopLeft">
-            <Link to={`/profile/${user.username}`}
-            className="linkClass"
+            <Link
+              to={`/profile/${user.username}`}
+              className="linkClass"
             >
               <img
                 className="userProfileImg"
@@ -83,9 +82,9 @@ export default function UserSearchElt(
                 }
                 alt=""
               />
-            <span className="userUsername">
-              {user?.username}
-            </span>
+              <span className="userUsername">
+                {user?.username}
+              </span>
             </Link>
           </div>
           <button
@@ -100,36 +99,59 @@ export default function UserSearchElt(
             )}
           </button>
         </div>
-        {user._id !== currentUser?._id &&
-          user.followed !== undefined && (
-            <button
-              className="followButton"
-              onClick={handleClick}
-            >
-              {!!user.followed ? "Unfollow" : "Follow"}
-              {!!user.followed ? <Remove /> : <Add />}
-            </button>
-          )}
+
         <>
-          {!!friendRequestFrom
-            ?.map((f) => f._id!)
-            .includes(user._id!) &&
-            user.followed === undefined && (
-              <>
-                <button
-                  className="followButton"
-                  onClick={() => {
-                    !!user?._id &&
-                      dispatch(
-                        sendFriendRequestOrAcceptAsync(user._id!),
-                      );
-                    navigate("/");
-                  }}
-                >
-                  Accept friend request
-                </button>
-              </>
+          <>
+            {!userIsFriend && (
+              <button
+                className="addButton"
+                onClick={() => {
+                  !!user?._id &&
+                    dispatch(
+                      addFriendAsync({
+                        userId: user._id!,
+                      }),
+                    );
+                  !!currentUser &&
+                    dispatch(
+                      socketSendFriendRequest({
+                        userId: user._id!,
+                        currentUserId: currentUser._id!,
+                      }),
+                    );
+                  navigate("/");
+                }}
+              >
+                add Friend
+              </button>
             )}
+
+            {userIsFriend && (
+              <button
+                className="removeButton"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  !!user?._id &&
+                    dispatch(
+                      removeFriendAsync({
+                        userId: user._id!,
+                      }),
+                    );
+                  !!currentUser &&
+                    dispatch(
+                      socketDeclineFriendRequest({
+                        userId: user._id!,
+                        currentUserId: currentUser._id!,
+                      }),
+                    );
+                  navigate("/");
+                }}
+              >
+                Remove Friend
+              </button>
+            )}
+          </>
         </>
       </div>
     </div>

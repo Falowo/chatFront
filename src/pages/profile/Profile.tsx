@@ -10,7 +10,6 @@ import {
   useAppDispatch,
 } from "../../app/hooks";
 import {
-  getFollowedBySelectedUserAsync,
   getFriendsOfSelectedUserAsync,
   selectSelectedUser,
   setSelectedUserAsync,
@@ -81,14 +80,7 @@ export default function Profile() {
       );
   }, [dispatch, isCurrentUserPage, selectedUser?._id]);
 
-  useEffect(() => {
-    !!selectedUser?._id &&
-      !isCurrentUserPage &&
-      dispatch(
-        getFollowedBySelectedUserAsync(selectedUser._id),
-      );
-  }, [dispatch, isCurrentUserPage, selectedUser?._id]);
-
+  
   useEffect(() => {
     dispatch(checkExp());
   }, [dispatch]);
@@ -140,7 +132,7 @@ export default function Profile() {
                     }
                     alt=""
                   />
-                  {isCurrentUserPage && (
+                  {!!isCurrentUserPage && (
                     <>
                       <form
                         className="profilePictureForm"
@@ -241,12 +233,17 @@ export default function Profile() {
                   >
                     {!!editDescMode ? (
                       <ProfileDescForm />
+                    ) : !!isCurrentUserPage ? (
+                      <span className="profileInfoDesc">
+                        {currentUser?.desc
+                          ? currentUser?.desc
+                          : "Add a description to your profile"}
+                      </span>
                     ) : (
                       <span className="profileInfoDesc">
-                        {!!isCurrentUserPage
-                          ? currentUser?.desc ||
-                            "Add a description to your profile"
-                          : selectedUser.desc}
+                        {selectedUser?.desc
+                          ? selectedUser?.desc
+                          : "No description"}
                       </span>
                     )}
                     {!!isCurrentUserPage && (

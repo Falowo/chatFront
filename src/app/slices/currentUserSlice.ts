@@ -16,24 +16,26 @@ import {
 } from "../store";
 import { toast } from "react-toastify";
 import {
+  acceptFriendRequest,
   addFriend,
   checkAcceptedFriendRequests,
   checkFriendRequests,
+  declineFriendRequest,
   editCoverPicture,
   editProfilePicture,
-  followUser,
   getBestCurrentUserFriends,
-  getFollowedUsersByUserIdParams,
-  getFollowersByUserIdParams,
   getFriendRequestsFrom,
   getFriendsByUserIdParams,
   getUserByUserIdQuery,
+  removeFriend,
   sendFriendRequest,
-  unfollowUser,
   updateCurrentUserDesc,
   updateCurrentUserInfo,
 } from "../../api/users.api";
-import { socketSendFriendRequest } from "./socketSlice";
+import {
+  socketAcceptFriendRequest,
+  socketSendFriendRequest,
+} from "./socketSlice";
 import { uploadFile } from "../../api/files.api";
 import { signoutAsync } from "./authSlice";
 
@@ -41,25 +43,15 @@ const position = {
   position: toast.POSITION.BOTTOM_RIGHT,
 };
 
-interface FollowProps {
-  userId: string;
-}
-
 interface BestFriendOfCurrentUser {
   friendId: string;
   numberOfMessages: number;
 }
-// interface FriendOfCurrentUser {
-//   friend: IUser;
-//   numberOfMessages: number;
-// }
 
 export interface CurrentUserState {
   currentUser?: IUser;
-  followedByCurrentUser: IUser[];
-  followersOfCurrentUser: string[];
-  friendsOfCurrentUser: IUser[];
-  bestFriendsOfCurrentUser: BestFriendOfCurrentUser[];
+  friends: IUser[];
+  bestFriends: BestFriendOfCurrentUser[];
   friendRequestsTo: string[];
   friendRequestsFrom: IUser[];
   notCheckedFriendRequestsFrom: string[];
@@ -72,10 +64,8 @@ export interface CurrentUserState {
 
 const initialState: CurrentUserState = {
   currentUser: undefined,
-  followedByCurrentUser: [],
-  followersOfCurrentUser: [],
-  friendsOfCurrentUser: [],
-  bestFriendsOfCurrentUser: [],
+  friends: [],
+  bestFriends: [],
   friendRequestsTo: [],
   friendRequestsFrom: [],
   notCheckedFriendRequestsFrom: [],
@@ -95,16 +85,19 @@ const initialState: CurrentUserState = {
 export const getCurrentUserAsync = createAsyncThunk<
   IUser,
   string
->("currentUser/getCurrentUser", async (currentUserId) => {
-  const res = await getUserByUserIdQuery(currentUserId);
-  const currentUser = res.data._doc;
-  return currentUser;
-});
+>(
+  "currentUser/getCurrentUserAsync",
+  async (currentUserId) => {
+    const res = await getUserByUserIdQuery(currentUserId);
+    const currentUser = res.data._doc;
+    return currentUser;
+  },
+);
 export const updateCurrentUserInfoAsync = createAsyncThunk<
   IUser,
   ToUpdateUserInfo
 >(
-  "currentUser/updateCurrentUserInfo",
+  "currentUser/updateCurrentUserInfoAsync",
   async (toUpdateUserInfo) => {
     const res = await updateCurrentUserInfo(
       toUpdateUserInfo,
@@ -117,7 +110,7 @@ export const updateCurrentUserDescAsync = createAsyncThunk<
   IUser,
   ToUpdateUserDesc
 >(
-  "currentUser/updateCurrentUserDesc",
+  "currentUser/updateCurrentUserDescAsync",
   async (toUpdateUserDesc) => {
     const res = await updateCurrentUserDesc(
       toUpdateUserDesc,
@@ -128,7 +121,7 @@ export const updateCurrentUserDescAsync = createAsyncThunk<
 );
 
 export const setProfilePictureAsync = createAsyncThunk(
-  "currentUser/setProfilePicture",
+  "currentUser/setProfilePictureAsync",
   async (file: File) => {
     const data = new FormData();
     const fileName: string = `${Date.now()}${file.name}`;
@@ -143,7 +136,7 @@ export const setProfilePictureAsync = createAsyncThunk(
   },
 );
 export const setCoverPictureAsync = createAsyncThunk(
-  "currentUser/setCoverPicture",
+  "currentUser/setCoverPictureAsync",
   async (file: File) => {
     const data = new FormData();
     const fileName: string = `${Date.now()}${file.name}`;
@@ -170,94 +163,41 @@ export const getFriendsOfCurrentUserAsync =
       // state: RootState;
     }
   >(
-    "currentUser/getFriendsOfCurrentUser",
+    "currentUser/getFriendsOfCurrentUserAsync",
     async (currentUserId, { dispatch }) => {
       const response = await getFriendsByUserIdParams(
         currentUserId,
       );
 
-      const friendsOfCurrentUser: IUser[] = response.data;
+      const friends: IUser[] = response.data;
 
-      dispatch(
-        getBestFriendsOfCurrentUserAsync(
-          friendsOfCurrentUser,
-        ),
-      );
+      dispatch(getBestFriendsOfCurrentUserAsync(friends));
 
-      return friendsOfCurrentUser;
+      return friends;
     },
   );
 
 export const getBestFriendsOfCurrentUserAsync =
   createAsyncThunk(
-    "currentUser/getBestFriendsOfCurrentUser",
-    async (friendsOfCurrentUser: IUser[]) => {
+    "currentUser/getBestFriendsOfCurrentUserAsync",
+    async (friends: IUser[]) => {
       const response = await getBestCurrentUserFriends();
 
-      const bestFriendsOfCurrentUser: {
+      const bestFriends: {
         friendId: string;
         numberOfMessages: number;
       }[] = response.data;
       // The value we return becomes the `fulfilled` action payload
       return {
-        bestFriendsOfCurrentUser,
-        friendsOfCurrentUser,
+        bestFriends,
+        friends,
       };
     },
   );
 
-export const getFollowersOfCurrentUserAsync =
-  createAsyncThunk(
-    "currentUser/getFollowersOfCurrentUser",
-    async (currentUserId: string) => {
-      const response = await getFollowersByUserIdParams(
-        currentUserId,
-      );
-      // The value we return becomes the `fulfilled` action payload
-      return response.data;
-    },
-  );
-export const getFollowedByCurrentUserAsync =
-  createAsyncThunk(
-    "currentUser/getFollowedByCurrentUser",
-    async (currentUserId: string) => {
-      const response = await getFollowedUsersByUserIdParams(
-        currentUserId,
-      );
-      // The value we return becomes the `fulfilled` action payload
-      return response.data;
-    },
-  );
-
-export const followUserAsync = createAsyncThunk(
-  "currentUser/followUser",
-  async (props: FollowProps) => {
-    const { userId } = props;
-
-    const res = await followUser(userId);
-    // The value we return becomes the `fulfilled` action payload
-
-    const { user, currentUser } = res.data;
-    // do something with socket and currentUser
-    return { user, currentUser };
-  },
-);
-export const unfollowUserAsync = createAsyncThunk(
-  "currentUser/unfollowUser",
-  async (props: FollowProps) => {
-    const { userId } = props;
-
-    await unfollowUser(userId);
-    // We may get the unfollowed user as user to send socket and update his followers count but later
-    return userId;
-  },
-);
-
 export const addFriendAsync = createAsyncThunk(
-  "currentUser/addFriend",
-  async (props: FollowProps) => {
-    const { userId } = props;
-
+  "currentUser/addFriendAsync",
+  async ({ userId }: { userId: string }) => {
     await addFriend(userId);
     // The value we return becomes the `fulfilled` action payload
 
@@ -267,46 +207,102 @@ export const addFriendAsync = createAsyncThunk(
     return user;
   },
 );
+export const removeFriendAsync = createAsyncThunk(
+  "currentUser/removeFriendAsync",
+  async ({ userId }: { userId: string }) => {
+    const res = await removeFriend(userId);
+
+    const { exFriend, currentUser } = await res.data;
+
+    return { exFriend, currentUser };
+  },
+);
 
 export const getFriendRequestsFromAsync = createAsyncThunk<
   IUser[]
->("currentUser/getFriendRequestsFrom", async () => {
+>("currentUser/getFriendRequestsFromAsync", async () => {
   const response = await getFriendRequestsFrom();
   const users: IUser[] = response.data;
   // The value we return becomes the `fulfilled` action payload
   return users;
 });
 
-export const sendFriendRequestOrAcceptAsync =
-  createAsyncThunk<
-    {
+export const sendFriendRequestAsync = createAsyncThunk<
+  {
+    user: IUser;
+    currentUser: IUser;
+  },
+  string,
+  { dispatch: ThunkDispatch<unknown, unknown, AnyAction> }
+>(
+  "currentUser/sendFriendRequestAsync",
+  async (userId: string, { dispatch }) => {
+    const res = await sendFriendRequest(userId);
+    const props: {
       user: IUser;
       currentUser: IUser;
-    },
-    string,
-    { dispatch: ThunkDispatch<unknown, unknown, AnyAction> }
-  >(
-    "currentUser/sendFriendRequestOrAccept",
-    async (userId: string, { dispatch }) => {
-      const res = await sendFriendRequest(userId);
-      const props: {
-        user: IUser;
-        currentUser: IUser;
-      } = res.data;
+    } = await res.data;
 
-      !!props.currentUser &&
-        dispatch(
-          socketSendFriendRequest({
-            userId,
-            currentUserId: props.currentUser._id!,
-          }),
-        );
-      return props;
-    },
-  );
+    !!props.currentUser &&
+      dispatch(
+        socketSendFriendRequest({
+          userId,
+          currentUserId: props.currentUser._id!,
+        }),
+      );
+    return props;
+  },
+);
+
+export const acceptFriendRequestAsync = createAsyncThunk<
+  {
+    user: IUser;
+    currentUser: IUser;
+  },
+  string,
+  { dispatch: ThunkDispatch<unknown, unknown, AnyAction> }
+>(
+  "currentUser/acceptFriendRequestAsync",
+  async (userId: string, { dispatch }) => {
+    const res = await acceptFriendRequest(userId);
+    const props: {
+      user: IUser;
+      currentUser: IUser;
+    } = res.data;
+
+    !!props.currentUser &&
+      dispatch(
+        socketAcceptFriendRequest({
+          userId,
+          currentUserId: props.currentUser._id!,
+        }),
+      );
+    return props;
+  },
+);
+
+export const declineFriendRequestAsync = createAsyncThunk<
+  {
+    user: IUser;
+    currentUser: IUser;
+  },
+  string,
+  { dispatch: ThunkDispatch<unknown, unknown, AnyAction> }
+>(
+  "currentUser/declineFriendRequestAsync",
+  async (userId: string, { dispatch }) => {
+    const res = await declineFriendRequest(userId);
+    const props: {
+      user: IUser;
+      currentUser: IUser;
+    } = res.data;
+
+    return props;
+  },
+);
 
 export const checkFriendRequestsAsync = createAsyncThunk(
-  "currentUser/checkFriendRequests",
+  "currentUser/checkFriendRequestsAsync",
   async () => {
     await checkFriendRequests();
     return true;
@@ -314,7 +310,7 @@ export const checkFriendRequestsAsync = createAsyncThunk(
 );
 export const checkAcceptedFriendRequestsAsync =
   createAsyncThunk(
-    "currentUser/checkAcceptedFriendRequests",
+    "currentUser/checkAcceptedFriendRequestsAsync",
     async () => {
       await checkAcceptedFriendRequests();
       return true;
@@ -322,7 +318,7 @@ export const checkAcceptedFriendRequestsAsync =
   );
 
 export const addFriendRequestFromAsync = createAsyncThunk(
-  "currentUser/addFriendRequestsFrom",
+  "currentUser/addFriendRequestFromAsync",
   async (userId: string) => {
     console.log(userId);
 
@@ -447,61 +443,79 @@ export const currentUserSlice = createSlice({
         },
       )
 
+      .addCase(sendFriendRequestAsync.pending, (state) => {
+        state.isFetching = true;
+      })
       .addCase(
-        sendFriendRequestOrAcceptAsync.pending,
+        sendFriendRequestAsync.fulfilled,
+        (state, action) => {
+          const { user, currentUser } = action.payload;
+          state.isFetching = false;
+          if (!!user && !!currentUser) {
+            state.friendRequestsTo = [
+              ...(state.friendRequestsTo || []),
+              user._id!,
+            ];
+          }
+        },
+      )
+      .addCase(
+        sendFriendRequestAsync.rejected,
+        (state, action) => {
+          state.isFetching = false;
+          toast(action.error.message, position);
+        },
+      )
+      .addCase(
+        acceptFriendRequestAsync.pending,
         (state) => {
           state.isFetching = true;
         },
       )
       .addCase(
-        sendFriendRequestOrAcceptAsync.fulfilled,
+        acceptFriendRequestAsync.fulfilled,
         (state, action) => {
           const { user, currentUser } = action.payload;
           state.isFetching = false;
-          state.friendRequestsTo = [
-            ...(state.friendRequestsTo?.filter(
-              (frId) => frId !== user._id!,
-            ) || []),
-            user?._id!,
-          ];
-          if (
-            // accept friendRe
-            currentUser.friends?.includes(user._id!) &&
-            !state.friendsOfCurrentUser?.find(
-              (f) => f._id! === user._id!,
-            )
-          ) {
-            state.friendsOfCurrentUser = [
+          if (!!user && !!currentUser) {
+            state.friends = [
+              ...(state.friends || []),
               user,
-              ...(state.friendsOfCurrentUser?.filter(
-                (f) => f._id !== user._id,
-              ) || []),
             ];
-            if (
-              state.friendRequestsFrom
-                ?.map((f) => f._id)
-                .includes(user._id)
-            ) {
-              state.friendRequestsFrom =
-                state.friendRequestsFrom.filter(
-                  (f) => f._id !== user._id,
-                );
-            }
-            if (
-              state.notCheckedFriendRequestsFrom.includes(
-                user._id!,
-              )
-            ) {
-              state.notCheckedFriendRequestsFrom =
-                state.notCheckedFriendRequestsFrom.filter(
-                  (fId) => fId !== user._id,
-                );
-            }
+            state.friendRequestsFrom =
+              state.friendRequestsFrom?.filter(
+                (f) => f._id !== user._id!,
+              );
           }
         },
       )
       .addCase(
-        sendFriendRequestOrAcceptAsync.rejected,
+        acceptFriendRequestAsync.rejected,
+        (state, action) => {
+          state.isFetching = false;
+          toast(action.error.message, position);
+        },
+      )
+      .addCase(
+        declineFriendRequestAsync.pending,
+        (state) => {
+          state.isFetching = true;
+        },
+      )
+      .addCase(
+        declineFriendRequestAsync.fulfilled,
+        (state, action) => {
+          const { user } = action.payload;
+          state.isFetching = false;
+
+          state.friendRequestsFrom =
+            state.friendRequestsFrom?.filter(
+              (f) => f._id !== user._id!,
+            );
+        },
+      )
+      .addCase(
+        declineFriendRequestAsync.rejected,
         (state, action) => {
           state.isFetching = false;
           toast(action.error.message, position);
@@ -536,44 +550,35 @@ export const currentUserSlice = createSlice({
         getBestFriendsOfCurrentUserAsync.fulfilled,
         (state, action) => {
           state.isFetching = false;
-          const {
-            bestFriendsOfCurrentUser,
-            friendsOfCurrentUser,
-          } = action.payload;
+          const { bestFriends, friends } = action.payload;
 
-          if (!!bestFriendsOfCurrentUser) {
-            state.bestFriendsOfCurrentUser =
-              bestFriendsOfCurrentUser;
+          if (!!bestFriends) {
+            state.bestFriends = bestFriends;
           }
-          if (
-            !!friendsOfCurrentUser &&
-            !!bestFriendsOfCurrentUser
-          ) {
-            state.friendsOfCurrentUser =
-              friendsOfCurrentUser
-                .map((f) => {
-                  if (
-                    state.bestFriendsOfCurrentUser.find(
-                      (b) => b.friendId === f._id!,
-                    )
-                  ) {
-                    return {
-                      ...f,
-                      numberOfMessages:
-                        state.bestFriendsOfCurrentUser.find(
-                          (b) => b.friendId === f._id!,
-                        )?.numberOfMessages,
-                    };
-                  } else {
-                    return { ...f, numberOfMessages: 0 };
-                  }
-                })
-                .sort((a, b) => {
-                  return (
-                    b.numberOfMessages! -
-                    a.numberOfMessages!
-                  );
-                });
+          if (!!friends && !!bestFriends) {
+            state.friends = friends
+              .map((f) => {
+                if (
+                  state.bestFriends.find(
+                    (b) => b.friendId === f._id!,
+                  )
+                ) {
+                  return {
+                    ...f,
+                    numberOfMessages:
+                      state.bestFriends.find(
+                        (b) => b.friendId === f._id!,
+                      )?.numberOfMessages,
+                  };
+                } else {
+                  return { ...f, numberOfMessages: 0 };
+                }
+              })
+              .sort((a, b) => {
+                return (
+                  b.numberOfMessages! - a.numberOfMessages!
+                );
+              });
           }
         },
       )
@@ -584,50 +589,7 @@ export const currentUserSlice = createSlice({
           toast(action.error.message, position);
         },
       )
-      .addCase(
-        getFollowersOfCurrentUserAsync.pending,
-        (state) => {
-          state.isFetching = true;
-        },
-      )
-      .addCase(
-        getFollowersOfCurrentUserAsync.fulfilled,
-        (state, action) => {
-          state.isFetching = false;
-          if (!!action.payload) {
-            state.followersOfCurrentUser = action.payload;
-          }
-        },
-      )
-      .addCase(
-        getFollowersOfCurrentUserAsync.rejected,
-        (state, action) => {
-          state.isFetching = false;
-          toast(action.error.message, position);
-        },
-      )
-      .addCase(
-        getFollowedByCurrentUserAsync.pending,
-        (state) => {
-          state.isFetching = true;
-        },
-      )
-      .addCase(
-        getFollowedByCurrentUserAsync.fulfilled,
-        (state, action) => {
-          state.isFetching = false;
-          if (!!action.payload) {
-            state.followedByCurrentUser = action.payload;
-          }
-        },
-      )
-      .addCase(
-        getFollowedByCurrentUserAsync.rejected,
-        (state, action) => {
-          state.isFetching = false;
-          toast(action.error.message, position);
-        },
-      )
+
       .addCase(addFriendAsync.pending, (state) => {
         state.isFetching = true;
       })
@@ -636,10 +598,13 @@ export const currentUserSlice = createSlice({
         (state, action) => {
           state.isFetching = false;
           if (!!action.payload) {
-            state.friendsOfCurrentUser = [
-              ...state.friendsOfCurrentUser,
+            state.friends = [
+              ...state.friends.filter(
+                (f) => f._id !== action.payload._id,
+              ),
               action.payload,
             ];
+            console.log(state.friends, action.payload);
           }
         },
       )
@@ -647,78 +612,36 @@ export const currentUserSlice = createSlice({
         state.isFetching = false;
         toast(action.error.message, position);
       })
-      .addCase(followUserAsync.pending, (state) => {
+
+      .addCase(removeFriendAsync.pending, (state) => {
         state.isFetching = true;
       })
       .addCase(
-        followUserAsync.fulfilled,
+        removeFriendAsync.fulfilled,
         (state, action) => {
+          const {
+            exFriend,
+            currentUser,
+          }: { exFriend: IUser; currentUser: IUser } =
+            action.payload;
           state.isFetching = false;
-          if (!!action.payload) {
-            const {
-              user,
-              currentUser,
-            }: { user: IUser; currentUser: IUser } =
-              action.payload;
-            state.followedByCurrentUser = [
-              ...state.followedByCurrentUser.filter(
-                (f) => f._id !== user._id,
-              ),
-              user,
-            ];
-            if (currentUser.friends?.includes(user._id!)) {
-              state.friendsOfCurrentUser = [
-                user,
-                ...state.friendsOfCurrentUser.filter(
-                  (f) => f._id !== user._id,
-                ),
-              ];
-              state.friendRequestsFrom =
-                state.friendRequestsFrom.filter(
-                  (f) => f._id !== user._id!,
-                );
-              state.friendRequestsTo =
-                state.friendRequestsTo.filter(
-                  (fId) => fId !== user._id!,
-                );
-              state.notCheckedFriendRequestsFrom =
-                state.notCheckedFriendRequestsFrom?.filter(
-                  (fId) => fId !== user._id!,
-                );
-            }
+          if (!!exFriend && !!currentUser) {
+            state.friends = state.friends.filter(
+              (f) => f._id !== exFriend._id,
+            );
           }
+
+          console.log(state.friends);
         },
       )
       .addCase(
-        followUserAsync.rejected,
+        removeFriendAsync.rejected,
         (state, action) => {
           state.isFetching = false;
           toast(action.error.message, position);
         },
       )
-      .addCase(unfollowUserAsync.pending, (state) => {
-        state.isFetching = true;
-      })
-      .addCase(
-        unfollowUserAsync.fulfilled,
-        (state, action) => {
-          state.isFetching = false;
-          if (!!action.payload) {
-            state.followedByCurrentUser = [
-              ...state.followedByCurrentUser,
-            ].filter((f) => {
-              return f._id !== action.payload;
-            });
-          }
-        },
-      )
-      .addCase(
-        unfollowUserAsync.rejected,
-        (state, action) => {
-          state.isFetching = false;
-          toast(action.error.message, position);
-        },
-      )
+
       .addCase(
         checkFriendRequestsAsync.pending,
         (state) => {
@@ -853,9 +776,9 @@ export const currentUserSlice = createSlice({
             if (
               state.friendRequestsTo.includes(user._id!)
             ) {
-              state.friendsOfCurrentUser = [
+              state.friends = [
                 user,
-                ...state.friendsOfCurrentUser.filter(
+                ...state.friends.filter(
                   (f) => f._id !== user._id,
                 ),
               ];
@@ -897,10 +820,9 @@ export const currentUserSlice = createSlice({
       )
       .addCase(signoutAsync.fulfilled, (state) => {
         state.currentUser = undefined;
-        state.followedByCurrentUser = [];
-        state.followersOfCurrentUser = [];
-        state.friendsOfCurrentUser = [];
-        state.bestFriendsOfCurrentUser = [];
+
+        state.friends = [];
+        state.bestFriends = [];
         state.friendRequestsTo = [];
         state.friendRequestsFrom = [];
         state.notCheckedFriendRequestsFrom = [];
@@ -932,17 +854,13 @@ export const selectCurrentUserRelatives = (
 export const selectCurrentUser = (state: RootState) =>
   state.currentUserRelatives.currentUser;
 
-export const selectFollowedByCurrentUser = (
-  state: RootState,
-) => state.currentUserRelatives.followedByCurrentUser;
-
 export const selectBestFriendsOfCurrentUser = (
   state: RootState,
-) => state.currentUserRelatives.bestFriendsOfCurrentUser;
+) => state.currentUserRelatives.bestFriends;
 
 export const selectFriendsOfCurrentUser = (
   state: RootState,
-) => state.currentUserRelatives.friendsOfCurrentUser;
+) => state.currentUserRelatives.friends;
 
 export const selectFriendRequestsFrom = (
   state: RootState,

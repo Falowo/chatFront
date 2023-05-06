@@ -10,8 +10,7 @@ import {
 } from "../store";
 import { toast } from "react-toastify";
 import {
-  getFollowedUsersByUserIdParams,
-  getFollowersByUserIdParams,
+  
   getFriendsByUserIdParams,
   getUserByUsernameQuery,
 } from "../../api/users.api";
@@ -23,8 +22,7 @@ const position = {
 
 export interface SelectedUserState {
   selectedUser?: IUser;
-  followedBySelectedUser: IUser[];
-  followersOfSelectedUser: IUser[];
+  
   friendsOfSelectedUser: IUser[];
   isFetching: boolean;
   error: any;
@@ -32,8 +30,7 @@ export interface SelectedUserState {
 
 const initialState: SelectedUserState = {
   selectedUser: undefined,
-  followedBySelectedUser: [],
-  followersOfSelectedUser: [],
+  
   friendsOfSelectedUser: [],
   isFetching: false,
   error: null,
@@ -46,7 +43,7 @@ const initialState: SelectedUserState = {
 // typically used to make async requests.
 
 export const setSelectedUserAsync = createAsyncThunk(
-  "selectedUser/setSelectedUser",
+  "selectedUser/setSelectedUserAsync",
   async (username?: string) => {
     if (!!username) {
       const res = await getUserByUsernameQuery(username);
@@ -59,7 +56,7 @@ export const setSelectedUserAsync = createAsyncThunk(
 
 export const getFriendsOfSelectedUserAsync =
   createAsyncThunk(
-    "selectedUser/getFriendsOfSelectedUser",
+    "selectedUser/getFriendsOfSelectedUserAsync",
     async (selectedUserId: string) => {
       const response = await getFriendsByUserIdParams(
         selectedUserId,
@@ -71,30 +68,7 @@ export const getFriendsOfSelectedUserAsync =
     },
   );
 
-export const getFollowersOfSelectedUserAsync =
-  createAsyncThunk(
-    "selectedUser/getFollowersOfSelectedUser",
-    async (selectedUserId: string) => {
-      const response = await getFollowersByUserIdParams(
-        selectedUserId,
-      );
-      const users: IUser[] = response.data;
-      // The value we return becomes the `fulfilled` action payload
-      return users;
-    },
-  );
-export const getFollowedBySelectedUserAsync =
-  createAsyncThunk(
-    "selectedUser/getFollowedBySelectedUser",
-    async (selectedUserId: string) => {
-      const response = await getFollowedUsersByUserIdParams(
-        selectedUserId,
-      );
-      const users: IUser[] = response.data;
-      // The value we return becomes the `fulfilled` action payload
-      return users;
-    },
-  );
+
 
 export const selectedUserSlice = createSlice({
   name: "selectedUser",
@@ -141,62 +115,14 @@ export const selectedUserSlice = createSlice({
           }
         },
       )
-      .addCase(
-        getFriendsOfSelectedUserAsync.rejected,
-        (state, action) => {
-          console.log(action.type);
-          console.log(action);
-          state.isFetching = false;
-        },
-      )
-      .addCase(
-        getFollowersOfSelectedUserAsync.pending,
-        (state) => {
-          state.isFetching = true;
-        },
-      )
-      .addCase(
-        getFollowersOfSelectedUserAsync.fulfilled,
-        (state, action) => {
-          state.isFetching = false;
-          if (!!action.payload) {
-            state.followersOfSelectedUser = action.payload;
-          }
-        },
-      )
-      .addCase(
-        getFollowersOfSelectedUserAsync.rejected,
-        (state, action) => {
-          state.isFetching = false;
-          toast(action.error.message, position);
-        },
-      )
-      .addCase(
-        getFollowedBySelectedUserAsync.pending,
-        (state) => {
-          state.isFetching = true;
-        },
-      )
-      .addCase(
-        getFollowedBySelectedUserAsync.fulfilled,
-        (state, action) => {
-          state.isFetching = false;
-          if (!!action.payload) {
-            state.followedBySelectedUser = action.payload;
-          }
-        },
-      )
-      .addCase(
-        getFollowedBySelectedUserAsync.rejected,
-        (state, action) => {
-          state.isFetching = false;
-          toast(action.error.message, position);
-        },
-      )
+      
+      
+      
+      
+      
+      
       .addCase(signoutAsync.fulfilled, (state) => {
         state.selectedUser = undefined;
-        state.followedBySelectedUser = [];
-        state.followersOfSelectedUser = [];
         state.friendsOfSelectedUser = [];
         state.isFetching = false;
         state.error = null;
@@ -219,9 +145,7 @@ export const selectFriendsOfSelectedUser = (
   state: RootState,
 ) => state.selectedUserAndRelatives.friendsOfSelectedUser;
 
-export const selectFollowedBySelectedUser = (
-  state: RootState,
-) => state.selectedUserAndRelatives.followedBySelectedUser;
+
 // We can also write thunks by hand, which may contain both sync and async logic.
 // Here's an example of conditionally dispatching actions based on current state.
 // export const incrementIfOdd =

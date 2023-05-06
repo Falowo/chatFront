@@ -11,9 +11,7 @@ import {
   IUser,
   Status,
 } from "../../interfaces";
-import {
-  RootState,
-} from "../store";
+import { RootState } from "../store";
 // import { toast } from "react-toastify";
 import {
   createNewConversation,
@@ -23,16 +21,17 @@ import {
 } from "../../api/conversations.api";
 import {
   createMessage,
+  deleteMessage,
   getCurrentUserUncheckedMessagesByConversationIdParams,
   getLastMessageByConversationIdParams,
   getMessagesByConversationIdParams,
   messageReceivedByCurrentUser,
   messagesCheckedByCurrentUser,
+  updateMessage,
 } from "../../api/messages.api";
 import { selectCurrentUser } from "./currentUserSlice";
 import { getUserByUserIdQuery } from "../../api/users.api";
 import { signoutAsync } from "./authSlice";
-
 
 // const position = {
 //   position: toast.POSITION.BOTTOM_RIGHT,
@@ -76,7 +75,7 @@ const initialState: MessengerState = {
 // typically used to make async requests.
 
 export const getConversationsAsync = createAsyncThunk(
-  "messenger/getConversations",
+  "messenger/getConversationsAsync",
   async () => {
     const response = await getCurrentUserConversations();
     // The value we return becomes the `fulfilled` action payload
@@ -94,7 +93,7 @@ export const getConversationNameAndPictureAsync =
     IPConversation,
     { state: RootState }
   >(
-    "messenger/getConversationName",
+    "messenger/getConversationNameAndPictureAsync",
     async (conversation, { getState }) => {
       // console.log("!conversation.groupName");
       const currentUser = selectCurrentUser(getState());
@@ -131,7 +130,7 @@ export const getConversationNameAndPictureAsync =
   );
 export const getUncheckedByCurrentUserAsync =
   createAsyncThunk(
-    "messenger/getUncheckedByCurrentUser",
+    "messenger/getUncheckedByCurrentUserAsync",
     async (conversationsIds: Set<string>) => {
       const arrayIds = Array.from(conversationsIds);
 
@@ -151,7 +150,7 @@ export const getUncheckedByCurrentUserAsync =
     },
   );
 export const createNewMessageAsync = createAsyncThunk(
-  "messenger/createNewMessage",
+  "messenger/createNewMessageAsync",
   async (newMessage: IMessage) => {
     const response = await createMessage(newMessage);
     // The value we return becomes the `fulfilled` action payload
@@ -160,18 +159,30 @@ export const createNewMessageAsync = createAsyncThunk(
   },
 );
 export const updateMessageAsync = createAsyncThunk(
-  "messenger/createNewMessage",
-  async (newMessage: IMessage) => {
-    const response = await createMessage(newMessage);
+  "messenger/updateMessageAsync",
+  async (updatedMessage: IPMessage) => {
+    const response = await updateMessage({
+      messageId: updatedMessage._id!,
+      text: updatedMessage.text || "",
+    });
     // The value we return becomes the `fulfilled` action payload
-    const pMessage: IPMessage = response.data;
-    return pMessage;
+    const message: IPMessage = await response.data;
+    return message;
+  },
+);
+
+export const deleteMessageAsync = createAsyncThunk(
+  "messenger/deleteMessageAsync",
+  async (messageId: string) => {
+    await deleteMessage(messageId);
+    // The value we return becomes the `fulfilled` action payload
+    return messageId;
   },
 );
 
 export const messageReceivedByCurrentUserAsync =
   createAsyncThunk(
-    "messenger/messageReceivedByCurrentUser",
+    "messenger/messageReceivedByCurrentUserAsync",
     async (props: {
       messageId: string;
       conversation: IConversation;
@@ -190,7 +201,7 @@ export const messageReceivedByCurrentUserAsync =
 
 export const conversationCheckedByCurrentUserAsync =
   createAsyncThunk(
-    "messenger/conversationCheckedByCurrentUser",
+    "messenger/conversationCheckedByCurrentUserAsync",
     async (props: {
       conversationId: string;
       currentUserId: string;
@@ -211,7 +222,7 @@ export const conversationCheckedByCurrentUserAsync =
   );
 
 export const setCurrentChatAsync = createAsyncThunk(
-  "messenger/setCurrentChat",
+  "messenger/setCurrentChatAsync",
   async (props: {
     selectedIPConversation?: IPConversation;
     selectedIConversation?: IConversation;
@@ -275,7 +286,7 @@ export const setCurrentChatAsync = createAsyncThunk(
 
 export const getExisitingConversationOrCreateOneAsync =
   createAsyncThunk(
-    "messenger/findExisitingConversationOrCreateOne",
+    "messenger/getExisitingConversationOrCreateOneAsync",
     async (props: { userId: string }): Promise<any> => {
       const { userId } = props;
 
@@ -283,23 +294,26 @@ export const getExisitingConversationOrCreateOneAsync =
         await getPrivateConversationByFriendIdParams(
           userId,
         );
-      let conversation = res?.data;
-      if (!!conversation) {
+      let conversation = await res.data;
+      if (conversation) {
+        console.log("conversation", conversation);
         const res =
           await getLastMessageByConversationIdParams(
             conversation._id!,
           );
         conversation = {
           ...conversation,
-          lastMessageId: res.data,
+          lastMessageId: await res.data,
         };
       } else {
         const receiversId = [userId];
+        console.log("receiversId", receiversId);
+
         const res = await createNewConversation(
           receiversId,
         );
 
-        conversation = res.data;
+        conversation = await res.data;
       }
       return conversation;
     },
@@ -922,14 +936,11 @@ export const messengerSlice = createSlice({
           }
         },
       )
-      .addCase(
-        setCurrentChatAsync.rejected,
-        (state) => {
-          state.isFetching = false;
-          state.selectedConversation = undefined;
-          // toast(action.error.message, position);
-        },
-      )
+      .addCase(setCurrentChatAsync.rejected, (state) => {
+        state.isFetching = false;
+        state.selectedConversation = undefined;
+        // toast(action.error.message, position);
+      })
       .addCase(createNewMessageAsync.pending, (state) => {
         state.isFetching = true;
       })
@@ -962,14 +973,77 @@ export const messengerSlice = createSlice({
           }
         },
       )
+      .addCase(createNewMessageAsync.rejected, (state) => {
+        state.isFetching = false;
+        state.lastMessage = undefined;
+        // toast(action.error.message, position);
+      })
+      .addCase(updateMessageAsync.pending, (state) => {
+        state.isFetching = true;
+      })
       .addCase(
-        createNewMessageAsync.rejected,
-        (state) => {
+        updateMessageAsync.fulfilled,
+        (state, action) => {
           state.isFetching = false;
-          state.lastMessage = undefined;
-          // toast(action.error.message, position);
+          if (!!action.payload) {
+            
+            state.currentChat = {
+              ...state.currentChat!,
+              messages: [
+                ...(state.currentChat?.messages.map((m) => {
+                  if (m._id === action.payload._id) {
+                    return action.payload;
+                  } else return { ...m };
+                }) || []),
+              ],
+            };
+          }
         },
       )
+      .addCase(updateMessageAsync.rejected, (state) => {
+        state.isFetching = false;
+        // toast(action.error.message, position);
+      })
+      .addCase(deleteMessageAsync.pending, (state) => {
+        state.isFetching = true;
+      })
+      .addCase(
+        deleteMessageAsync.fulfilled,
+        (state, action) => {
+          state.isFetching = false;
+          if (!!action.payload) {
+            state.currentChat = {
+              ...state.currentChat!,
+              messages: [
+                ...(state.currentChat?.messages.filter(
+                  (m) => m._id !== action.payload,
+                ) || []),
+              ],
+            };
+            state.conversations = [
+              ...(state.conversations.map((c) => {
+                if (
+                  c._id ===
+                  state.currentChat?.conversation._id
+                ) {
+                  return {
+                    ...c,
+                    lastMessageId:
+                      c.lastMessageId?._id ===
+                      action.payload
+                        ? undefined
+                        : c.lastMessageId,
+                  };
+                } else return { ...c };
+              }) || []),
+            ];
+          }
+        },
+      )
+      .addCase(deleteMessageAsync.rejected, (state) => {
+        state.isFetching = false;
+        // toast(action.error.message, position);
+      })
       .addCase(
         getExisitingConversationOrCreateOneAsync.pending,
         (state) => {

@@ -12,8 +12,6 @@ export interface IUser {
   password?: string;
   profilePicture?: string;
   coverPicture?: string;
-  followersIds?: string[];
-  followedIds?: string[];
   friendRequestsFrom?: string[];
   friendRequestsTo?: string[];
   friends?: string[];
@@ -38,20 +36,3 @@ export interface ToUpdateUserDesc {
   desc?: string;
 }
 
-// export interface IFakeUser {
-//   token?: string;
-//   _id?: string;
-//   username: string;
-//   email?: string;
-//   password?: string;
-//   profilePicture?: string;
-//   coverPicture?: string;
-//   followersIds?: string[];
-//   followedIds?: string[];
-//   isAdmin?: boolean;
-//   desc?: string;
-//   city?: string;
-//   from?: string;
-//   relationship?: Relationship;
-//   birthDate?: Date;
-// }

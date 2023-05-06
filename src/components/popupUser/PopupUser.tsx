@@ -7,15 +7,16 @@ import {
   useAppDispatch,
   useAppSelector,
 } from "../../app/hooks";
-import { selectCurrentUser } from "../../app/slices/currentUserSlice";
 import {
-  followUserAsync,
-  selectFollowedByCurrentUser,
+  acceptFriendRequestAsync,
+  declineFriendRequestAsync,
+  selectCurrentUser,
+  sendFriendRequestAsync,
+} from "../../app/slices/currentUserSlice";
+import {
   selectFriendRequestsFrom,
   selectFriendRequestsTo,
   selectFriendsOfCurrentUser,
-  sendFriendRequestOrAcceptAsync,
-  unfollowUserAsync,
 } from "../../app/slices/currentUserSlice";
 // import { useAppDispatch } from "../../app/hooks";
 import "./popupUser.css";
@@ -35,65 +36,80 @@ export default function PopupUser(props: {
   const friendsOfCurrentUser = useAppSelector(
     selectFriendsOfCurrentUser,
   );
-  const followedByCurrentUser = useAppSelector(
-    selectFollowedByCurrentUser,
-  );
-  // const dispatch = useAppDispatch();
-  // const navigate = useNavigate();
+
 
   return (
     <div className="popup">
       {!!currentUser &&
-        userId !== currentUser?._id! && !friendsOfCurrentUser
-        .map((f) => f._id!)
-        .includes(userId) &&
-        !friendRequestsTo.includes(userId) && (
+        userId !== currentUser?._id! &&
+        !friendsOfCurrentUser
+          .map((f) => f._id!)
+          .includes(userId) &&
+        !friendRequestsTo.includes(userId) &&
+        !friendRequestsFrom
+          .map((f) => f._id!)
+          .includes(userId) && (
           <Link
             to={`/`}
             className="popupAction"
             onClick={(e) => {
               e.preventDefault();
               currentUser?._id &&
-                dispatch(
-                  sendFriendRequestOrAcceptAsync(userId),
-                );
+                dispatch(sendFriendRequestAsync(userId));
             }}
           >
-            {friendRequestsFrom
-              .map((f) => f._id!)
-              .includes(userId)
-              ? `Accept friend request`
-              : `Send a friend request`}
+            Add as Friend
           </Link>
         )}
+      {!!currentUser &&
+        userId !== currentUser?._id! &&
+        !friendsOfCurrentUser
+          .map((f) => f._id!)
+          .includes(userId) &&
+        !friendRequestsTo.includes(userId) &&
+        !!friendRequestsFrom
+          .map((f) => f._id!)
+          .includes(userId) && (
+          <Link
+            to={`/`}
+            className="popupAction"
+            onClick={(e) => {
+              e.preventDefault();
+              currentUser?._id &&
+                dispatch(acceptFriendRequestAsync(userId));
+            }}
+          >
+            Accept friend request
+          </Link>
+        )}
+      {!!currentUser &&
+        userId !== currentUser?._id! &&
+        !friendsOfCurrentUser
+          .map((f) => f._id!)
+          .includes(userId) &&
+        !friendRequestsTo.includes(userId) &&
+        !!friendRequestsFrom
+          .map((f) => f._id!)
+          .includes(userId) && (
+          <Link
+            to={`/`}
+            className="popupAction"
+            onClick={(e) => {
+              e.preventDefault();
+              currentUser?._id &&
+                dispatch(declineFriendRequestAsync(userId));
+            }}
+          >
+            Decline friend request
+          </Link>
+        )}
+      
 
-      {!!currentUser &&
-        userId !== currentUser?._id! && (<Link
-        to={`/messenger/${userId}`}
-        className="popupAction"
-      >
-        Send a message
-      </Link>)}
-      {!!currentUser &&
-        userId !== currentUser?._id! &&(<Link
-        to={`/`}
-        className="popupAction"
-        onClick={(e) => {
-          e.preventDefault();
-          !followedByCurrentUser
-            .map((f) => f._id)
-            .includes(userId)
-            ? dispatch(followUserAsync({ userId }))
-            : dispatch(unfollowUserAsync({ userId }));
-            
-        }}
-      >
-        {followedByCurrentUser
-          .map((f) => f._id)
-          .includes(userId)
-          ? "Unfollow"
-          : "Follow"}
-      </Link>)}
+      {!!currentUser && userId !== currentUser?._id! && (
+        <Link to={`/${userId}`} className="popupAction">
+          Send a message
+        </Link>
+      )}
     </div>
   );
 }

@@ -47,3 +47,17 @@ export const getCurrentUserUncheckedMessagesByConversationIdParams =
       `messages/unchecked/currentUser/${conversationId}`,
     );
   };
+
+export const deleteMessage = (messageId: string) => {
+  return instance().delete(`messages/${messageId}`);
+};
+
+export const updateMessage = ({
+  messageId,
+  text,
+}: {
+  messageId: string;
+  text: string;
+}) => {
+  return instance().put(`messages/${messageId}`, { text });
+};

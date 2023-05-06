@@ -38,6 +38,8 @@ export interface SocketState {
     receiverId: string;
   }[];
   sentFriendRequestsIds: string[];
+  acceptedFriendRequestsIds: string[];
+
   rooms: any[];
   isFetching: boolean;
   error: any;
@@ -51,6 +53,7 @@ const initialState: SocketState = {
   lastMessagesReceived: [],
   lastMessagesChecked: [],
   sentFriendRequestsIds: [],
+  acceptedFriendRequestsIds: [],
   rooms: [],
   isFetching: false,
   error: false,
@@ -64,7 +67,7 @@ const initialState: SocketState = {
 
 export const socketCurrentUserCheckMessagesAsync =
   createAsyncThunk(
-    "socket/socketCurrentUserCheckMessages",
+    "socket/socketCurrentUserCheckMessagesAsync",
     async (props: {
       messagesIds: string[];
       currentUserId: string;
@@ -103,9 +106,7 @@ export const socketSlice = createSlice({
       socket.emit("addUser", currentUserId);
       state.addUserEmited = true;
     },
-    socketRemoveUser: (
-      state,
-    ) => {
+    socketRemoveUser: (state) => {
       socket.emit("removeUser");
 
       state.removeUserEmited = true;
@@ -142,6 +143,46 @@ export const socketSlice = createSlice({
           ) || []),
           userId,
         ];
+      }
+    },
+    socketAcceptFriendRequest: (
+      state,
+      action: PayloadAction<{
+        userId: string;
+        currentUserId: string;
+      }>,
+    ) => {
+      const { userId, currentUserId } = action.payload;
+
+      if (
+        state.connectedUsers.find(
+          (c) => c.userId === userId,
+        )
+      ) {
+        socket?.emit("acceptFriendRequest", {
+          receiverId: userId,
+          senderId: currentUserId,
+        });
+      }
+    },
+    socketDeclineFriendRequest: (
+      state,
+      action: PayloadAction<{
+        userId: string;
+        currentUserId: string;
+      }>,
+    ) => {
+      const { userId, currentUserId } = action.payload;
+
+      if (
+        state.connectedUsers.find(
+          (c) => c.userId === userId,
+        )
+      ) {
+        socket?.emit("declineFriendRequest", {
+          receiverId: userId,
+          senderId: currentUserId,
+        });
       }
     },
 
@@ -258,6 +299,8 @@ export const {
   setConnectedUsers,
   socketSendMessage,
   socketSendFriendRequest,
+  socketAcceptFriendRequest,
+  socketDeclineFriendRequest,
   socketGotMessage,
 } = socketSlice.actions;
 

@@ -18,7 +18,6 @@ import {
 } from "../../app/slices/searchSlice";
 import {
   checkFriendRequestsAsync,
-  getFollowedByCurrentUserAsync,
   selectFriendRequestsFrom,
   selectNotCheckedAcceptedFriendRequestsBy,
   selectNotCheckedFriendRequestsFrom,
@@ -90,13 +89,6 @@ export default function Topbar() {
       );
   }, [uncheckedByCurrentUser]);
 
-  useEffect(() => {
-    !!currentUser &&
-      dispatch(
-        getFollowedByCurrentUserAsync(currentUser._id!),
-      );
-  }, [currentUser, currentUser?._id, dispatch]);
-
   return (
     <div className="topbarContainer">
       <div className="topbarLeft">
@@ -129,6 +121,7 @@ export default function Topbar() {
               to="/friend/requests"
               onClick={(e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 dispatch(checkFriendRequestsAsync());
                 !!friendRequestsFrom?.length &&
                   navigate("/friend/requests");

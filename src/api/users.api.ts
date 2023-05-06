@@ -20,30 +20,28 @@ export const getFriendsByUserIdParams = (
   return instance().get(`users/friends/${userId}`);
 };
 
-export const getFollowersByUserIdParams = (
-  userId: string,
-) => {
-  return instance().get(`users/followers/${userId}`);
-};
-export const getFollowedUsersByUserIdParams = (
-  userId: string,
-) => {
-  return instance().get(`users/followedUsers/${userId}`);
-};
-
-export const unfollowUser = (userId: string) => {
-  return instance().put(`users/${userId}/unfollow`, {});
-};
-
-export const followUser = (userId: string) => {
-  return instance().put(`users/${userId}/follow`, {});
-};
 export const addFriend = (userId: string) => {
   return instance().put(`users/${userId}/addFriend`, {});
 };
+export const removeFriend = (userId: string) => {
+  return instance().put(`users/${userId}/removeFriend`, {});
+};
+
 export const sendFriendRequest = (userId: string) => {
   return instance().put(
-    `users/${userId}/friendRequest`,
+    `users/${userId}/sendFriendRequest`,
+    {},
+  );
+};
+export const acceptFriendRequest = (userId: string) => {
+  return instance().put(
+    `users/${userId}/acceptFriendRequest`,
+    {},
+  );
+};
+export const declineFriendRequest = (userId: string) => {
+  return instance().put(
+    `users/${userId}/declineFriendRequest`,
     {},
   );
 };

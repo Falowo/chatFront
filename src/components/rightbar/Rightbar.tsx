@@ -6,7 +6,7 @@ import CreateIcon from "@mui/icons-material/Create";
 import { useState, useEffect } from "react";
 // import { useDispatch } from "react-redux";
 import { Link, useParams } from "react-router-dom";
-import { Add, Remove } from "@material-ui/icons";
+// import { Add, Remove } from "@material-ui/icons";
 
 import {
   useAppSelector,
@@ -18,14 +18,10 @@ import {
   setEditInfoMode,
 } from "../../app/slices/currentUserSlice";
 import {
-  followUserAsync,
   selectFriendsOfCurrentUser,
   selectCurrentUserRelatives,
-  selectFollowedByCurrentUser,
-  unfollowUserAsync,
 } from "../../app/slices/currentUserSlice";
 import {
-  selectFollowedBySelectedUser,
   selectFriendsOfSelectedUser,
   selectSelectedUser,
   selectSelectedUserAndRelatives,
@@ -50,12 +46,8 @@ export default function Rightbar() {
   const currentUserFriends = useAppSelector(
     selectFriendsOfCurrentUser,
   );
-  const followedByCurrentUser = useAppSelector(
-    selectFollowedByCurrentUser,
-  );
-  const followedBySelectedUser = useAppSelector(
-    selectFollowedBySelectedUser,
-  );
+  
+  
 
   const [isCurrentUserPage, setIsCurrentUserPage] =
     useState<boolean>(
@@ -64,26 +56,10 @@ export default function Rightbar() {
 
   const dispatch = useAppDispatch();
 
-  const [followed, setFollowed] = useState<boolean>(
-    !!followedByCurrentUser?.length
-      ? !!followedByCurrentUser
-          ?.map((f) => f._id!)
-          .includes(selectedUser?._id!)
-      : false,
-  );
 
   const editInfoMode = useAppSelector(selectEditInfoMode);
 
-  useEffect(() => {
-    setFollowed(
-      !!followedByCurrentUser?.length
-        ? !!followedByCurrentUser
-            ?.map((f) => f._id!)
-            .includes(selectedUser?._id!)
-        : false,
-    );
-  }, [followedByCurrentUser, selectedUser?._id, username]);
-
+ 
   useEffect(() => {
     !!currentUser?._id &&
       !!selectedUser?._id &&
@@ -92,48 +68,11 @@ export default function Rightbar() {
       );
   }, [currentUser?._id, selectedUser?._id]);
 
-  const handleClick = async () => {
-    if (!!selectedUser && !!currentUser) {
-      try {
-        if (followed) {
-          dispatch(
-            unfollowUserAsync({
-              userId: selectedUser!._id!,
-            }),
-          );
-        } else {
-          dispatch(
-            followUserAsync({
-              userId: selectedUser!._id!,
-            }),
-          );
-        }
-        setFollowed(!followed);
-      } catch (err) {
-        console.log(err);
-      }
-    }
-  };
 
-  useEffect(() => {
-    setFollowed(
-      !!followedByCurrentUser?.length
-        ? !!followedByCurrentUser
-            ?.map((f) => f._id!)
-            .includes(selectedUser?._id!)
-        : false,
-    );
-  }, [
-    currentUser,
-    followedByCurrentUser,
-    selectedUser?._id,
-  ]);
 
   const HomeRightbar = () => {
     return (
-      <div
-      className="rightbar"
-      >
+      <div className="rightbar">
         {!currentUserRelatives.isFetching ? (
           <h4 className="rightbarTitle">Your Friends</h4>
         ) : (
@@ -160,16 +99,7 @@ export default function Rightbar() {
   const ProfileRightbar = () => {
     return (
       <>
-        {!!selectedUser &&
-          selectedUser?._id !== currentUser?._id && (
-            <button
-              className="rightbarFollowButton"
-              onClick={handleClick}
-            >
-              {followed ? "Unfollow" : "Follow"}
-              {followed ? <Remove /> : <Add />}
-            </button>
-          )}
+       
         <Box
           sx={{
             display: "flex",
@@ -273,42 +203,6 @@ export default function Rightbar() {
             )
           ) : (
             currentUserFriends?.map((friend) => (
-              <Link
-                key={friend._id}
-                to={"/profile/" + friend.username}
-                style={{ textDecoration: "none" }}
-              >
-                <UserSquare
-                  key={friend._id!}
-                  friend={friend}
-                />
-              </Link>
-            ))
-          )}
-        </div>
-        <h4 className="rightbarTitle">
-          {username} is following :
-        </h4>
-        <div className="rightbarFollowings">
-          {!isCurrentUserPage ? (
-            !selectedUserAndRelatives.isFetching ? (
-              followedBySelectedUser?.map((friend) => (
-                <Link
-                  key={friend._id}
-                  to={"/profile/" + friend.username}
-                  style={{ textDecoration: "none" }}
-                >
-                  <UserSquare
-                    key={friend._id!}
-                    friend={friend}
-                  />
-                </Link>
-              ))
-            ) : (
-              <p>uploading...</p>
-            )
-          ) : (
-            followedByCurrentUser?.map((friend) => (
               <Link
                 key={friend._id}
                 to={"/profile/" + friend.username}

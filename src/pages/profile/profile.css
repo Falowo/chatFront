@@ -49,6 +49,7 @@
 
 .profileRightBottom {
   display: flex;
+  flex-direction: row-reverse;
 }
 .photoCamera {
   border-radius: 50%;

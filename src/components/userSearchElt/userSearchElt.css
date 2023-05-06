@@ -36,10 +36,26 @@
   flex: 1;
 }
 
-.followButton {
+.addButton {
   margin: 30px 10px 10px 0;
   border: none;
   background-color: #1872f2;
+  color: white;
+  border-radius: 5px;
+  padding: 5px 10px;
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  width: 100%;
+  justify-content: center;
+}
+
+.removeButton{
+  margin: 30px 10px 10px 0;
+  border: none;
+  background-color: #f02849;
   color: white;
   border-radius: 5px;
   padding: 5px 10px;

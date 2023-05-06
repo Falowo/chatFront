@@ -6,30 +6,35 @@ import "./home.css";
 import { useAppDispatch } from "../../app/hooks";
 
 import { checkExp } from "../../app/slices/authSlice";
-import { setSelectedUserAsync } from "../../app/slices/selectedUserSlice";
 import CookieConsent from "react-cookie-consent";
-import Messenger from "../messenger/Messenger";
+import Messenger from "../../components/messenger/Messenger";
+import { useParams } from "react-router-dom";
 
 export default function Home() {
   const dispatch = useAppDispatch();
+  const { userId } = useParams();
+
+  useEffect(() => {
+    console.log(userId);
+  }, [userId]);
 
   useEffect(() => {
     dispatch(checkExp());
   }, [dispatch]);
 
-  useEffect(() => {
-    dispatch(setSelectedUserAsync());
-  });
+  
 
   return (
-    <div>
+    <div
+      style={{ width: "100%", border: "1px solid orange" }}
+    >
       <Topbar />
       <div className="homeContainer">
         <CookieConsent>
           This website uses cookies to enhance the user
           experience.
         </CookieConsent>
-        <Messenger />
+        <Messenger userId={userId} />
         {window.innerWidth >= 900 && <Rightbar />}
       </div>
     </div>

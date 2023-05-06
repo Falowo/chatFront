@@ -51,7 +51,7 @@ const initialState: AuthState = {
 // code can then be executed and other actions can be dispatched. Thunks are
 // typically used to make async requests.
 export const signinAsync = createAsyncThunk(
-  "auth/signin",
+  "auth/signinAsync",
   async (creds: IUserSigninCredentials) => {
     const response = await signin(creds);
     // The value we return becomes the `fulfilled` action payload
@@ -61,7 +61,7 @@ export const signinAsync = createAsyncThunk(
   },
 );
 export const signoutAsync = createAsyncThunk(
-  "auth/signout",
+  "auth/signoutAsync",
   async () => {
     // The value we return becomes the `fulfilled` action payload
     localStorage.removeItem("token");
@@ -70,7 +70,7 @@ export const signoutAsync = createAsyncThunk(
   },
 );
 export const signupAsync = createAsyncThunk(
-  "auth/signup",
+  "auth/signupAsync",
   async (user: IUser) => {
     const response = await signup(user);
     // The value we return becomes the `fulfilled` action payload
@@ -81,7 +81,7 @@ export const signupAsync = createAsyncThunk(
   },
 );
 export const refreshTokenAsync = createAsyncThunk(
-  "auth/refreshToken",
+  "auth/refreshTokenAsync",
   async () => {
     const token = localStorage.getItem("token");
     let res: AxiosResponse<string, any>;

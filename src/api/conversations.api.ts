@@ -18,5 +18,5 @@ export const createNewConversation = (
   receiversId: string[],
   groupName?: string,
 ) => {
-  return instance().post(`conversations/`, {receiversId, groupName});
+  return instance().post(`conversations/new`, {receiversId, groupName});
 };

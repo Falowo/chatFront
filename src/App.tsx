@@ -4,7 +4,6 @@ import { Container } from "@mui/material";
 import Signin from "./pages/signin/Signin";
 import Home from "./pages/home/Home";
 import SignUp from "./pages/register/Signup";
-import Messenger from "./pages/messenger/Messenger";
 import Profile from "./pages/profile/Profile";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -25,10 +24,12 @@ import {
 } from "./app/slices/socketSlice";
 import { socket } from "./config/config.socket";
 import {
+  addFriendAsync,
   addFriendRequestFromAsync,
   getCurrentUserAsync,
   getFriendRequestsFromAsync,
   getFriendsOfCurrentUserAsync,
+  removeFriendAsync,
   selectCurrentUser,
   setFriendRequestsTo,
   setNotCheckedAcceptedFriendRequestsBy,
@@ -47,9 +48,14 @@ import {
 } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 
-const darkTheme = createTheme({
+// const darkTheme = createTheme({
+//   palette: {
+//     mode: "dark",
+//   },
+// });
+const lightTheme = createTheme({
   palette: {
-    mode: "dark",
+    mode: "light",
   },
 });
 
@@ -194,13 +200,8 @@ const App = () => {
           dispatch(setConnectedUsers(users));
         },
       );
-  }, [
-    connectedUsers,
-    dispatch,
-    authUser,
-    authToken,
-    currentUser,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser?._id]);
 
   useEffect(() => {
     !!authUser &&
@@ -213,6 +214,31 @@ const App = () => {
   }, [dispatch, authUser, authToken, currentUser]);
 
   useEffect(() => {
+    !!authUser &&
+      !!authToken &&
+      !!currentUser &&
+      currentUser._id === authUser._id &&
+      socket?.on(
+        "acceptedFriendRequest",
+        (senderId: string) => {
+          dispatch(addFriendAsync({ userId: senderId }));
+        },
+      );
+  }, [dispatch, authUser, authToken, currentUser]);
+  useEffect(() => {
+    !!authUser &&
+      !!authToken &&
+      !!currentUser &&
+      currentUser._id === authUser._id &&
+      socket?.on(
+        "declinedFriendRequest",
+        (senderId: string) => {
+          dispatch(removeFriendAsync({ userId: senderId }));
+        },
+      );
+  }, [dispatch, authUser, authToken, currentUser]);
+
+  useEffect(() => {
     console.log({ connectedUsers });
     console.log({ authToken });
   }, [authToken, connectedUsers]);
@@ -221,124 +247,58 @@ const App = () => {
     !!token && localStorage.setItem("token", token);
   }, [token]);
 
-  
-  useEffect(() => {
-    console.log(process.env.NODE_ENV);
-    console.log(process.env.REACT_APP_PUBLIC_FOLDER);
-    console.log(process.env.REACT_APP_API_URL);
-    console.log(process.env.REACT_APP_SOCKET_URL);
-    const hexToDecimal = (hex:string) => parseInt(hex, 16);
-    console.log(
-      String.fromCharCode(
-        hexToDecimal("661F"),
-        hexToDecimal("671F"),
-        hexToDecimal("56DB"),
-      ),
-    );
-  }, []);
-
- 
+  // useEffect(() => {
+  //   console.log(process.env.NODE_ENV);
+  //   console.log(process.env.REACT_APP_PUBLIC_FOLDER);
+  //   console.log(process.env.REACT_APP_API_URL);
+  //   console.log(process.env.REACT_APP_SOCKET_URL);
+  // }, []);
 
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={lightTheme}>
       <CssBaseline />
-      <Container
-        maxWidth="xl"
-        style={{ backgroundColor: "black" }}
-      >
+      <Container maxWidth="xl">
         <ToastContainer />
         <Routes>
           <Route
             path="/signin"
-            element={
-              !authUser ? (
-                <Signin />
-              ) : (
-                <Home />
-              )
-            }
+            element={!authUser ? <Signin /> : <Home />}
             // element={<Signin />}
           />
           <Route
             path="/signup"
-            element={
-              !authUser ? (
-                <SignUp />
-              ) : (
-                <Home />
-              )
-            }
+            element={!authUser ? <SignUp /> : <Home />}
           />
           <Route
             path="/messenger/:userId"
-            element={
-              !!authUser ? (
-                <Messenger />
-              ) : (
-                <Signin />
-              )
-            }
+            element={!!authUser ? <Home /> : <Signin />}
           />
           <Route
             path="/messenger"
-            element={
-              !!authUser  ? (
-                <Messenger />
-              ) : (
-                <Signin />
-              )
-            }
+            element={!!authUser ? <Home /> : <Signin />}
           />
           <Route
             path="/profile/:username"
-            element={
-              !!authUser  ? (
-                <Profile />
-              ) : (
-                <Signin />
-              )
-            }
+            element={!!authUser ? <Profile /> : <Signin />}
           />
           <Route
             path="/search"
-            element={
-              !!authUser  ? (
-                <Search />
-              ) : (
-                <Signin />
-              )
-            }
+            element={!!authUser ? <Search /> : <Signin />}
           />
           <Route
             path="/friend/requests"
             element={
-              !!authUser ? (
-                <FriendRequests />
-              ) : (
-                <Signin />
-              )
+              !!authUser ? <FriendRequests /> : <Signin />
             }
           />
-          
+
           <Route
-            path="/:?userId"
-            element={
-              !!authUser  ? (
-                <Home />
-              ) : (
-                <Signin />
-              )
-            }
+            path="/:userId"
+            element={!!authUser ? <Home /> : <Signin />}
           />
           <Route
             path="*"
-            element={
-              !!authUser  ? (
-                <Home />
-              ) : (
-                <SignUp />
-              )
-            }
+            element={!!authUser ? <Home /> : <Signin />}
           />
         </Routes>
       </Container>

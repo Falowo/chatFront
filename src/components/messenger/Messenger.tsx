@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import useDeepCompareEffect from "use-deep-compare-effect";
 import "./messenger.css";
-import Conversation from "../../components/conversation/Conversation";
 // import { io, Socket } from "socket.io-client";
 import { socket } from "../../config/config.socket";
 import { IConversation, IPMessage } from "../../interfaces";
@@ -10,19 +9,16 @@ import {
   useAppSelector,
 } from "../../app/hooks";
 import {
-  conversationCheckedByCurrentUserAsync,
   getExisitingConversationOrCreateOneAsync,
   messageCheckedByRemoteUser,
   messageReceivedByCurrentUserAsync,
   messageReceivedByRemoteUser,
-  selectConversations,
   selectCurrentChat,
   selectLastMessage,
   selectLastMessagesCheckedByCurrentUser,
   selectSelectedConversation,
   setCurrentChatAsync,
 } from "../../app/slices/messengerSlice";
-import { useParams } from "react-router-dom";
 import {
   addFriendAsync,
   selectCurrentUser,
@@ -32,7 +28,8 @@ import {
   socketCurrentUserCheckMessagesAsync,
   socketGotMessage,
 } from "../../app/slices/socketSlice";
-import ChatBox from "./ChatBox";
+import ChatBox from "../chatBox/ChatBox";
+import ChatMenu from "../chatMenu/ChatMenu";
 export interface IChat {
   conversation: IConversation;
   messages: IPMessage[];
@@ -47,13 +44,13 @@ export interface SocketReceivedMessage {
   receiverId: string;
 }
 
-const Messenger = () => {
+const Messenger = ({ userId }: { userId?: string }) => {
   const currentUser = useAppSelector(selectCurrentUser);
 
   const currentUserFriends = useAppSelector(
     selectFriendsOfCurrentUser,
   );
-  const conversations = useAppSelector(selectConversations);
+ 
 
   const [getMessageFromSocket, setGetMessageFromSocket] =
     useState<SocketGetMessageProps | undefined>(undefined);
@@ -73,8 +70,7 @@ const Messenger = () => {
   const selectedConversation = useAppSelector(
     selectSelectedConversation,
   );
- 
-  const { userId } = useParams();
+
   const lastMessage = useAppSelector(selectLastMessage);
   const lastMessagesCheckedByCurrentUser = useAppSelector(
     selectLastMessagesCheckedByCurrentUser,
@@ -82,13 +78,6 @@ const Messenger = () => {
 
   // const isFetching = useAppSelector(selectMessengerIsfetching)
   const dispatch = useAppDispatch();
-
-
-  
-
-  
-
-  
 
   useEffect(() => {
     if (
@@ -232,54 +221,11 @@ const Messenger = () => {
       );
   }, [currentUser, dispatch, selectedConversation, userId]);
 
-  
-
   return (
     <>
       <div className="messenger">
-        <div className="chatMenu">
-          <div className="chatMenuWrapper">
-            <h3>Conversations</h3>
-            <div className="chatMenuListConversationsWrapper">
-              {conversations && conversations?.length ? (
-                conversations?.map((c) => (
-                  <button
-                    className="onClickButtonWrapper conversationItem"
-                    key={c._id!}
-                    onClick={() => {
-                      dispatch(
-                        setCurrentChatAsync({
-                          selectedIPConversation: c,
-                        }),
-                      );
-                      dispatch(
-                        conversationCheckedByCurrentUserAsync(
-                          {
-                            conversationId: c._id!,
-                            currentUserId:
-                              currentUser?._id!,
-                          },
-                        ),
-                      );
-                    }}
-                  >
-                    <Conversation
-                      conversation={c}
-                      key={c._id!}
-                      selected={
-                        currentChat?.conversation._id ===
-                        c._id
-                      }
-                    />
-                  </button>
-                ))
-              ) : (
-                <span>No conversations</span>
-              )}
-            </div>
-          </div>
-        </div>
-        <ChatBox/>
+        <ChatMenu/>
+        <ChatBox />
       </div>
     </>
   );
