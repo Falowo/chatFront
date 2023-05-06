@@ -95,8 +95,8 @@ const Message = (props: MessageProps) => {
           <div>
             {message?.status === 40 ? (
               <DoneAllIcon
-                color={`${"primary"}`}
                 fontSize="small"
+                color="success"
               />
             ) : message?.status === 30 ? (
               <DoneAllIcon fontSize="small" />
