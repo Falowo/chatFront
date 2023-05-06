@@ -22,12 +22,8 @@ export default function Home() {
     dispatch(checkExp());
   }, [dispatch]);
 
-  
-
   return (
-    <div
-      style={{ width: "100%", border: "1px solid orange" }}
-    >
+    <div style={{ width: "100%" }}>
       <Topbar />
       <div className="homeContainer">
         <CookieConsent>

@@ -2,7 +2,6 @@
   flex: 6;
   flex-grow: 1;
   min-width: 60vw;
-  border: 1px solid purple;
 }
 .chatBoxWrapper {
   height: calc(100vh - 70px);
@@ -10,7 +9,6 @@
   flex-direction: column;
   position: relative;
   width: 100%;
-  border: 1px solid greenyellow;
 }
 
 .chatBoxTop {
